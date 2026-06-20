@@ -346,12 +346,11 @@ class ShowdownService : Service() {
 
 
     private fun storeAuthCookieIfAny(cookies: List<String>) {
-        cookies.first { it.startsWith("sid") }.let { cookie ->
-            val encodedCookie = Base64.encode(cookie.substringBefore(';').toByteArray(), Base64.DEFAULT)
-            getSharedPreferences("user", Context.MODE_PRIVATE).edit()
-                    .putString("token", String(encodedCookie))
-                    .apply()
-        }
+        val cookie = cookies.firstOrNull { it.startsWith("sid") } ?: return
+        val encodedCookie = Base64.encode(cookie.substringBefore(';').toByteArray(), Base64.DEFAULT)
+        getSharedPreferences("user", Context.MODE_PRIVATE).edit()
+                .putString("token", String(encodedCookie))
+                .apply()
     }
 
     private fun retrieveAuthCookieIfAny() = getSharedPreferences("user", Context.MODE_PRIVATE)

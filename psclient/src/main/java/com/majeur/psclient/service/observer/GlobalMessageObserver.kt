@@ -6,6 +6,7 @@ import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.service.ServerMessage
 import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.util.Utils
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
@@ -110,32 +111,32 @@ class GlobalMessageObserver(service: ShowdownService)
         if (response == "null") return
         try {
             val jsonObject = JSONObject(response)
-            val userCount = jsonObject.getInt("userCount")
+            val userCount = jsonObject.optInt("userCount", -1)
             service.putSharedData("users", userCount)
-            val battleCount = jsonObject.getInt("battleCount")
+            val battleCount = jsonObject.optInt("battleCount", -1)
             service.putSharedData("battles", battleCount)
             onUpdateCounts(userCount, battleCount)
             if (requestServerCountsOnly) {
                 requestServerCountsOnly = false
                 return
             }
-            var jsonArray = jsonObject.getJSONArray("official")
+            var jsonArray = jsonObject.optJSONArray("official") ?: JSONArray()
             val officialRooms = mutableListOf<ChatRoomInfo>()
             for (i in 0 until jsonArray.length()) {
-                val roomJson = jsonArray.getJSONObject(i)
+                val roomJson = jsonArray.optJSONObject(i) ?: continue
                 officialRooms.add(
-                        ChatRoomInfo(roomJson.getString("title"),
-                                roomJson.getString("desc"),
-                                roomJson.getInt("userCount")))
+                        ChatRoomInfo(roomJson.optString("title"),
+                                roomJson.optString("desc"),
+                                roomJson.optInt("userCount", 0)))
             }
-            jsonArray = jsonObject.getJSONArray("chat")
+            jsonArray = jsonObject.optJSONArray("chat") ?: JSONArray()
             val chatRooms = mutableListOf<ChatRoomInfo>()
             for (i in 0 until jsonArray.length()) {
-                val roomJson = jsonArray.getJSONObject(i)
+                val roomJson = jsonArray.optJSONObject(i) ?: continue
                 chatRooms.add(
-                        ChatRoomInfo(roomJson.getString("title"),
-                                roomJson.getString("desc"),
-                                roomJson.getInt("userCount")))
+                        ChatRoomInfo(roomJson.optString("title"),
+                                roomJson.optString("desc"),
+                                roomJson.optInt("userCount", 0)))
             }
             onAvailableRoomsChanged(officialRooms, chatRooms)
         } catch (e: JSONException) {

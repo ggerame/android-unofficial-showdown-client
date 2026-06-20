@@ -24,7 +24,10 @@ open class BasePokemon : Serializable {
 
     private fun computeForme(species: String){
         val id = species.toId()
-        val excluded = arrayOf("hooh", "hakamoo", "jangmoo", "kommoo", "porygonz")
+        // Base species whose name contains a hyphen but are NOT formes.
+        // Without this they'd be wrongly split (e.g. "Wo-Chien" -> base "Wo", forme "Chien").
+        val excluded = arrayOf("hooh", "hakamoo", "jangmoo", "kommoo", "porygonz",
+                "nidoranf", "nidoranm", "wochien", "chienpao", "tinglu", "chiyu")
         if (!excluded.contains(id)) {
             if (id == "kommoototem") {
                 baseSpecies = "Kommo-o"

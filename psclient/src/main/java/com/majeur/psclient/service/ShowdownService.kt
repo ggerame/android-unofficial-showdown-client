@@ -259,7 +259,9 @@ class ShowdownService : Service() {
                     // some sort of MitM proxy; ignore it
                     rawResponse = rawResponse.substringAfter('>')
                 }
-                rawResponse = rawResponse.removePrefix("\r").removePrefix("\n")
+                // Strip all line breaks — the assertion is now a multi-line
+                // hex-encoded RSA signature that must be flattened before use.
+                rawResponse = rawResponse.filter { it != '\r' && it != '\n' }
                 if (rawResponse.contains('<')) {
                     uiHandler.post { callback.onError("Something is interfering with our connection to the login server. Most likely, your internet provider needs you to re-log-in, or your internet provider is blocking Pokémon Showdown.") }
                     return
@@ -271,12 +273,9 @@ class ShowdownService : Service() {
                     rawResponse == ";;@gmail" -> {
                         uiHandler.post { callback.onError("Google log-in is not supported in this client, please use another account.") }
                     }
-                    rawResponse.substring(0, 2) == ";;" -> {
+                    rawResponse.length >= 2 && rawResponse.substring(0, 2) == ";;" -> {
                         val errorReason: String = rawResponse.substring(2)
                         uiHandler.post { callback.onError(errorReason) }
-                    }
-                    rawResponse.indexOf('\n') >= 0 -> {
-                        uiHandler.post { callback.onError("Something is interfering with our connection to the login server.") }
                     }
                     else -> {
                         sendTrnMessage(username, rawResponse)

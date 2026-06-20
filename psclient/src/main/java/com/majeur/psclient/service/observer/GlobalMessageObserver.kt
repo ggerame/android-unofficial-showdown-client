@@ -179,10 +179,11 @@ class GlobalMessageObserver(service: ShowdownService)
     private fun processUserDetailsQueryResponse(response: String) {
         try {
             val jsonObject = JSONObject(response)
-            val userId = jsonObject.optString("userid")
+            val userId = jsonObject.optString("userid").ifEmpty { jsonObject.optString("id") }
             if (userId.isBlank()) return
             val name = jsonObject.optString("name")
-            val online = jsonObject.has("status")
+            // Online users have a "rooms" field (even if empty {}); offline users don't
+            val online = jsonObject.has("rooms") || jsonObject.has("status")
             val group = jsonObject.optString("group")
             val chatRooms = mutableListOf<String>()
             val battles = mutableListOf<String>()

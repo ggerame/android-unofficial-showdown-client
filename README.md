@@ -110,6 +110,8 @@ The following raw assets must be periodically regenerated when new Pokémon are 
 | `psclient/src/main/res/raw/dex_icon_indexes.json` | `build-tools/build_dex_icon_indexes.py` |
 | `psclient/src/main/res/raw/dex_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
 | `psclient/src/main/res/raw/item_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
+| `psclient/src/main/res/raw/learnsets.json` | `build-tools/build_learnsets.py` |
+| `psclient/src/main/res/raw/moves.json` | `build-tools/build_moves.py` |
 
 **Prerequisites:** Python 3 + `pip install requests`
 
@@ -119,6 +121,8 @@ cd build-tools
 python3 update_icons_sheet.py
 python3 build_dex.py
 python3 build_dex_icon_indexes.py
+python3 build_learnsets.py
+python3 build_moves.py
 ```
 
 Each script fetches live data from `play.pokemonshowdown.com` and asks for confirmation before overwriting the local file.

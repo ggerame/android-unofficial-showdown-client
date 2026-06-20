@@ -100,6 +100,29 @@ For now, only single and double battles are implemented. The code allows triple 
 ### Data files
 For maintainability reasons and to keep app binary file size as low as possible, I tried to retrieve data from showdown server as much as possible. But, for heavily/recurrent accessed data, such as poke/move details, json files are kept locally to ensure a very low loading time. Dex icons are also stored locally to allow region only icon decoding, avoiding us to load the entire icon sheet.
 A download of these files at first launch might be implemented in the future.
+
+#### Updating local data (new Pokémon generations)
+The following raw assets must be periodically regenerated when new Pokémon are added to Showdown:
+
+| File | Generator script |
+|---|---|
+| `psclient/src/main/res/raw/dex.json` | `build-tools/build_dex.py` |
+| `psclient/src/main/res/raw/dex_icon_indexes.json` | `build-tools/build_dex_icon_indexes.py` |
+| `psclient/src/main/res/raw/dex_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
+| `psclient/src/main/res/raw/item_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
+
+**Prerequisites:** Python 3 + `pip install requests`
+
+**Run** (from `build-tools/`, answer `y` at each override prompt):
+```
+cd build-tools
+python3 update_icons_sheet.py
+python3 build_dex.py
+python3 build_dex_icon_indexes.py
+```
+
+Each script fetches live data from `play.pokemonshowdown.com` and asks for confirmation before overwriting the local file.
+Without these updates, Pokémon from newer generations will not appear in the teambuilder autocomplete and their types/stats will be missing.
 ### Web protocols
 Every single http connection established by this client is using secured http protocol (`https:`). For WebSocket, `wss:` is now used since alpha3.
 ### Android string resources

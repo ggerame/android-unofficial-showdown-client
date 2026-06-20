@@ -26,6 +26,8 @@ class ShowdownService : Service() {
         private const val WS_CLOSE_GOING_AWAY = 1001
         private const val WS_CLOSE_NETWORK_ERROR = 4001
         private const val SHOWDOWN_SOCKET_URL = "wss://sim3.psim.us/showdown/websocket"
+        private const val BROWSER_USER_AGENT =
+                "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
     }
 
     internal lateinit var okHttpClient: OkHttpClient

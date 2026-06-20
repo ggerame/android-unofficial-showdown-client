@@ -7,7 +7,7 @@ from json import dumps
 app_data_dir = "../psclient/src/main/res/raw"
 target_file_name = "dex_icon_indexes.json"
 url_js_file = "http://play.pokemonshowdown.com/data/pokedex-mini.js"
-url_js_file2 = "http://raw.githubusercontent.com/smogon/pokemon-showdown-client/master/src/battle-dex-data.ts"
+url_js_file2 = "https://raw.githubusercontent.com/smogon/pokemon-showdown-client/master/play.pokemonshowdown.com/src/battle-dex-data.ts"
 
 data = get_remote_data(url_js_file)
 

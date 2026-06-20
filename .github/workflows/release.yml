@@ -1,0 +1,61 @@
+# Builds the APK and publishes it as a GitHub Release.
+#
+# Triggers:
+#   - Pushing a tag like `v1.1.0` -> creates a release for that tag.
+#   - Manually (workflow_dispatch) -> you provide the tag to release.
+#
+# The uploaded APK is the debug-signed build, which is directly installable on a
+# device. (The `release` build type has no signing config in this project, so an
+# `assembleRelease` APK would be unsigned and not installable. To ship a signed
+# release build instead, add a release signingConfig and sign the APK here using
+# a keystore stored in repository secrets.)
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Stage APK
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          mkdir -p artifacts
+          cp psclient/build/outputs/apk/debug/psclient-debug.apk \
+             "artifacts/showdown-client-${TAG}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: artifacts/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

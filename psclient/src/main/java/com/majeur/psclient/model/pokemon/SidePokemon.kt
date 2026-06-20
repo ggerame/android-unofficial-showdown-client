@@ -18,6 +18,7 @@ class SidePokemon(val index: Int, json: JSONObject) : BasePokemon() {
     val item: String = json.getString("item")
     val pokeBall = json.getString("pokeball")
     val ability: String = json.optString("ability").run { if (isBlank()) json.optString("baseAbility") else this } // TODO baseability is when ability is a replacement, investigate this
+    val teraType: String? = json.optString("teraType").takeIf { it.isNotBlank() }
 
     var gender: String = ""
     var shiny: Boolean = false

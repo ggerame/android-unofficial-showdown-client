@@ -320,6 +320,12 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 append("\n")
             }
 
+            pokemon.teraType?.let { tera ->
+                append("Tera Type: ".small())
+                append(tera.toUpperCase().small().tag(Colors.typeColor(tera.toId())))
+                append("\n")
+            }
+
             var ability: String? = null
             if (pokemon.trainer && lastDecisionRequest?.side != null) {
                 val sidePokemon = lastDecisionRequest!!.side[pokemon.position]
@@ -350,8 +356,13 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     append("No dex entry for ${pokemon.species}")
                     return@launch
                 }
-                placeHolderTop.setImageResource(Type.getResId(dexPokemon.firstType))
-                dexPokemon.secondType?.let { placeHolderBottom.setImageResource(Type.getResId(it)) }
+                if (pokemon.teraType != null) {
+                    placeHolderTop.setImageResource(Type.getResId(pokemon.teraType))
+                    placeHolderBottom.setImageDrawable(null)
+                } else {
+                    placeHolderTop.setImageResource(Type.getResId(dexPokemon.firstType))
+                    dexPokemon.secondType?.let { placeHolderBottom.setImageResource(Type.getResId(it)) }
+                }
 
                 if (pokemon.trainer && observer.isUserPlaying) {
                     if (ability == null) return@launch
@@ -439,13 +450,20 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     " Spe:".small() concat pokemon.stats.spe.toString() concat
                     "\n" concat
                     "Ability: ".small() concat pokemon.ability concat "\n" concat
-                    "Item: ".small() concat pokemon.item.or("None") concat "\n" concat
-                    "Moves: ".small())
+                    "Item: ".small() concat pokemon.item.or("None") concat "\n")
+            pokemon.teraType?.let { tera ->
+                append("Tera Type: ".small() concat tera.toUpperCase().small().tag(Colors.typeColor(tera.toId())) concat "\n")
+            }
+            append("Moves: ".small())
         }
         fragmentScope.launch {
+            val foeTypes = foeDefendingTypes()
             assetLoader.movesDetails(*pokemon.moves.map { it.toId() }.toTypedArray()).forEachIndexed { index, details ->
                 descView.append("\n\t")
                 descView.append(details?.name ?: pokemon.moves[index])
+                if (details != null && foeTypes != null && details.category.toId() != "status") {
+                    effectivenessLabel(Type.effectiveness(details.type, foeTypes))?.let { descView.append(" " concat it) }
+                }
             }
         }
         fragmentScope.launch {
@@ -463,6 +481,26 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 if (abilityName.isNotEmpty()) Utils.replace(descView.editableText, pokemon.ability, abilityName)
             }
         }
+    }
+
+    /** Current defending types of the opposing active Pokémon (its Tera type if Terastallized), or null if unknown. */
+    private suspend fun foeDefendingTypes(): List<String>? {
+        val foe = observer.getBattlingPokemon(PokemonId(Player.FOE, 0)) ?: return null
+        foe.teraType?.let { return listOf(it) }
+        return assetLoader.dexPokemon(foe.species.toId())?.let { listOfNotNull(it.firstType, it.secondType) }
+    }
+
+    private fun effectivenessLabel(multiplier: Double): CharSequence? = when {
+        multiplier == 0.0 -> "(0×)".small().bold().color(Colors.GRAY)
+        multiplier > 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().color(Colors.GREEN)
+        multiplier < 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().color(Colors.RED)
+        else -> null
+    }
+
+    private fun formatMultiplier(multiplier: Double) = when (multiplier) {
+        0.25 -> "¼"
+        0.5 -> "½"
+        else -> if (multiplier == multiplier.toLong().toDouble()) multiplier.toLong().toString() else multiplier.toString()
     }
 
     private fun notifyNewMessageReceived() {

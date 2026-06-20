@@ -21,11 +21,14 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.FrameLayout
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
+import androidx.core.widget.TextViewCompat
 import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.*
 import com.majeur.psclient.model.battle.Move.Target.Companion.computeTargetAvailabilities
+import com.majeur.psclient.model.common.Colors
 import com.majeur.psclient.model.pokemon.BattlingPokemon
 import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
@@ -82,11 +85,12 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
             setProperty(CONTENT_ALPHA_PROPERTY)
         }
         repeat(4) {
-            Button(context).apply {
+            AppCompatButton(context).apply {
                 isAllCaps = false
                 setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                setPadding(dp(6f), dp(6f), dp(6f), dp(6f))
+                maxLines = 2
+                setPadding(dp(4f), dp(6f), dp(4f), dp(6f))
+                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(this, 8, 14, 1, TypedValue.COMPLEX_UNIT_SP)
                 setOnClickListener(this@BattleDecisionWidget)
             }.also {
                 addView(it)
@@ -278,7 +282,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                         request.canMegaEvo(promptStage),
                         request.canDynamax(promptStage),
                         request.isDynamaxed(promptStage),
-                        request.canTerastallize(promptStage) != null,
+                        request.canTerastallize(promptStage),
                         team,
                         request.teamPreview)
             }
@@ -370,11 +374,11 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
     }
 
     private fun showChoice(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean,
-                           canDynamax: Boolean, isDynamaxed: Boolean, canTera: Boolean, team: List<SidePokemon>?,
+                           canDynamax: Boolean, isDynamaxed: Boolean, teraType: String?, team: List<SidePokemon>?,
                            chooseLead: Boolean) {
         if ((promptStage == 0 || decision.hasOnlyPassChoice()) && !comingToPreviousStage) {
             // First time a choice is shown, no need of animation
-            setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, canTera, team, chooseLead)
+            setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, teraType, team, chooseLead)
             return
         }
         alphaAnimator.apply {
@@ -389,7 +393,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                 }
 
                 override fun onAnimationRepeat(animator: Animator) {
-                    setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, canTera, team, chooseLead)
+                    setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, teraType, team, chooseLead)
                 }
 
                 override fun onAnimationEnd(animator: Animator) {
@@ -401,7 +405,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
     }
 
     private fun setChoiceLayout(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean, canDynamax: Boolean,
-                                isDynamaxed: Boolean, canTera: Boolean, team: List<SidePokemon>?, chooseLead: Boolean) {
+                                isDynamaxed: Boolean, teraType: String?, team: List<SidePokemon>?, chooseLead: Boolean) {
         var canZMove = false
         moveButtons.forEachIndexed { i, btn ->
             if (moves != null && i < moves.size) {
@@ -443,10 +447,10 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                 isChecked = false
                 setOnCheckedChangeListener { _: CompoundButton?, checked: Boolean -> toggleMaxMoves(checked) }
             }
-            canTera && !decision.hasTeraChoices() -> movesCheckBox.apply {
+            teraType != null && !decision.hasTeraChoices() -> movesCheckBox.apply {
                 checkBoxRepresentsTera = true
                 visibility = View.VISIBLE
-                text = "Terastallize"
+                text = "Terastallize " concat teraType.toUpperCase().small().tag(Colors.typeColor(teraType.toId()))
                 isChecked = false
                 setOnCheckedChangeListener(null)
             }

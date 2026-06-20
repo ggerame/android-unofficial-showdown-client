@@ -4,3 +4,8 @@
 local.properties
 build
 __pycache__
+*.apk
+captures
+.externalNativeBuild
+.cxx
+.DS_Store

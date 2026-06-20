@@ -1,0 +1,26 @@
+Unofficial Showdown! Client (Gen 9 fork)
+=========================================
+
+This product is a fork of the "Android Unofficial Showdown Client" project.
+
+Original work:
+  Copyright 2020 MajeurAndroid
+  https://github.com/MajeurAndroid/Android-Unofficial-Showdown-Client
+  Licensed under the Apache License, Version 2.0.
+
+Modifications in this fork:
+  Copyright 2024-2026 Unofficial Showdown Client (Gen 9) fork contributors
+  Licensed under the Apache License, Version 2.0.
+
+This software is NOT affiliated with, endorsed by, or sponsored by Smogon or
+the Pokémon Showdown project. "Pokémon Showdown" is a battle simulator created
+by Guangcong Luo (Zarel) and contributors (https://pokemonshowdown.com).
+"Pokémon" is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc.
+
+At runtime this client fetches public assets (Pokémon sprites, battle
+backgrounds and field effect graphics) directly from
+https://play.pokemonshowdown.com. Those assets are the property of their
+respective owners and are NOT redistributed as part of this repository.
+
+Third-party components used by this app are distributed under their own
+licenses; see the dependency declarations in psclient/build.gradle.

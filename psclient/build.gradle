@@ -8,8 +8,8 @@ android {
         applicationId "com.majeur.psclient"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 15
-        versionName "1.0-alpha09"
+        versionCode 16
+        versionName "1.1.0-gen9"
     }
     buildTypes {
         release {

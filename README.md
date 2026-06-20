@@ -1,12 +1,7 @@
 <h1>
   <img alt="App icon" src="web/icon-psclient.png" width="40" align="top">
-  Unofficial Showdown! Client — Gen 9 fork
+  Unofficial Showdown! Client
 </h1>
-
-> A fork that revives the abandoned
-> [Android Unofficial Showdown Client](https://github.com/MajeurAndroid/Android-Unofficial-Showdown-Client)
-> and brings it up to date with the modern Pokémon Showdown server,
-> **Generation 9** data and **Terastallization**.
 
 ![Demo](web/demo-psclient.png)
 
@@ -17,56 +12,44 @@
 > [play.pokemonshowdown.com](https://play.pokemonshowdown.com).
 
 ## Contents
-- [About this fork](#about-this-fork)
-- [What's new](#whats-new)
+- [Introduction](#introduction)
 - [Features](#features)
 - [Building](#building)
 - [Updating local data (new generations)](#updating-local-data-new-generations)
-- [Project structure](#project-structure)
-- [Architecture](#architecture)
-- [Limitations](#limitations)
+- [Technical overview](#technical-overview)
+- [Notes](#notes)
 - [Contributing](#contributing)
+- [TODO](#TODO)
 - [Credits](#credits)
 - [License](#license)
 
-## About this fork
-The upstream project hadn't been updated in years and, in the meantime, the
-public Pokémon Showdown server changed enough to break sign-in and a few other
-flows, while the Pokédex moved on by several generations.
+## Introduction
+This repository contains the source code for the **unofficial Pokémon Showdown**
+Android client. It is written mostly in **Kotlin** on top of the Android
+framework; it was formerly written in Java, so you'll still find some components
+written in Java.
 
-This fork:
-- restores connectivity with the **current** Showdown server,
-- updates the bundled data to **Generation 9**,
-- adds the **Terastallization** battle gimmick and move **type-effectiveness**
-  hints,
-- and improves the in-battle visuals (multiple backgrounds and graphical entry
-  hazards) to better match the web client.
+> **Why a native app when *play.pokemonshowdown.com* already supports mobile devices?**
+> The web client does its best to support small screen sizes — and does it pretty
+> well — but the user experience is still far from what a native app can provide.
 
-The app remains a **companion** to the desktop/web client — convenient for
-playing or spectating on the go — not a full replacement for it.
+**What this client is** — a client with a convenient UI suited to mobile
+devices, without losing any part of the experience you would have on the
+official client (tips, types, stats, and so on).
 
-## What's new
-A short summary (see [CHANGELOG.md](CHANGELOG.md) for the full list):
-
-- 🟣 **Terastallization** — decision toggle, on-field `TERA <TYPE>` badge,
-  tooltips and toasts.
-- 📊 **Move effectiveness** — coloured multipliers on move buttons, in tooltips
-  and in the team popup, computed against the foe's current (Tera-aware) types.
-- 🖼️ **Battle backgrounds** — the same multi-backdrop selection as the web
-  client, loaded at runtime.
-- 🕸️ **Graphical entry hazards** — Spikes, Toxic Spikes, Stealth Rock,
-  Sticky Web and G-Max Steelsurge drawn on the field with the official sprites.
-- 🔌 **Protocol fixes** — modern login (multi-line RSA assertion), PM-based
-  challenges, hardened JSON parsing, better error handling.
-- 🧬 **Gen 9 data** — dex, moves, learnsets and icon sheets regenerated;
-  HOME artwork and hyphenated-name sprite fixes.
+**What this client is not** — a replacement for the desktop/web client. It is
+more of a companion app, letting you play Showdown anywhere without needing your
+desktop computer.
 
 ## Features
-- Connect to the official server, log in (guest or registered account).
-- Find/accept/cancel battles and challenges.
+- Connect to the official server and log in (guest or registered account).
+- Find, accept and cancel battles and challenges.
 - Full single and double battle UI with tips, types, stats, status, weather and
-  terrain overlays, and now Tera + graphical hazards.
-- Battle replays.
+  terrain overlays, plus **Terastallization** and graphical entry hazards.
+- Move **type-effectiveness** hints computed against the foe's current
+  (Tera-aware) types.
+- Battle replays with turn-by-turn playback controls.
+- Spectate ongoing battles.
 - Chat rooms.
 - Team builder with Smogon import/export.
 
@@ -127,22 +110,23 @@ confirmation (`y`) before overwriting the local file. Without these updates,
 newer Pokémon won't appear in the team-builder autocomplete and their
 types/stats will be missing.
 
-## Project structure
+## Technical overview
+A brief tour of the packages and their main components, to help you find how
+things fit together.
+
+### Project structure
 Base package: `com.majeur.psclient`
 
 | Package | Responsibility |
 |---|---|
-| [`.ui`](psclient/src/main/java/com/majeur/psclient/ui) | Activities, fragments and dialogs. Fragments implement the message-observer callbacks to update the UI. Includes [`.teambuilder`](psclient/src/main/java/com/majeur/psclient/ui/teambuilder). |
-| [`.service`](psclient/src/main/java/com/majeur/psclient/service) | Everything Showdown-protocol related. [`ShowdownService`](psclient/src/main/java/com/majeur/psclient/service/ShowdownService.kt) owns the WebSocket and authentication; [`.observer`](psclient/src/main/java/com/majeur/psclient/service/observer) parses and dispatches server messages. |
-| [`.io`](psclient/src/main/java/com/majeur/psclient/io) | Content loading: local dex/move data and dex icons, plus web sprites via Glide ([`GlideHelper`](psclient/src/main/java/com/majeur/psclient/io/GlideHelper.kt)), battle text and audio. |
+| [`.ui`](psclient/src/main/java/com/majeur/psclient/ui) | Activities, fragments and dialogs. [`MainActivity`](psclient/src/main/java/com/majeur/psclient/ui/MainActivity.kt) sets up the fragments and the connection to `ShowdownService`; each `*Fragment` drives its UI by implementing its message-observer callbacks. Includes the team builder ([`.teambuilder`](psclient/src/main/java/com/majeur/psclient/ui/teambuilder)). |
+| [`.service`](psclient/src/main/java/com/majeur/psclient/service) | Everything Showdown-protocol related. [`ShowdownService`](psclient/src/main/java/com/majeur/psclient/service/ShowdownService.kt) owns the WebSocket and authentication; the [`.observer`](psclient/src/main/java/com/majeur/psclient/service/observer) package parses and dispatches server messages ([`GlobalMessageObserver`](psclient/src/main/java/com/majeur/psclient/service/observer/GlobalMessageObserver.kt), [`RoomMessageObserver`](psclient/src/main/java/com/majeur/psclient/service/observer/RoomMessageObserver.kt), [`BattleRoomMessageObserver`](psclient/src/main/java/com/majeur/psclient/service/observer/BattleRoomMessageObserver.kt), [`ChatRoomMessageObserver`](psclient/src/main/java/com/majeur/psclient/service/observer/ChatRoomMessageObserver.kt)). |
+| [`.io`](psclient/src/main/java/com/majeur/psclient/io) | Content loading via [`AssetLoader`](psclient/src/main/java/com/majeur/psclient/io/AssetLoader.kt): local dex/move data and dex icons, web sprites through [`GlideHelper`](psclient/src/main/java/com/majeur/psclient/io/GlideHelper.kt), battle text ([`BattleTextBuilder`](psclient/src/main/java/com/majeur/psclient/io/BattleTextBuilder.java)) and audio ([`BattleAudioManager`](psclient/src/main/java/com/majeur/psclient/io/BattleAudioManager.java)). |
 | [`.model`](psclient/src/main/java/com/majeur/psclient/model) | Data classes (battle state, Pokémon, types, …). |
 | [`.widget`](psclient/src/main/java/com/majeur/psclient/widget) | Custom UI components such as [`BattleLayout`](psclient/src/main/java/com/majeur/psclient/widget/BattleLayout.kt) and [`StatusView`](psclient/src/main/java/com/majeur/psclient/widget/StatusView.kt). |
-| [`.util`](psclient/src/main/java/com/majeur/psclient/util) | Utilities, including minimal [`html`](psclient/src/main/java/com/majeur/psclient/util/html) rendering and Smogon team parsing/building. |
+| [`.util`](psclient/src/main/java/com/majeur/psclient/util) | Utilities, including minimal [`html`](psclient/src/main/java/com/majeur/psclient/util/html) rendering for `|html|` / `|raw|` messages and Smogon team [parsing](psclient/src/main/java/com/majeur/psclient/util/smogon/SmogonTeamParser.kt) and [building](psclient/src/main/java/com/majeur/psclient/util/smogon/SmogonTeamBuilder.kt). |
 
-The app is written mostly in **Kotlin**, with some original components still in
-Java.
-
-## Architecture
+### Architecture
 **Incoming data flow**
 
 ```mermaid
@@ -162,26 +146,50 @@ flowchart LR
     H -- ws protocol --> I[Showdown server]
 ```
 
-## Limitations
+## Notes
+### Limitations
 - **One battle at a time** — the UI is intentionally designed around a single
-  active battle (sensible on mobile); the code leaves room to extend this.
-- **Battle formats** — singles and doubles are supported and tested; triples
-  build but are untested.
-- **English only** — Showdown itself is English-only, so UI strings are not
-  localized.
-- Spectator mode works but some tip/popup behaviour can still be rough.
+  active battle (which makes sense on mobile); the code is structured to leave
+  room for extending this later.
+- **Battle formats** — singles and doubles are implemented and tested; triples
+  build and run "as is" but are untested.
+- **English only** — Showdown is English-only with no localization planned, so
+  most UI strings are hard-coded rather than placed in `res/values/strings.xml`.
+  A localized Showdown client would be largely pointless and risk a partially
+  translated UI.
+
+### Data files
+To keep the binary small and maintainable, data is fetched from the Showdown
+server whenever practical. For heavily or repeatedly accessed data
+(dex/move/Pokémon details), JSON files are bundled locally to keep loading times
+low. Dex icons are stored locally too, so a single region of the icon sheet can
+be decoded instead of loading the whole sheet. See
+[Updating local data](#updating-local-data-new-generations) for how to
+regenerate these assets.
+
+### Web protocols
+Every HTTP connection uses HTTPS (`https:`) and the WebSocket connection uses
+`wss:`.
 
 ## Contributing
-Contributions are welcome. Please match the existing code style and test your
-changes (ideally against a live battle) before opening a pull request. Bug
-reports and feature ideas via issues are appreciated.
+Contributions are very welcome! Please match the existing coding patterns and
+strongly test your changes — ideally against a live battle — before opening a
+pull request. Bug reports and feature ideas via issues are appreciated.
+
+## TODO
+- **Room user list** — handle the `@!` (away) marker and sort users by rank;
+  usernames are already md5-coloured.
+- **Polish spectator mode** — some tip and popup behaviour is still rough when
+  you are neither player.
+- **More unit tests** — not a priority, but always welcome.
+- Anything else that can be integrated nicely.
 
 ## Credits
 - [Zarel](https://github.com/Zarel) and contributors — for Pokémon Showdown.
-- [MajeurAndroid](https://github.com/MajeurAndroid) — for the original
-  Android client this fork is based on.
 - [NamTThai](https://github.com/NamTThai) — for Java code translated from the
   web client.
+- Everyone on the [Smogon thread](https://www.smogon.com/forums/threads/alpha02-need-testers-unofficial-showdown-android-client.3654298)
+  — for testing and bug reporting.
 - [pokemonshowdown.com/credits](https://pokemonshowdown.com/credits)
 - Type icons by [majeur01 on DeviantArt](https://www.deviantart.com/majeur01/art/Pokemon-Types-Icons-819866719).
 

@@ -151,8 +151,10 @@ class GlobalMessageObserver(service: ShowdownService)
             while (iterator.hasNext()) {
                 val roomId = iterator.next()
                 val roomJson = jsonObject.getJSONObject(roomId)
-                val roomInfo = BattleRoomInfo(roomId, roomJson.getString("p1"),
-                        roomJson.getString("p2"), roomJson.optInt("minElo", 0))
+                val roomPlayers = roomJson.optJSONArray("players")
+                val rp1 = roomPlayers?.optString(0)?.ifEmpty { null } ?: roomJson.optString("p1", "Player 1")
+                val rp2 = roomPlayers?.optString(1)?.ifEmpty { null } ?: roomJson.optString("p2", "Player 2")
+                val roomInfo = BattleRoomInfo(roomId, rp1, rp2, roomJson.optInt("minElo", 0))
                 battleRooms.add(roomInfo)
             }
             onAvailableBattleRoomsChanged(battleRooms)
@@ -203,8 +205,10 @@ class GlobalMessageObserver(service: ShowdownService)
             val catName = rawCategory.substringAfter("|").substringBefore("|")
             val formats = rawCategory.substringAfter(catName).split("|")
                     .filter { s -> s.isNotBlank() }
-                    .map { s ->
-                        BattleFormat(s.substringBefore(","), s.substringAfter(",").toInt(16))
+                    .mapNotNull { s ->
+                        val name = s.substringBefore(",")
+                        val flags = s.substringAfter(",", "").substringBefore(",").trim().toIntOrNull(16) ?: 0
+                        if (name.isBlank()) null else BattleFormat(name, flags)
                     }
             BattleFormat.Category().apply {
                 this.formats.addAll(formats)

@@ -196,11 +196,14 @@ class SearchReplayDialog : BottomSheetDialogFragment(), AdapterView.OnItemClickL
     }
 
     private class Replay(json: JSONObject) {
-        val uploadTime = json.getLong("uploadtime")
-        val id: String = json.getString("id")
-        val format: String = json.getString("format")
-        val p1: String = json.getString("p1")
-        val p2: String = json.getString("p2")
+        val uploadTime = json.optLong("uploadtime", 0L)
+        val id: String = json.optString("id", "")
+        val format: String = json.optString("format", "Unknown")
+        private val players = json.optJSONArray("players")
+        val p1: String = players?.optString(0)?.ifEmpty { null }
+            ?: json.optString("p1", "").ifEmpty { "Player 1" }
+        val p2: String = players?.optString(1)?.ifEmpty { null }
+            ?: json.optString("p2", "").ifEmpty { "Player 2" }
 
         fun timeFromNow(): String {
             val dt = System.currentTimeMillis() / 1000L - uploadTime

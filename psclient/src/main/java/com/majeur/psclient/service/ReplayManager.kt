@@ -129,17 +129,22 @@ class ReplayManager(private val showdownService: ShowdownService) {
     }
 
     private class ReplayData(replayData : JSONObject) {
-        val id: String = replayData.getString("id")
-        val p1: String = replayData.getString("p1")
-        val p2: String = replayData.getString("p2")
-        val format: String = replayData.getString("format")
-        val log: String = replayData.getString("log")
+        val id: String = replayData.optString("id", "")
+        private val players = replayData.optJSONArray("players")
+        val p1: String = players?.optString(0)?.ifEmpty { null }
+            ?: replayData.optString("p1", "").ifEmpty { "Player 1" }
+        val p2: String = players?.optString(1)?.ifEmpty { null }
+            ?: replayData.optString("p2", "").ifEmpty { "Player 2" }
+        val format: String = replayData.optString("format", "Unknown")
+        val log: String = replayData.optString("log", "")
         //  val inputLog: String = replayData.getString("inputlog")
-        val uploadTime: Long = replayData.getLong("uploadtime")
-        val views: Long = replayData.getLong("views")
-        val p1Id: String = replayData.getString("p1id")
-        val p2Id: String = replayData.getString("p2id")
-        val formatId: String = replayData.getString("formatid")
+        val uploadTime: Long = replayData.optLong("uploadtime", 0L)
+        val views: Long = replayData.optLong("views", 0L)
+        val p1Id: String = players?.optString(0)?.ifEmpty { null }
+            ?: replayData.optString("p1id", "").ifEmpty { p1 }
+        val p2Id: String = players?.optString(1)?.ifEmpty { null }
+            ?: replayData.optString("p2id", "").ifEmpty { p2 }
+        val formatId: String = replayData.optString("formatid", "").ifEmpty { format.lowercase().filter { c -> c.isLetterOrDigit() } }
         // rating
         // private
         // password

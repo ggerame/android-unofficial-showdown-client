@@ -695,6 +695,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         statusView?.setStatus(status)
     }
 
+    override fun onTeraType(id: PokemonId, type: String) {
+        binding.battleLayout.getStatusView(id)?.setTeraType(type)
+    }
+
     override fun onStatChanged(id: PokemonId) {
         val statModifiers = observer.getBattlingPokemon(id)!!.statModifiers
         val statusView = binding.battleLayout.getStatusView(id)

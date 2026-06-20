@@ -28,6 +28,7 @@ class StatusView(context: Context?) : View(context) {
     private var label = ""
     private var health = 0f
     private var status = ""
+    private var teraType: String? = null
     private val volatileStatus = ArrayMap<String, VolatileStatus>()
     private val statsModifiers = ArrayMap<String, Float>()
 
@@ -74,6 +75,7 @@ class StatusView(context: Context?) : View(context) {
         label = "${pokemon.name} ${pokemon.gender} l.${pokemon.level}"
         health = pokemon.condition?.health ?: 0f
         status = pokemon.condition?.status ?: ""
+        teraType = pokemon.teraType
         volatileStatus.clear()
         updateModifier(pokemon.statModifiers)
     }
@@ -90,10 +92,17 @@ class StatusView(context: Context?) : View(context) {
         invalidate()
     }
 
+    fun setTeraType(type: String?) {
+        this.teraType = type
+        requestLayout()
+        invalidate()
+    }
+
     fun clear() {
         label = ""
         health = 0f
         status = ""
+        teraType = null
         volatileStatus.clear()
         statsModifiers["atk"] = 1f
         statsModifiers["def"] = 1f
@@ -195,7 +204,8 @@ class StatusView(context: Context?) : View(context) {
         var left = minLeft
         val top = minTop
 
-        val totalText = status + volatileStatus.values.filter { it.label != null }.joinToString(separator = "") +
+        val teraText = teraType?.let { "TERA " + it.toUpperCase() } ?: ""
+        val totalText = teraText + status + volatileStatus.values.filter { it.label != null }.joinToString(separator = "") +
                 statsModifiers.map { DECIMAL_FORMAT.format(it.value) + it.key.capitalize() }.joinToString(separator = "")
         paint.apply {
             typeface = defaultTypeFace
@@ -205,9 +215,14 @@ class StatusView(context: Context?) : View(context) {
         val lineHeight = textBounds.height()
         var cY = (top + lineHeight / 2f).roundToInt()
 
+        teraType?.let { tera ->
+            drawTag(canvas, left, cY, teraText, Colors.WHITE, Colors.typeColor(tera.toId()), tempRect2)
+            if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
+            left += tempRect2.width() + horizontalSpacing
+        }
         if (status.isNotBlank()) {
             drawTag(canvas, left, cY, status.toUpperCase(), Colors.WHITE, statusColor(status.toId()), tempRect2)
-            drawingRect.set(tempRect2)
+            if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
             left += tempRect2.width() + horizontalSpacing
         }
         for (vStatus in volatileStatus.values) {

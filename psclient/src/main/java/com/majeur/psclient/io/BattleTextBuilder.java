@@ -1010,6 +1010,11 @@ public final class BattleTextBuilder {
         return lines(line1, line2);
     }
 
+    public CharSequence terastallize(PokemonId pkmnId, String type) {
+        String template = resolve("terastallize");
+        return line(template, PH_POKEMON, pokemon(pkmnId), PH_TYPE, type);
+    }
+
     public CharSequence zpower(PokemonId pkmnId) {
         String template = resolve("zPower");
         return line(template, PH_POKEMON, pokemon(pkmnId));

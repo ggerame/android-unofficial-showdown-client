@@ -17,6 +17,7 @@ class BattlingPokemon(val player: Player, switchMessage: String) : BasePokemon()
     var level: Int = 100
     var condition: Condition? = null
     var transformSpecies: String? = null
+    var teraType: String? = null
 
     val fainted get() = condition?.hp == 0 || condition?.status == "fnt"
 
@@ -30,11 +31,12 @@ class BattlingPokemon(val player: Player, switchMessage: String) : BasePokemon()
         val detailsArray = details.split(", ")
         species = detailsArray[0]
         detailsArray.drop(1).forEach {
-            when (it[0].toLowerCase()) {
-                's' -> shiny = true
-                'm' -> gender = "♂"
-                'f' -> gender = "♀"
-                'l' -> level = it.drop(1).toInt()
+            when {
+                it.startsWith("tera:") -> teraType = it.substring(5)
+                it[0].toLowerCase() == 's' -> shiny = true
+                it[0].toLowerCase() == 'm' -> gender = "♂"
+                it[0].toLowerCase() == 'f' -> gender = "♀"
+                it[0].toLowerCase() == 'l' -> level = it.drop(1).toInt()
             }
         }
 

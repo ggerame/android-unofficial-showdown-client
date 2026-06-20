@@ -29,6 +29,7 @@ class BattleDecisionRequest(json: JSONObject, var gameType: GameType?) {
     private val trapped: BooleanArray?
     private val canMegaEvo: BooleanArray?
     private val canDynamax: BooleanArray?
+    private val canTerastallize: Array<String?>?
     private val moves: Array<Array<Move>>?
 
     init {
@@ -36,11 +37,14 @@ class BattleDecisionRequest(json: JSONObject, var gameType: GameType?) {
         trapped = if (actives != null) BooleanArray(actives.length()) else null
         canMegaEvo = if (actives != null) BooleanArray(actives.length()) else null
         canDynamax = if (actives != null) BooleanArray(actives.length()) else null
+        canTerastallize = if (actives != null) arrayOfNulls(actives.length()) else null
         moves = if (actives != null) Array(actives.length()) { emptyArray<Move>() } else null
         actives?.forEachIndexed { i, active ->
             trapped!![i] = active.optBoolean("trapped", false)
             canMegaEvo!![i] = active.optBoolean("canMegaEvo", false)
             canDynamax!![i] = active.optBoolean("canDynamax", false)
+            // `canTerastallize` is either the Tera type (String) or the boolean false
+            canTerastallize!![i] = active.opt("canTerastallize").let { if (it is String && it.isNotEmpty()) it else null }
             val movesJson = active.getJSONArray("moves")
             val canZMove = active.optJSONArray("canZMove")
             val maxMoves = active.optJSONObject("maxMoves")?.optJSONArray("maxMoves")
@@ -63,6 +67,9 @@ class BattleDecisionRequest(json: JSONObject, var gameType: GameType?) {
     fun canMegaEvo(which: Int) = canMegaEvo?.getOrNull(which) ?: false
 
     fun canDynamax(which: Int) = canDynamax?.getOrNull(which) ?: false
+
+    /* Returns the Tera type if the Pokémon can Terastallize, null otherwise */
+    fun canTerastallize(which: Int) = canTerastallize?.getOrNull(which)
 
     fun isDynamaxed(which: Int): Boolean {
         if (canDynamax(which) || getMoves(which) == null) return false

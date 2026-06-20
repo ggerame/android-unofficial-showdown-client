@@ -27,9 +27,15 @@ class BattleDecision {
     }
 
     /* 1 based index */
-    fun addMoveChoice(which: Int, mega: Boolean, zmove: Boolean, dynamax: Boolean) {
+    fun addMoveChoice(which: Int, mega: Boolean, zmove: Boolean, dynamax: Boolean, tera: Boolean) {
         _command = CMD_CHOOSE
-        val extra = if (mega) EXTRA_MEGA else if (zmove) EXTRA_ZMOVE else if (dynamax) EXTRA_DYNAMAX else null
+        val extra = when {
+            mega -> EXTRA_MEGA
+            zmove -> EXTRA_ZMOVE
+            dynamax -> EXTRA_DYNAMAX
+            tera -> EXTRA_TERA
+            else -> null
+        }
         choices.add(Choice(action = ACTION_MOVE, index = which, extra = extra))
     }
 
@@ -64,6 +70,8 @@ class BattleDecision {
     fun hasZMoveChoices() = choices.any { it.extra == EXTRA_ZMOVE }
 
     fun hasDynamaxChoices() = choices.any { it.extra == EXTRA_DYNAMAX }
+
+    fun hasTeraChoices() = choices.any { it.extra == EXTRA_TERA }
 
     fun lastChoiceWasMoveTarget() = choices.lastOrNull()?.let { it.action == ACTION_MOVE && it.target != 0 } ?: false
 
@@ -105,5 +113,6 @@ class BattleDecision {
         private const val EXTRA_MEGA = "mega"
         private const val EXTRA_ZMOVE = "zmove"
         private const val EXTRA_DYNAMAX = "dynamax"
+        private const val EXTRA_TERA = "terastallize"
     }
 }

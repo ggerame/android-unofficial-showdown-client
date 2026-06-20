@@ -56,6 +56,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
 
     private var promptStage = 0
     private var targetToChoose: Move.Target? = null
+    private var checkBoxRepresentsTera = false
     private var _observer: BattleRoomMessageObserver? = null
     private val observer get() = _observer!!
     private var _battleTipPopup: BattleTipPopup? = null
@@ -277,6 +278,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                         request.canMegaEvo(promptStage),
                         request.canDynamax(promptStage),
                         request.isDynamaxed(promptStage),
+                        request.canTerastallize(promptStage) != null,
                         team,
                         request.teamPreview)
             }
@@ -368,11 +370,11 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
     }
 
     private fun showChoice(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean,
-                           canDynamax: Boolean, isDynamaxed: Boolean, team: List<SidePokemon>?,
+                           canDynamax: Boolean, isDynamaxed: Boolean, canTera: Boolean, team: List<SidePokemon>?,
                            chooseLead: Boolean) {
         if ((promptStage == 0 || decision.hasOnlyPassChoice()) && !comingToPreviousStage) {
             // First time a choice is shown, no need of animation
-            setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, team, chooseLead)
+            setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, canTera, team, chooseLead)
             return
         }
         alphaAnimator.apply {
@@ -387,7 +389,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                 }
 
                 override fun onAnimationRepeat(animator: Animator) {
-                    setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, team, chooseLead)
+                    setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, canTera, team, chooseLead)
                 }
 
                 override fun onAnimationEnd(animator: Animator) {
@@ -399,7 +401,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
     }
 
     private fun setChoiceLayout(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean, canDynamax: Boolean,
-                                isDynamaxed: Boolean, team: List<SidePokemon>?, chooseLead: Boolean) {
+                                isDynamaxed: Boolean, canTera: Boolean, team: List<SidePokemon>?, chooseLead: Boolean) {
         var canZMove = false
         moveButtons.forEachIndexed { i, btn ->
             if (moves != null && i < moves.size) {
@@ -421,6 +423,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
             }
         }
         toggleMaxMoves(isDynamaxed)
+        checkBoxRepresentsTera = false
         when {
             canMega && !decision.hasMegaChoices()-> movesCheckBox.apply {
                 visibility = View.VISIBLE
@@ -439,6 +442,13 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
                 text = "Dynamax"
                 isChecked = false
                 setOnCheckedChangeListener { _: CompoundButton?, checked: Boolean -> toggleMaxMoves(checked) }
+            }
+            canTera && !decision.hasTeraChoices() -> movesCheckBox.apply {
+                checkBoxRepresentsTera = true
+                visibility = View.VISIBLE
+                text = "Terastallize"
+                isChecked = false
+                setOnCheckedChangeListener(null)
             }
             else -> movesCheckBox.apply {
                 visibility = View.GONE
@@ -556,14 +566,16 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
         val data = view.getTag(R.id.battle_data_tag)
         if (data is Move) {
             val which = data.index + 1
-            var mega = movesCheckBox.visibility == View.VISIBLE && movesCheckBox.isChecked
+            val checked = movesCheckBox.visibility == View.VISIBLE && movesCheckBox.isChecked
+            val tera = checked && checkBoxRepresentsTera
+            var mega = checked && !checkBoxRepresentsTera
             var zmove = mega && data.zflag
             val dynamax = mega && data.maxflag
             if (dynamax) {
                 zmove = false
                 mega = zmove
             } else if (zmove) mega = false
-            decision.addMoveChoice(which, mega, zmove, dynamax)
+            decision.addMoveChoice(which, mega, zmove, dynamax, tera)
             val target = (if (data.maxflag) data.maxMoveTarget else if (data.zflag) data.zDetails?.target else data.target)
                     ?: Move.Target.ALL
             if (request.count > 1 && target.isChoosable) targetToChoose = target

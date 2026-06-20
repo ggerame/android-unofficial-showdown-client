@@ -407,6 +407,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
         "endability" -> handleAbility(message, false)
         "mega" -> handleMega(message, false)
         "primal" -> handleMega(message, true)
+        "terastallize" -> handleTerastallize(message)
         "formechange", "transform" -> handleFormeChange(message)
         "hint" -> actionQueue.enqueueMinorAction { displayMinorActionMessage("(${message.nextArg})") }
         "center" -> {
@@ -693,6 +694,17 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val item = msg.nextArgSafe
         val text = battleTextBuilder.mega(pokemonId, species, item, primal)
         actionQueue.enqueueMinorAction { displayMinorActionMessage(text) }
+    }
+
+    private fun handleTerastallize(msg: ServerMessage) {
+        val pokemonId = getPokemonId(msg.nextArg)
+        val type = msg.nextArg
+        val text = battleTextBuilder.terastallize(pokemonId, type)
+        actionQueue.enqueueMinorAction {
+            getBattlingPokemon(pokemonId)?.teraType = type
+            displayMinorActionMessage(text)
+            onDisplayBattleToast(pokemonId, "Tera $type", Colors.typeColor(type.toId()))
+        }
     }
 
     private fun handleFormeChange(msg: ServerMessage) {

@@ -17,7 +17,8 @@
         <activity
             android:name=".ui.MainActivity"
             android:windowSoftInputMode="adjustPan|stateUnchanged"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

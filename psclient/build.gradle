@@ -1,13 +1,14 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion 33
+    namespace 'com.majeur.psclient'
+    compileSdk 35
     defaultConfig {
         applicationId "com.majeur.psclient"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 35
         versionCode 16
         versionName "1.1.0-gen9"
     }
@@ -26,6 +27,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 

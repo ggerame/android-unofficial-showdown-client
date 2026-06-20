@@ -81,7 +81,7 @@ public class StatsTable extends View {
         mMeasurePoint = new Point();
         mRect = new Rect();
 
-        int[] attrIds = {R.attr.colorOnBackground, R.attr.selectableItemBackground};
+        int[] attrIds = {com.google.android.material.R.attr.colorOnBackground, androidx.appcompat.R.attr.selectableItemBackground};
         TypedArray typedArray = context.obtainStyledAttributes(attrIds);
         mDefaultTextColor = typedArray.getColor(0, Color.RED);
         setBackground(typedArray.getDrawable(1));

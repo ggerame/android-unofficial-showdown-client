@@ -65,6 +65,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private var isAcceptingFrom: String? = null
     private var onConnectedListeners = mutableMapOf<String, () -> Unit>()
     private var roomDeinitListeners = mutableMapOf<String, (String) -> Unit>()
+    private var fullUsername: String = ""
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -122,6 +123,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         binding.username.apply {
             text = "Connected as\n".small() concat "-".bold()
+            setOnLongClickListener {
+                if (fullUsername.isNotEmpty())
+                    android.widget.Toast.makeText(context, fullUsername, android.widget.Toast.LENGTH_LONG).show()
+                true
+            }
         }
         binding.loginButton.apply {
             isEnabled = false
@@ -594,6 +600,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onUserChanged(userName: String, isGuest: Boolean, avatarId: String) {
+        fullUsername = userName
         binding.username.apply {
             text = "Connected as\n".small()
             append(userName.truncate(10).bold())

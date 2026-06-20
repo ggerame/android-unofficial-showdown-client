@@ -119,7 +119,12 @@ class ShowdownService : Service() {
         sharedData.clear()
     }
 
-    fun sendTrnMessage(userName: String, assertion: String) = sendGlobalCommand("trn", userName, "0", assertion)
+    fun sendTrnMessage(userName: String, assertion: String) {
+        getSharedPreferences("user", Context.MODE_PRIVATE).edit()
+                .putString("username", userName)
+                .apply()
+        sendGlobalCommand("trn", userName, "0", assertion)
+    }
 
     fun sendPrivateMessage(to: String, content: String) = sendGlobalCommand("pm", to, content)
 
@@ -206,7 +211,8 @@ class ShowdownService : Service() {
     }
 
     fun tryCookieSignIn() {
-        retrieveAuthCookieIfAny()?.let { cookie ->
+        val cookie = retrieveAuthCookieIfAny()
+        if (cookie != null) {
             val url = actionServerUrlWithChallenge
                     .addQueryParameter("act", "upkeep")
                     .build()
@@ -220,6 +226,7 @@ class ShowdownService : Service() {
                     val rawResponse = response.body()?.string()
                     if (rawResponse?.isEmpty() != false) {
                         Timber.e("Assertion request responded with an empty body.")
+                        tryUsernameSignIn()
                         return
                     }
                     try {
@@ -227,16 +234,32 @@ class ShowdownService : Service() {
                         if (resultJson.optBoolean("loggedin"))
                             sendTrnMessage(resultJson.getString("username"),
                                     resultJson.getString("assertion"))
+                        else
+                            tryUsernameSignIn()
                     } catch (e: JSONException) {
                         Timber.e(e, "Error while parsing assertion json.")
+                        tryUsernameSignIn()
                     }
                 }
 
                 override fun onFailure(call: Call, e: IOException) {
                     Timber.e(e, "Call failed.")
+                    tryUsernameSignIn()
                 }
             })
+        } else {
+            tryUsernameSignIn()
         }
+    }
+
+    private fun tryUsernameSignIn() {
+        val username = getSharedPreferences("user", Context.MODE_PRIVATE)
+                .getString("username", null) ?: return
+        attemptSignIn(username, object : AttemptSignInCallback {
+            override fun onSuccess() {}
+            override fun onAuthenticationRequired() {}
+            override fun onError(reason: String) {}
+        })
     }
 
     fun attemptSignIn(username: String, callback: AttemptSignInCallback) {

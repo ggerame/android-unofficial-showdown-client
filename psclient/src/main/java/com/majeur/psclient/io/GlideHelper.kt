@@ -33,6 +33,7 @@ class GlideHelper(context: Context) {
         D2ANIMATED("gen5ani", "gif"), // Gen 5 2D animated
         D2("gen5", "png"), // Gen 5 2D non animated
         DEX("dex", "png"),
+        HOME("home", "png"), // Pokémon HOME artwork (has correct shiny variants for all gens)
         TRAINER("trainers", "png"); // Dex
 
         fun uri(spriteId: String, shiny: Boolean, back: Boolean): Uri = Uri.Builder().run {
@@ -112,7 +113,7 @@ class GlideHelper(context: Context) {
     }
 
     fun loadDexSprite(pokemon: BasePokemon, shiny: Boolean, imageView: ImageView) {
-        loadSprite(pokemon.spriteId, false, shiny, true, SpriteType.DEX, SpriteType.D2)
+        loadSprite(pokemon.spriteId, false, shiny, true, SpriteType.HOME, SpriteType.DEX, SpriteType.D2)
                 .into(imageView)
     }
 

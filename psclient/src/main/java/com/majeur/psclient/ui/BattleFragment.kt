@@ -431,6 +431,15 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         val category = move.details?.category
         val drawable = if (category != null) CategoryDrawable(category) else null
         placeHolderBottom.setImageDrawable(drawable)
+
+        val moveType = type
+        if (category != null && category.toId() != "status") {
+            fragmentScope.launch {
+                foeDefendingTypes()?.let { foeTypes ->
+                    descView.append("\n" concat effectivenessSentence(Type.effectiveness(moveType, foeTypes)))
+                }
+            }
+        }
     }
 
     private fun bindSidePokemonPopup(pokemon: SidePokemon, titleView: TextView,
@@ -501,6 +510,22 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         0.25 -> "¼"
         0.5 -> "½"
         else -> if (multiplier == multiplier.toLong().toDouble()) multiplier.toLong().toString() else multiplier.toString()
+    }
+
+    private fun effectivenessSentence(multiplier: Double): CharSequence {
+        val color = when {
+            multiplier == 0.0 -> Colors.GRAY
+            multiplier > 1.0 -> Colors.GREEN
+            multiplier < 1.0 -> Colors.RED
+            else -> Colors.GRAY
+        }
+        val descriptor = when {
+            multiplier == 0.0 -> "No effect"
+            multiplier > 1.0 -> "Super effective"
+            multiplier < 1.0 -> "Not very effective"
+            else -> "Neutral"
+        }
+        return "Effectiveness: ${formatMultiplier(multiplier)}× ($descriptor)".small().color(color)
     }
 
     private fun notifyNewMessageReceived() {
@@ -693,6 +718,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         if (request.shouldWait) return
         binding.battleDecisionWidget.promptDecision(observer, battleTipPopup, request) { decision ->
             sendDecision(request.id, decision)
+        }
+        fragmentScope.launch {
+            binding.battleDecisionWidget.setFoeDefendingTypes(foeDefendingTypes())
         }
         var hideSwitch = true
         for (which in 0 until request.count) {

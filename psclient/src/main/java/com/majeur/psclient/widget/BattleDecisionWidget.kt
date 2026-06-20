@@ -29,6 +29,7 @@ import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.*
 import com.majeur.psclient.model.battle.Move.Target.Companion.computeTargetAvailabilities
 import com.majeur.psclient.model.common.Colors
+import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.model.pokemon.BattlingPokemon
 import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
@@ -60,6 +61,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
     private var promptStage = 0
     private var targetToChoose: Move.Target? = null
     private var checkBoxRepresentsTera = false
+    private var foeTypes: List<String>? = null
     private var _observer: BattleRoomMessageObserver? = null
     private val observer get() = _observer!!
     private var _battleTipPopup: BattleTipPopup? = null
@@ -540,7 +542,42 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
         setTextColor(if (enabled) Color.WHITE else Color.GRAY)
     }
 
-    private fun moveText(move: Move) = move.name concat "\n" concat "${move.pp}/${move.ppMax}".small()
+    private fun moveText(move: Move): CharSequence {
+        val label = effectivenessLabel(move)
+        val second = if (label != null) "${move.pp}/${move.ppMax} ".small() concat label
+                     else "${move.pp}/${move.ppMax}".small()
+        return move.name concat "\n" concat second
+    }
+
+    /** Defending types of the opposing active Pokémon, used to show per-move effectiveness on the buttons. */
+    fun setFoeDefendingTypes(types: List<String>?) {
+        foeTypes = types
+        moveButtons.forEach { btn ->
+            if (btn.visibility == View.GONE) return@forEach
+            val move = btn.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
+            if (!move.maxflag && !move.zflag) btn.text = moveText(move)
+        }
+    }
+
+    private fun effectivenessLabel(move: Move): CharSequence? {
+        val types = foeTypes ?: return null
+        val details = move.details ?: return null
+        val type = details.type ?: return null
+        if (details.category.toId() == "status") return null
+        val m = Type.effectiveness(type, types)
+        return when {
+            m == 0.0 -> "0×".small().bold().color(Colors.GRAY)
+            m > 1.0 -> "${formatMultiplier(m)}×".small().bold().color(Colors.GREEN)
+            m < 1.0 -> "${formatMultiplier(m)}×".small().bold().color(Colors.RED)
+            else -> null
+        }
+    }
+
+    private fun formatMultiplier(m: Double) = when (m) {
+        0.25 -> "¼"
+        0.5 -> "½"
+        else -> if (m == m.toLong().toDouble()) m.toLong().toString() else m.toString()
+    }
 
     fun notifyDexIconsUpdated() = switchButtons.forEach { btn ->
         val tag = btn.getTag(R.id.battle_data_tag)
@@ -554,6 +591,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
         val move = btn.getTag(R.id.battle_data_tag) as Move?
         if (move != null && !move.maxflag && move.details != null) {
             btn.background.setTint(move.details!!.color)
+            if (!move.zflag) btn.text = moveText(move)
         }
     }
 

@@ -6,6 +6,7 @@ import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.service.ServerMessage
 import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.util.Utils
+import com.majeur.psclient.util.toId
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -251,12 +252,52 @@ class GlobalMessageObserver(service: ShowdownService)
         val myUsername = service.getSharedData<String>("myusername")?.drop(1)
         val with = if (myUsername == from) to else from
         var content = msg.nextArgSafe
+
+        // Modern PS delivers battle challenges as PMs containing a "/challenge"
+        // command instead of an |updatechallenges| message. Route these into the
+        // challenge system so the accept/decline button is shown (and cleared).
+        if (content != null && content.startsWith("/challenge")) {
+            handlePmChallenge(from, to, myUsername, content)
+            return
+        }
+        // "/log" and "/nonotify" PMs are system notifications that only duplicate
+        // the challenge/battle state; don't show them as chat messages.
+        if (content != null && (content.startsWith("/log") || content.startsWith("/nonotify"))) return
+
         if (content != null && (content.startsWith("/raw") || content.startsWith("/html") || content.startsWith("/uhtml")))
             content = "Html messages not supported in pm."
         val message = "$from: $content"
         val messages = privateMessages.getOrPut(with, { mutableListOf<String>() })
         messages.add(message)
         onNewPrivateMessage(with, message)
+    }
+
+    private fun handlePmChallenge(from: String, to: String, myUsername: String?, content: String) {
+        // "/challenge <format>" opens a challenge; a bare "/challenge" clears it
+        // (after it is accepted, cancelled or rejected). The server echoes the
+        // same command to both players, so figure out who the other party is.
+        val format = content.removePrefix("/challenge").trim().substringBefore('|').ifEmpty { null }
+        val mine = myUsername != null && from.toId() == myUsername.toId()
+        val otherUser = if (mine) to else from
+
+        @Suppress("UNCHECKED_CAST")
+        val fromMap = (service.getSharedData<Map<String, String>>("challenge_from")?.toMutableMap())
+                ?: mutableMapOf()
+
+        if (mine) {
+            // PM is from us: it reflects an outgoing challenge (or its resolution).
+            service.putSharedData("challenge_to", if (format != null) otherUser else null)
+            service.putSharedData("challenge_to_format", format)
+            if (format == null) fromMap.remove(otherUser.toId()) // Challenge resolved
+        } else {
+            // PM is from another user challenging us (or cancelling).
+            if (format != null) fromMap[otherUser.toId()] = format else fromMap.remove(otherUser.toId())
+        }
+        service.putSharedData("challenge_from", fromMap)
+
+        val challengeTo = service.getSharedData<String>("challenge_to")
+        val toFormat = service.getSharedData<String>("challenge_to_format")
+        onChallengesChange(challengeTo, toFormat, fromMap)
     }
 
     private fun handleChallenges(message: ServerMessage) {

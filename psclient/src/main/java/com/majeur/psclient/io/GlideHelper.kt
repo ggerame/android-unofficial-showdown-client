@@ -1,6 +1,7 @@
 package com.majeur.psclient.io
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -11,7 +12,9 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
 import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.Player
 import com.majeur.psclient.model.pokemon.BasePokemon
@@ -51,9 +54,43 @@ class GlideHelper(context: Context) {
 
     companion object {
         private const val MAGIC_SCALE = 0.0027777777777778f
+
+        // Same backdrops the web client picks from for gen 6+ formats (sprites/gen6bgs/).
+        private val BATTLE_BACKDROPS = arrayOf(
+                "bg-aquacordtown.jpg", "bg-beach.jpg", "bg-city.jpg", "bg-dampcave.jpg",
+                "bg-darkbeach.jpg", "bg-darkcity.jpg", "bg-darkmeadow.jpg", "bg-deepsea.jpg",
+                "bg-desert.jpg", "bg-earthycave.jpg", "bg-elite4drake.jpg", "bg-forest.jpg",
+                "bg-icecave.jpg", "bg-leaderwallace.jpg", "bg-library.jpg", "bg-meadow.jpg",
+                "bg-orasdesert.jpg", "bg-orassea.jpg", "bg-skypillar.jpg")
+
+        // Mirrors the web client: the backdrop is derived from the numeric battle id so that
+        // both players (and spectators) see the same background for a given battle.
+        private fun battleBackdropFor(roomId: String?): String {
+            val n = roomId?.substringAfterLast('-')?.toIntOrNull()
+            val index = if (n != null && n != 0)
+                ((n % BATTLE_BACKDROPS.size) + BATTLE_BACKDROPS.size) % BATTLE_BACKDROPS.size
+            else (Math.random() * BATTLE_BACKDROPS.size).toInt()
+            return BATTLE_BACKDROPS[index]
+        }
     }
 
     private val glide = Glide.with(context)
+
+    fun loadBattleBackground(roomId: String?, imageView: ImageView) {
+        val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
+                .appendPath("sprites").appendPath("gen6bgs").appendPath(battleBackdropFor(roomId)).build()
+        glide.load(uri)
+                .apply(RequestOptions().centerCrop().error(R.drawable.battle_bg_1))
+                .into(imageView)
+    }
+
+    fun loadFieldFxBitmap(fileName: String, callback: (Bitmap) -> Unit) {
+        val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
+                .appendPath("fx").appendPath(fileName).build()
+        glide.asBitmap().load(uri).into(object : SimpleTarget<Bitmap>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) = callback(resource)
+        })
+    }
 
     fun loadBattleSprite(pokemon: BattlingPokemon, imageView: ImageView) {
         val spriteId = pokemon.transformSpecies ?: pokemon.spriteId

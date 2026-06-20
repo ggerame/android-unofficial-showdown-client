@@ -1,7 +1,9 @@
 package com.majeur.psclient.widget
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
@@ -11,13 +13,16 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.collection.ArrayMap
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.util.forEach
 import androidx.core.util.plus
 import com.majeur.psclient.R
+import com.majeur.psclient.model.battle.Hazards
 import com.majeur.psclient.model.battle.Player
 import com.majeur.psclient.model.battle.PokemonId
 import com.majeur.psclient.util.dp
+import com.majeur.psclient.util.toId
 import kotlin.math.roundToInt
 
 class BattleLayout @JvmOverloads constructor(
@@ -41,6 +46,16 @@ class BattleLayout @JvmOverloads constructor(
     private val p2SideView = SideView(context)
     private val fxDrawable = ResourcesCompat.getDrawable(resources, R.drawable.ic_hit, null)!!
     private var drawFx = false
+
+    // Graphical entry hazards (spikes, stealth rock, sticky web, ...), drawn on the field.
+    // Set by BattleFragment to load fx sprites from the Showdown website at runtime.
+    var hazardBitmapLoader: ((String, (Bitmap) -> Unit) -> Unit)? = null
+    private val p1HazardLayers = ArrayMap<String, Int>()
+    private val p2HazardLayers = ArrayMap<String, Int>()
+    private val hazardBitmapCache = ArrayMap<String, Bitmap>()
+    private val requestedHazardFiles = mutableSetOf<String>()
+    private val hazardPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val hazardDstRect = Rect()
 
     init {
         addView(p1SideView)
@@ -94,6 +109,26 @@ class BattleLayout @JvmOverloads constructor(
         val sideView = if (player === Player.TRAINER) p1SideView else p2SideView
         sideView.bringToFront() // TODO Fix this not working
         return sideView
+    }
+
+    fun addSideCondition(player: Player, rawSide: String) {
+        val id = rawSide.toId()
+        if (!Hazards.isGraphical(id)) return
+        val layers = if (player === Player.TRAINER) p1HazardLayers else p2HazardLayers
+        layers[id] = (layers[id] ?: 0) + 1
+        invalidate()
+    }
+
+    fun removeSideCondition(player: Player, rawSide: String) {
+        val layers = if (player === Player.TRAINER) p1HazardLayers else p2HazardLayers
+        layers.remove(rawSide.toId())
+        invalidate()
+    }
+
+    fun clearSideConditions() {
+        p1HazardLayers.clear()
+        p2HazardLayers.clear()
+        invalidate()
     }
 
     fun swap(id: PokemonId, targetIndex: Int) {
@@ -416,10 +451,50 @@ class BattleLayout @JvmOverloads constructor(
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        drawHazards(canvas)
         super.dispatchDraw(canvas)
         if (drawFx) {
             fxDrawable.draw(canvas)
         }
+    }
+
+    private fun drawHazards(canvas: Canvas) {
+        if (width == 0 || height == 0) return
+        if (p1HazardLayers.isEmpty() && p2HazardLayers.isEmpty()) return
+        val factor = width / HAZARD_SCALE_REF
+        drawHazardsForSide(canvas, p1HazardLayers, HAZARD_NEAR_ANCHOR, factor)
+        drawHazardsForSide(canvas, p2HazardLayers, HAZARD_FAR_ANCHOR, factor)
+    }
+
+    private fun drawHazardsForSide(canvas: Canvas, layers: ArrayMap<String, Int>, anchor: PointF, factor: Float) {
+        if (layers.isEmpty()) return
+        val baseX = anchor.x * width
+        val baseY = anchor.y * height
+        for (i in 0 until layers.size) {
+            val sprites = Hazards.spritesFor(layers.keyAt(i), layers.valueAt(i)) ?: continue
+            for (s in sprites) {
+                val bitmap = hazardBitmap(s.file) ?: continue
+                val w = bitmap.width * s.scale * factor
+                val h = bitmap.height * s.scale * factor
+                val cx = baseX + s.dx * factor
+                val cy = baseY - s.dy * factor
+                hazardDstRect.set((cx - w / 2).roundToInt(), (cy - h / 2).roundToInt(),
+                        (cx + w / 2).roundToInt(), (cy + h / 2).roundToInt())
+                hazardPaint.alpha = (s.alpha * 255).roundToInt()
+                canvas.drawBitmap(bitmap, null, hazardDstRect, hazardPaint)
+            }
+        }
+    }
+
+    private fun hazardBitmap(file: String): Bitmap? {
+        hazardBitmapCache[file]?.let { return it }
+        if (requestedHazardFiles.add(file)) {
+            hazardBitmapLoader?.invoke(file) { bitmap ->
+                hazardBitmapCache[file] = bitmap
+                invalidate()
+            }
+        }
+        return null
     }
 
     private class LayoutParams(width: Int, height: Int) : ViewGroup.LayoutParams(width, height)
@@ -431,6 +506,11 @@ class BattleLayout @JvmOverloads constructor(
         const val MODE_BATTLE_TRIPLE = 3
 
         private const val ASPECT_RATIO = 16f / 9f
+        // Reference width used to scale web fx sprite sizes/offsets to the battle field.
+        private const val HAZARD_SCALE_REF = 480f
+        // Ground anchors (fractions of field size) where each side's hazards are clustered.
+        private val HAZARD_NEAR_ANCHOR = PointF(0.27f, 0.72f)
+        private val HAZARD_FAR_ANCHOR = PointF(0.73f, 0.40f)
         private val REL_TEAMPREV_P1_LINE = arrayOf(PointF(0.125f, 0.728f), PointF(0.820f, 0.806f))
         private val REL_TEAMPREV_P2_LINE = arrayOf(PointF(0.180f, 0.267f), PointF(0.875f, 0.344f))
         private val REL_BATTLE_P1_POS = arrayOf(arrayOf(PointF(0.225f, 0.748f)), arrayOf(PointF(0.225f, 0.738f), PointF(0.425f, 0.758f)), arrayOf(PointF(0.125f, 0.728f), PointF(0.325f, 0.748f), PointF(0.525f, 0.768f)))

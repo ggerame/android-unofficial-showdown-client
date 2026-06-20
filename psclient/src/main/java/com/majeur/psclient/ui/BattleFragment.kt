@@ -98,6 +98,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         super.onViewCreated(view, savedInstanceState)
         inactiveBattleOverlayDrawable = InactiveBattleOverlayDrawable(resources)
         binding.apply {
+            battleLayout.hazardBitmapLoader = { file, callback -> glideHelper.loadFieldFxBitmap(file, callback) }
             battleLog.movementMethod = LinkMovementMethod()
             battleLog.setText("", TextView.BufferType.EDITABLE) // Setting the editable buffer type
             overlayImage.setImageDrawable(inactiveBattleOverlayDrawable)
@@ -177,6 +178,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         battleLayout.alpha = 1f
         overlayImage.alpha = 1f
         overlayImage.setImageDrawable(null)
+        battleLayout.clearSideConditions()
         battleLayout.getSpriteViews(Player.TRAINER).forEach { it.alpha = 1f }
         battleLayout.getSpriteViews(Player.FOE).forEach { it.alpha = 1f }
     }
@@ -185,6 +187,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         val clearUiAction = Runnable {
             battleLayout.getSideView(Player.TRAINER).clearAllSides()
             battleLayout.getSideView(Player.FOE).clearAllSides()
+            battleLayout.clearSideConditions()
             battleLayout.getStatusViews(Player.TRAINER).forEach { it.clear() }
             battleLayout.getSpriteViews(Player.TRAINER).forEach { it.setImageDrawable(null); battleTipPopup.removeTippedView(it) }
             battleLayout.getStatusViews(Player.FOE).forEach { it.clear() }
@@ -792,8 +795,13 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     }
 
     override fun onSideChanged(player: Player, side: String, start: Boolean) {
-        binding.battleLayout.getSideView(player).apply {
-            if (start) sideStart(side) else sideEnd(side)
+        if (Hazards.isGraphical(side)) {
+            if (start) binding.battleLayout.addSideCondition(player, side)
+            else binding.battleLayout.removeSideCondition(player, side)
+        } else {
+            binding.battleLayout.getSideView(player).apply {
+                if (start) sideStart(side) else sideEnd(side)
+            }
         }
     }
 
@@ -887,8 +895,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 duration = 100
                 alpha(0f)
                 withEndAction {
-                    val resId = if (Math.random() > 0.5) R.drawable.battle_bg_1 else R.drawable.battle_bg_2
-                    backgroundImage.setImageResource(resId)
+                    glideHelper.loadBattleBackground(observedRoomId, backgroundImage)
                     backgroundImage.animate().alpha(1f).withEndAction(null).start()
                 }
                 start()

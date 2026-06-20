@@ -230,13 +230,13 @@ class GlobalMessageObserver(service: ShowdownService)
         val searchingJson = jsonObject.optJSONArray("searching")
         searchingJson?.let {
             for (i in 0 until searchingJson.length())
-                searching.add(searchingJson.getString(i))
+                searching.add(searchingJson.optString(i))
         }
 
         val games = mutableMapOf<String, String>()
         val gamesJson = jsonObject.optJSONObject("games")
         gamesJson?.let {
-            gamesJson.keys().forEach { key -> games[key] = gamesJson.getString(key) }
+            gamesJson.keys().forEach { key -> games[key] = gamesJson.optString(key) }
         }
         service.putSharedData("searching", searching)
         service.putSharedData("games", games)
@@ -263,16 +263,16 @@ class GlobalMessageObserver(service: ShowdownService)
         var format: String? = null
         val from = mutableMapOf<String, String>()
 
-        val jsonObject = Utils.jsonObject(rawJson)
+        val jsonObject = Utils.jsonObject(rawJson) ?: return
         val challengeTo = jsonObject.optJSONObject("challengeTo")
         challengeTo?.let {
-            to = it.getString("to")
-            format = it.getString("format")
+            to = it.optString("to").ifEmpty { null }
+            format = it.optString("format").ifEmpty { null }
         }
         val challengesFrom = jsonObject.optJSONObject("challengesFrom")
         challengesFrom?.let {
             it.keys().forEach { key ->
-                from[key] = challengesFrom.getString(key)
+                from[key] = challengesFrom.optString(key)
             }
         }
         service.putSharedData("challenge_to", to)

@@ -161,11 +161,11 @@ class NewsDialog : BottomSheetDialogFragment() {
     }
 
     class News(json: JSONObject) {
-        val id = json.getInt("id")
-        val title: String = json.getString("title")
-        val content: Spanned = Html.fromHtml(json.getString("summaryHTML"))
-        val author: String = json.getString("author")
-        val date = json.getLong("date")
+        val id = json.optInt("id", 0)
+        val title: String = json.optString("title", "")
+        val content: Spanned = Html.fromHtml(json.optString("summaryHTML", ""))
+        val author: String = json.optString("author", "")
+        val date = json.optLong("date", 0L)
 
         fun timeFromNow(): String {
             val dt = System.currentTimeMillis() / 1000L - date

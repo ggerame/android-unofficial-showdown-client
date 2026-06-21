@@ -533,8 +533,8 @@ class BattleLayout @JvmOverloads constructor(
             val sprites = Hazards.spritesFor(layers.keyAt(i), layers.valueAt(i)) ?: continue
             for (s in sprites) {
                 val bitmap = hazardBitmap(s.file) ?: continue
-                val w = bitmap.width * s.scale * factor
-                val h = bitmap.height * s.scale * factor
+                val w = s.refW * s.scale * factor
+                val h = s.refH * s.scale * factor
                 val cx = baseX + s.dx * factor
                 val cy = baseY - s.dy * factor
                 hazardDstRect.set((cx - w / 2).roundToInt(), (cy - h / 2).roundToInt(),

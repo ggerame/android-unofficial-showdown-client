@@ -62,8 +62,8 @@ desktop computer.
 
 ## Building
 **Requirements**
-- JDK **17** (required by Android Gradle Plugin 7.4.2 / Gradle 7.6.4)
-- Android SDK with `compileSdk` **29** (min SDK 21)
+- JDK **17** (required by Android Gradle Plugin 8.7.3 / Gradle 8.9)
+- Android SDK with `compileSdk` **35** (min SDK 21)
 - A device or emulator running Android 5.0+ (API 21+)
 
 The Gradle wrapper pins the correct Gradle version, so you only need the JDK and

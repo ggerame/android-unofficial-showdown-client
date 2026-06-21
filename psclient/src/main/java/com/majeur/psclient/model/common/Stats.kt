@@ -268,7 +268,7 @@ class Stats() : Serializable {
         }
 
         @JvmStatic
-        fun checkHpType(type: String?) = when (type?.trim()?.toLowerCase(Locale.ROOT)) {
+        fun checkHpType(type: String?) = when (type?.trim()?.lowercase()) {
             "bug" -> true
             "dark" -> true
             "dragon" -> true
@@ -322,7 +322,7 @@ class Stats() : Serializable {
         }
 
         fun toIndex(namee: String): Int {
-            val name = namee.toLowerCase(Locale.ROOT).trim()
+            val name = namee.lowercase().trim()
             if (name.contains("atk") || name.contains("attack")) {
                 return if (name.contains("sp")) 3 else 1
             } else if (name.contains("def")) {

@@ -23,10 +23,10 @@ import kotlin.text.Typography.ellipsis
 
 private val ID_REGEX = "[^a-z0-9]".toRegex()
 
-fun String.toId(): String = this.toLowerCase(Locale.ROOT).replace(ID_REGEX, "")
+fun String.toId(): String = this.lowercase().replace(ID_REGEX, "")
 fun String.or(or: String) : String = if (isBlank()) or else this
-fun String.toUpperCase() = toUpperCase(Locale.ROOT)
-fun String.toLowerCase() = toLowerCase(Locale.ROOT)
+fun String.toUpperCase() = uppercase()
+fun String.toLowerCase() = lowercase()
 fun String.truncate(n: Int) = if (length > n) take(n) + ellipsis else this
 
 fun Int.toSignedString() = if (this < 0) "-" else "+" + toString()

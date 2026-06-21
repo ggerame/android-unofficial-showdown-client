@@ -52,7 +52,7 @@ class TeamBuilderActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         // TODO Retrieve cached formats if null
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST", "DEPRECATION")
         val formats = intent.getSerializableExtra(INTENT_EXTRA_FORMATS) as List<BattleFormat.Category>?
 
         val navController = findNavController(R.id.nav_host_fragment)
@@ -66,6 +66,7 @@ class TeamBuilderActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController)
 
 
+        @Suppress("DEPRECATION")
         team = intent.extras?.getSerializable(INTENT_EXTRA_TEAM) as Team?
                 ?: Team("Unnamed team", emptyList(), BattleFormat.FORMAT_OTHER.toId())
         team.pokemons = team.pokemons.toMutableList() // Ensure we have a mutable list under the hood

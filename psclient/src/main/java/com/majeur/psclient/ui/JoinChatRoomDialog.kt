@@ -29,7 +29,9 @@ class JoinChatRoomDialog : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
         officialRooms = requireArguments().getParcelableArrayList<ChatRoomInfo>(ARG_OFFICIAL_ROOMS)!!
+        @Suppress("DEPRECATION")
         chatRooms = requireArguments().getParcelableArrayList<ChatRoomInfo>(ARG_CHAT_ROOMS)!!.sortedBy { -it.userCount }
     }
 
@@ -67,7 +69,7 @@ class JoinChatRoomDialog : BottomSheetDialogFragment() {
 
     private fun joinRoom(roomId: String) {
         val regex = "[^a-z0-9-]".toRegex()
-        roomId.toLowerCase(Locale.ROOT).replace(regex, "").let {
+        roomId.lowercase().replace(regex, "").let {
             (requireActivity() as MainActivity).service?.sendGlobalCommand("join", roomId)
             dismiss()
         }

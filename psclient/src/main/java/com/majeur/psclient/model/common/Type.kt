@@ -45,7 +45,7 @@ object Type {
             "Steel",
             "Water")
 
-    fun getResId(rawType: String?) = when (rawType?.trim()?.toLowerCase(Locale.ROOT)) {
+    fun getResId(rawType: String?) = when (rawType?.trim()?.lowercase()) {
         "bug" -> R.drawable.ic_type_bug
         "dark" -> R.drawable.ic_type_dark
         "dragon" -> R.drawable.ic_type_dragon
@@ -76,25 +76,25 @@ object Type {
     }
 
     private fun singleEffectiveness(attackType: String, defenderType: String) =
-            when (attackType.trim().toLowerCase(Locale.ROOT)) {
-                "normal" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "rock", "steel" -> .5; "ghost" -> .0; else -> 1.0 }
-                "fire" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "grass", "ice", "bug", "steel" -> 2.0; "fire", "water", "rock", "dragon" -> .5; else -> 1.0 }
-                "water" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "fire", "ground", "rock" -> 2.0; "water", "grass", "dragon" -> .5; else -> 1.0 }
-                "electric" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "water", "flying" -> 2.0; "electric", "grass", "dragon" -> .5; "ground" -> .0; else -> 1.0 }
-                "grass" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "water", "ground", "rock" -> 2.0; "fire", "grass", "poison", "flying", "bug", "dragon", "steel" -> .5; else -> 1.0 }
-                "ice" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "grass", "ground", "flying", "dragon" -> 2.0; "fire", "water", "ice", "steel" -> .5; else -> 1.0 }
-                "fighting" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "normal", "ice", "rock", "dark", "steel" -> 2.0; "poison", "flying", "psychic", "bug", "fairy" -> .5; "ghost" -> .0; else -> 1.0 }
-                "poison" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "grass", "fairy" -> 2.0; "poison", "ground", "rock", "ghost" -> .5; "steel" -> .0; else -> 1.0 }
-                "ground" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "fire", "electric", "poison", "rock", "steel" -> 2.0; "grass", "bug" -> .5; "flying" -> .0; else -> 1.0 }
-                "flying" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "grass", "fighting", "bug" -> 2.0; "electric", "rock", "steel" -> .5; else -> 1.0 }
-                "psychic" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "fighting", "poison" -> 2.0; "psychic", "steel" -> .5; "dark" -> .0; else -> 1.0 }
-                "bug" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "grass", "psychic", "dark" -> 2.0; "fire", "fighting", "poison", "flying", "ghost", "steel", "fairy" -> .5; else -> 1.0 }
-                "rock" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "fire", "ice", "flying", "bug" -> 2.0; "fighting", "ground", "steel" -> .5; else -> 1.0 }
-                "ghost" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "psychic", "ghost" -> 2.0; "dark" -> .5; "normal" -> .0; else -> 1.0 }
-                "dragon" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "dragon" -> 2.0; "steel" -> .5; "fairy" -> .0; else -> 1.0 }
-                "dark" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "psychic", "ghost" -> 2.0; "fighting", "dark", "fairy" -> .5; else -> 1.0 }
-                "steel" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "ice", "rock", "fairy" -> 2.0; "fire", "water", "electric", "steel" -> .5; else -> 1.0 }
-                "fairy" -> when (defenderType.trim().toLowerCase(Locale.ROOT)) { "fighting", "dragon", "dark" -> 2.0; "fire", "poison", "steel" -> .5; else -> 1.0 }
+            when (attackType.trim().lowercase()) {
+                "normal" -> when (defenderType.trim().lowercase()) { "rock", "steel" -> .5; "ghost" -> .0; else -> 1.0 }
+                "fire" -> when (defenderType.trim().lowercase()) { "grass", "ice", "bug", "steel" -> 2.0; "fire", "water", "rock", "dragon" -> .5; else -> 1.0 }
+                "water" -> when (defenderType.trim().lowercase()) { "fire", "ground", "rock" -> 2.0; "water", "grass", "dragon" -> .5; else -> 1.0 }
+                "electric" -> when (defenderType.trim().lowercase()) { "water", "flying" -> 2.0; "electric", "grass", "dragon" -> .5; "ground" -> .0; else -> 1.0 }
+                "grass" -> when (defenderType.trim().lowercase()) { "water", "ground", "rock" -> 2.0; "fire", "grass", "poison", "flying", "bug", "dragon", "steel" -> .5; else -> 1.0 }
+                "ice" -> when (defenderType.trim().lowercase()) { "grass", "ground", "flying", "dragon" -> 2.0; "fire", "water", "ice", "steel" -> .5; else -> 1.0 }
+                "fighting" -> when (defenderType.trim().lowercase()) { "normal", "ice", "rock", "dark", "steel" -> 2.0; "poison", "flying", "psychic", "bug", "fairy" -> .5; "ghost" -> .0; else -> 1.0 }
+                "poison" -> when (defenderType.trim().lowercase()) { "grass", "fairy" -> 2.0; "poison", "ground", "rock", "ghost" -> .5; "steel" -> .0; else -> 1.0 }
+                "ground" -> when (defenderType.trim().lowercase()) { "fire", "electric", "poison", "rock", "steel" -> 2.0; "grass", "bug" -> .5; "flying" -> .0; else -> 1.0 }
+                "flying" -> when (defenderType.trim().lowercase()) { "grass", "fighting", "bug" -> 2.0; "electric", "rock", "steel" -> .5; else -> 1.0 }
+                "psychic" -> when (defenderType.trim().lowercase()) { "fighting", "poison" -> 2.0; "psychic", "steel" -> .5; "dark" -> .0; else -> 1.0 }
+                "bug" -> when (defenderType.trim().lowercase()) { "grass", "psychic", "dark" -> 2.0; "fire", "fighting", "poison", "flying", "ghost", "steel", "fairy" -> .5; else -> 1.0 }
+                "rock" -> when (defenderType.trim().lowercase()) { "fire", "ice", "flying", "bug" -> 2.0; "fighting", "ground", "steel" -> .5; else -> 1.0 }
+                "ghost" -> when (defenderType.trim().lowercase()) { "psychic", "ghost" -> 2.0; "dark" -> .5; "normal" -> .0; else -> 1.0 }
+                "dragon" -> when (defenderType.trim().lowercase()) { "dragon" -> 2.0; "steel" -> .5; "fairy" -> .0; else -> 1.0 }
+                "dark" -> when (defenderType.trim().lowercase()) { "psychic", "ghost" -> 2.0; "fighting", "dark", "fairy" -> .5; else -> 1.0 }
+                "steel" -> when (defenderType.trim().lowercase()) { "ice", "rock", "fairy" -> 2.0; "fire", "water", "electric", "steel" -> .5; else -> 1.0 }
+                "fairy" -> when (defenderType.trim().lowercase()) { "fighting", "dragon", "dark" -> 2.0; "fire", "poison", "steel" -> .5; else -> 1.0 }
                 else -> 1.0
             }
 }

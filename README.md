@@ -48,6 +48,11 @@ desktop computer.
   terrain overlays, plus **Terastallization** and graphical entry hazards.
 - Move **type-effectiveness** hints computed against the foe's current
   (Tera-aware) types.
+- **Revealed-move tracking**: the opponent's moves are remembered as they are
+  used and listed in the Pokémon tip popup, persisting across switches.
+- **Tappable team icons**: tap-and-hold an already-appeared team icon in the
+  player info bars to review that Pokémon (including its revealed moves) without
+  waiting for it to return to the field.
 - Battle replays with turn-by-turn playback controls.
 - Spectate ongoing battles.
 - Chat rooms.

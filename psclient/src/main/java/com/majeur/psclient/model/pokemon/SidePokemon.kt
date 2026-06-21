@@ -31,7 +31,7 @@ class SidePokemon(val index: Int, json: JSONObject) : BasePokemon() {
         val detailsArray = json.getString("details").split(", ")
         species = detailsArray[0]
         detailsArray.drop(1).forEach {
-            when (it[0].toLowerCase()) {
+            when (it[0].lowercaseChar()) {
                 's' -> shiny = true
                 'm' -> gender = "♂"
                 'f' -> gender = "♀"

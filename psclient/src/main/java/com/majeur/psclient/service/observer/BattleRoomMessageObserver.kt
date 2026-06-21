@@ -45,6 +45,10 @@ class BattleRoomMessageObserver(service: ShowdownService)
     private val activeFieldEffects = mutableListOf<String>()
     private var lastMove: String? = null
 
+    // Moves revealed by each Pokémon as the battle goes on, keyed so that they
+    // persist even when a Pokémon switches out and back in.
+    private val revealedMoves = mutableMapOf<String, MutableList<String>>()
+
     init {
         battleTextBuilder.setPokemonIdFactory { rawString: String ->
             try {
@@ -69,6 +73,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
         lastDecisionRequest = null
         activeWeather = null
         activeFieldEffects.clear()
+        revealedMoves.clear()
 
         actionQueue.shouldLoopToLastTurn = !isReplay // Loops through each turn for replays
         actionQueue.enableLastActionInvoke = false // Prevent last action from being invoked before |start| or |teampreview|
@@ -84,6 +89,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
         previewPokemonIndexes = IntArray(2)
         activeWeather = null
         activeFieldEffects.clear()
+        revealedMoves.clear()
 
         actionQueue.shouldLoopToLastTurn = true // clear to default setting
     }
@@ -108,6 +114,20 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val arr = (if (id.foe) foePokemons else trainerPokemons)
         return if (id.position >= 0 && id.position < arr.size) arr[id.position] else null
     }
+
+    // Key a Pokémon by its side and nickname so revealed moves survive switches.
+    private fun revealedMovesKey(id: PokemonId) = "${id.foe}:${id.name}"
+
+    private fun trackRevealedMove(id: PokemonId, moveName: String, from: String?) {
+        if (from != null) return // Move was called by another move/effect, not part of the known moveset
+        val moveId = moveName.toId()
+        if (moveId.isEmpty() || moveId == "struggle") return
+        val moves = revealedMoves.getOrPut(revealedMovesKey(id)) { mutableListOf() }
+        if (moves.none { it.toId() == moveId }) moves.add(moveName)
+    }
+
+    fun getRevealedMoves(pokemon: BattlingPokemon): List<String> =
+            revealedMoves[revealedMovesKey(pokemon.id)].orEmpty()
 
     private fun getBattlingPokemon(player: Player, position: Int): BattlingPokemon? {
         val arr = (if (player == Player.FOE) foePokemons else trainerPokemons)
@@ -180,12 +200,14 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val targetPoke = if (msg.hasNextArg) getPokemonId(msg.nextArg) else null
 
         val shouldAnim = !msg.kwargs.keys.containsAll(listOf("still", "notarget", "miss"))
-        val text = battleTextBuilder.move(sourcePoke, moveName, msg.kwargs["from"],
+        val from = msg.kwargs["from"]
+        val text = battleTextBuilder.move(sourcePoke, moveName, from,
                 msg.kwargs["of"], msg.kwargs["zMove"])
 
         // Major action's duration would be too long here
         actionQueue.enqueueMinorAction {
             lastMove = moveName
+            trackRevealedMove(sourcePoke, moveName, from)
             onMove(sourcePoke, targetPoke, moveName, shouldAnim)
             displayMajorActionMessage(text)
         }

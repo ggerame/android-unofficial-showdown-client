@@ -452,6 +452,7 @@ class ShowdownService : Service() {
         sharedData[key] = data
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getSharedData(key: String): T? {
         return sharedData[key] as T?
     }

@@ -33,10 +33,10 @@ class BattlingPokemon(val player: Player, switchMessage: String) : BasePokemon()
         detailsArray.drop(1).forEach {
             when {
                 it.startsWith("tera:") -> teraType = it.substring(5)
-                it[0].toLowerCase() == 's' -> shiny = true
-                it[0].toLowerCase() == 'm' -> gender = "♂"
-                it[0].toLowerCase() == 'f' -> gender = "♀"
-                it[0].toLowerCase() == 'l' -> level = it.drop(1).toInt()
+                it[0].lowercaseChar() == 's' -> shiny = true
+                it[0].lowercaseChar() == 'm' -> gender = "♂"
+                it[0].lowercaseChar() == 'f' -> gender = "♀"
+                it[0].lowercaseChar() == 'l' -> level = it.drop(1).toInt()
             }
         }
 

@@ -7,7 +7,67 @@ This fork revives the abandoned upstream project (last upstream release:
 date with the modern Pokémon Showdown server, Generation 9 data, and a number
 of UI and reliability improvements.
 
-## [1.1.0] – Gen 9 revival fork
+## [Unreleased] – New Android Versions and Moves tracking
+
+### Added — Battle info
+- **Revealed move tracking**: the opponent's moves are now
+  remembered as they are used and listed in the Pokémon tip popup (tap-and-hold
+  the on-field Pokémon). The list persists when a Pokémon switches out and back
+  in, so re-opening the popup for an already-seen Pokémon still shows everything
+  it has revealed. Moves called indirectly (e.g. via another move) and Struggle
+  are excluded, matching the official client. Shown for spectated/replay battles
+  on both sides too.
+- **Tappable team icons**: the small team icons in the player info bars are now
+  tap-and-holdable for any Pokémon that has already appeared on the field,
+  opening the same tip popup (species, types, possible abilities, speed and the
+  revealed moves) — so you can review a benched opponent without waiting for it
+  to come back out. Not-yet-revealed (preview-only) icons stay inert.
+- **Larger team icons**: the team icons in the player info bars were enlarged
+  (16sp → 24sp) to make better use of the previously wasted space in the bar and
+  to give the new tap targets more room.
+
+### Fixed — Stability
+- **Crash on entering battles** (`ArrayIndexOutOfBoundsException: length=0;
+  index=0` in `PlayerInfoView.appendPokemon`) when joining or spectating a
+  battle whose team preview had already started, or when the `teamsize`
+  message was missing/out of order. Placeholder team slots are now lazily
+  initialised when the first preview Pokémon arrives, and all poké-ball
+  `ImageSpan` look-ups are bounds-checked instead of blindly indexing `[0]`.
+- **General crash safety net for battle messages**: `AbsMessageObserver` now
+  wraps each message handler in a try/catch, so a single malformed or
+  unexpected server message is logged (with its command/room) and skipped
+  instead of bringing down the app.
+- **Uncaught coroutine exceptions** in fragment scopes are now caught by a
+  `CoroutineExceptionHandler` and logged via Timber, rather than crashing the
+  process (matches the existing `SupervisorJob` behaviour for siblings).
+
+### Changed — Dependencies
+- Upgraded **Glide 4.8.0 → 4.16.0**. The removed `SimpleTarget` API was
+  migrated to `CustomTarget` (with the now-required `onLoadCleared`), and
+  `BitmapDrawable(Bitmap)` was migrated to `BitmapDrawable(Resources, Bitmap)`.
+
+### Changed — Code maintenance (deprecation cleanup)
+Resolved all outstanding Kotlin/Android deprecation warnings in the `psclient`
+module. These are behaviour-preserving for the app's ASCII/English data:
+- Locale-defaulting string APIs replaced with locale-independent ones:
+  `toLowerCase()/toUpperCase(Locale.ROOT)` → `lowercase()/uppercase()`,
+  `Char.toLowerCase()` → `lowercaseChar()`, and
+  `String.capitalize()` → `replaceFirstChar { it.uppercaseChar() }`.
+- `Html.fromHtml(String)` → `HtmlCompat.fromHtml(…, FROM_HTML_MODE_LEGACY)`.
+- `Fragment.requireFragmentManager()` → `parentFragmentManager`.
+- `BitmapRegionDecoder.newInstance(stream, false)` → `newInstance(stream)` on
+  API 31+ (old overload kept and suppressed for older devices).
+- `WindowInsets.stableInsetTop` → `getInsetsIgnoringVisibility(systemBars()).top`
+  on API 30+ (old field kept and suppressed for older devices).
+- `Bundle`/`Intent` typed accessors: `Bundle.get(key)` → `getString(key)`;
+  remaining unavoidable platform deprecations (`getParcelableArrayList`,
+  `getSerializable`/`getSerializableExtra`, `startActivityForResult` /
+  `onActivityResult`) are explicitly `@Suppress`-ed pending a future migration
+  to the type-safe accessors and the Activity Result API.
+- Removed dead always-true/false null checks in `Team.pack()` while keeping the
+  exact same packed-team output sent to the server.
+
+## [1.1.0] – Gen 9 revival
 
 ### Added — Generation 9 support
 - **Terastallization** (the Gen 9 battle gimmick), end-to-end:

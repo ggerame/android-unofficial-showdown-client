@@ -16,20 +16,27 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import com.majeur.psclient.R
 import com.majeur.psclient.model.pokemon.BasePokemon
+import com.majeur.psclient.model.pokemon.BattlingPokemon
 import com.majeur.psclient.util.addIfNotIn
 import com.majeur.psclient.util.sp
 import com.majeur.psclient.util.toId
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 @SuppressLint("RtlHardcoded")
-class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : AppCompatTextView(context, attrs, defStyleAttr) {
+class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : AppCompatTextView(context, attrs, defStyleAttr), TipPopupContentProvider {
 
-    private val dexIconSize = sp(16f)
+    private val dexIconSize = sp(24f)
     private val spannableBuilder: SpannableStringBuilder
     private val pokeballDrawable: Drawable
     private val emptyPokeballDrawable: Drawable
 
     private val pokemonIds = mutableListOf<String>()
+    // Parallel to pokemonIds: the latest known data for each slot. A slot holds a BattlingPokemon
+    // once that Pokémon has actually appeared on the field, which is what makes its icon tippable.
+    private val pokemons = mutableListOf<BasePokemon?>()
+    private var lastAnchorCenterX = 0
 
     private val isGravityRight
         get() = Gravity.getAbsoluteGravity(gravity, layoutDirection) and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT
@@ -44,6 +51,7 @@ class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: Attribu
 
     fun clear() {
         pokemonIds.clear()
+        pokemons.clear()
         spannableBuilder.clear()
         spannableBuilder.clearSpans()
         spannableBuilder.append(SUFFIX_PATTERN)
@@ -78,6 +86,7 @@ class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: Attribu
 
     fun setTeamSize(teamSize: Int) {
         pokemonIds.clear()
+        pokemons.clear()
         val l = spannableBuilder.length
         for (span in spannableBuilder.getSpans(0, l, ImageSpan::class.java)) spannableBuilder.removeSpan(span)
         val k = spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET
@@ -92,9 +101,15 @@ class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: Attribu
     }
 
     fun appendPokemon(pokemon: BasePokemon, dexIcon: Drawable) {
+        // Team slots are normally set up by setTeamSize(). When joining/spectating a battle whose
+        // preview is already underway, that message may be missing, leaving no placeholder spans.
+        // Fall back to a full-size team so we still have spans to replace instead of crashing.
+        if (spannableBuilder.getSpans(0, spannableBuilder.length, ImageSpan::class.java).isEmpty())
+            setTeamSize(MAX_TEAM_SIZE)
         if (!pokemonIds.addIfNotIn(pokemon.baseSpecies.toId())) return
-        val i = if (isGravityRight) SUFFIX_OFFSET + MAX_TEAM_SIZE - pokemonIds.size else spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET + pokemonIds.size - 1
-        val previousSpan = spannableBuilder.getSpans(i, i + 1, ImageSpan::class.java)[0]
+        pokemons.add(pokemon)
+        val i = charIndexForPokemonIndex(pokemonIds.size - 1)
+        val previousSpan = firstImageSpanAt(i) ?: return
         spannableBuilder.removeSpan(previousSpan)
         val aspectRatio = dexIcon.intrinsicWidth / dexIcon.intrinsicHeight.toFloat()
         dexIcon.setBounds(0, 0, (aspectRatio * dexIconSize).roundToInt(), dexIconSize)
@@ -108,8 +123,9 @@ class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: Attribu
             return
         }
         val index = pokemonIds.indexOf(pokemon.baseSpecies.toId())
-        val i = if (isGravityRight) SUFFIX_OFFSET + MAX_TEAM_SIZE - (index + 1) else spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET + index
-        val previousSpan = spannableBuilder.getSpans(i, i + 1, ImageSpan::class.java)[0]
+        if (index in pokemons.indices) pokemons[index] = pokemon
+        val i = charIndexForPokemonIndex(index)
+        val previousSpan = firstImageSpanAt(i) ?: return
         spannableBuilder.removeSpan(previousSpan)
         val aspectRatio = dexIcon.intrinsicWidth / dexIcon.intrinsicHeight.toFloat()
         dexIcon.setBounds(0, 0, (aspectRatio * dexIconSize).roundToInt(), dexIconSize)
@@ -120,12 +136,45 @@ class PlayerInfoView @JvmOverloads constructor(context: Context?, attrs: Attribu
     fun setPokemonFainted(pokemon: BasePokemon?) {
         if (pokemon == null || !pokemonIds.contains(pokemon.baseSpecies.toId())) return
         val index = pokemonIds.indexOf(pokemon.baseSpecies.toId())
-        val i = if (isGravityRight) SUFFIX_OFFSET + MAX_TEAM_SIZE - (index + 1) else spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET + index
-        val previousSpan = spannableBuilder.getSpans(i, i + 1, ImageSpan::class.java)[0]
+        val i = charIndexForPokemonIndex(index)
+        val previousSpan = firstImageSpanAt(i) ?: return
         val matrix = ColorMatrix()
         matrix.setSaturation(0f)
         previousSpan.drawable.colorFilter = ColorMatrixColorFilter(matrix)
         invalidateText()
+    }
+
+    // Maps the 0-based order in which Pokémon appeared to the character index of its icon span.
+    private fun charIndexForPokemonIndex(index: Int) =
+            if (isGravityRight) SUFFIX_OFFSET + MAX_TEAM_SIZE - (index + 1)
+            else spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET + index
+
+    override fun getTipPopupData(touchX: Int, touchY: Int): Any? {
+        val layout = layout ?: return null
+        val localX = (touchX - totalPaddingLeft + scrollX).toFloat()
+        for (index in pokemonIds.indices) {
+            // Only Pokémon that have actually appeared on the field (and thus carry move/condition
+            // info) are tippable; preview-only or not-yet-revealed slots are skipped.
+            val pokemon = pokemons.getOrNull(index) as? BattlingPokemon ?: continue
+            val charIndex = charIndexForPokemonIndex(index)
+            if (charIndex < 0 || charIndex + 1 > spannableBuilder.length) continue
+            val left = layout.getPrimaryHorizontal(charIndex)
+            val right = layout.getPrimaryHorizontal(charIndex + 1)
+            val lo = min(left, right)
+            val hi = max(left, right)
+            if (localX in lo..hi) {
+                lastAnchorCenterX = ((lo + hi) / 2f + totalPaddingLeft - scrollX).roundToInt()
+                return pokemon
+            }
+        }
+        return null
+    }
+
+    override fun getTipPopupAnchorX() = lastAnchorCenterX
+
+    private fun firstImageSpanAt(i: Int): ImageSpan? {
+        if (i < 0 || i + 1 > spannableBuilder.length) return null
+        return spannableBuilder.getSpans(i, i + 1, ImageSpan::class.java).firstOrNull()
     }
 
     private fun invalidateText() {

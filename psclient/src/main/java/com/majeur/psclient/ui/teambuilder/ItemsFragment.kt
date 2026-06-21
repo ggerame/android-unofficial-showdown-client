@@ -149,7 +149,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
         private fun highlightMatch(textView: TextView) {
             val constraint = filteringConstraint
-            var text = textView.text.toString().toLowerCase()
+            var text = textView.text.toString().lowercase()
             val spaceIndex = text.indexOf(' ')
             text = text.replace(" ", "")
             if (!text.contains(constraint)) return

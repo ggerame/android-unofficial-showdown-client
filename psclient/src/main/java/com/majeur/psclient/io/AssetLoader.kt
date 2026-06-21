@@ -3,6 +3,7 @@ package com.majeur.psclient.io
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.os.Build
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.util.JsonReader
@@ -221,7 +222,10 @@ class AssetLoader(val context: Context) {
         private val bitmapDecoder: BitmapRegionDecoder
             get() {
                 val inputStream = resources.openRawResource(R.raw.dex_icons_sheet)
-                return BitmapRegionDecoder.newInstance(inputStream, true)!!
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    BitmapRegionDecoder.newInstance(inputStream)!!
+                else
+                    @Suppress("DEPRECATION") BitmapRegionDecoder.newInstance(inputStream, true)!!
             }
 
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
@@ -513,7 +517,10 @@ class AssetLoader(val context: Context) {
         private val bitmapDecoder: BitmapRegionDecoder
             get() {
                 val inputStream = resources.openRawResource(R.raw.item_icons_sheet)
-                return BitmapRegionDecoder.newInstance(inputStream, true)!!
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    BitmapRegionDecoder.newInstance(inputStream)!!
+                else
+                    @Suppress("DEPRECATION") BitmapRegionDecoder.newInstance(inputStream, true)!!
             }
 
         @Throws(IOException::class)

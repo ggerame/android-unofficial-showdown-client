@@ -12,7 +12,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.majeur.psclient.R
@@ -75,6 +75,7 @@ class GlideHelper(context: Context) {
     }
 
     private val glide = Glide.with(context)
+    private val resources = context.resources
 
     fun loadBattleBackground(roomId: String?, imageView: ImageView) {
         val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
@@ -87,8 +88,9 @@ class GlideHelper(context: Context) {
     fun loadFieldFxBitmap(fileName: String, callback: (Bitmap) -> Unit) {
         val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
                 .appendPath("fx").appendPath(fileName).build()
-        glide.asBitmap().load(uri).into(object : SimpleTarget<Bitmap>() {
+        glide.asBitmap().load(uri).into(object : CustomTarget<Bitmap>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) = callback(resource)
+            override fun onLoadCleared(placeholder: Drawable?) {}
         })
     }
 
@@ -181,7 +183,7 @@ class GlideHelper(context: Context) {
                 if (source.startsWith("content://com.majeur.psclient/dex-icon/")) {
                     val species = source.substring(source.lastIndexOf('/') + 1, source.length)
                     val icon = iconLoader.dexIconNonSuspend(species)
-                    if (icon != null) d = BitmapDrawable(icon)
+                    if (icon != null) d = BitmapDrawable(resources, icon)
                 } else {
                     d = glide.asDrawable().load(source).submit().get()
                 }

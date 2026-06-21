@@ -15,6 +15,18 @@ import com.majeur.psclient.databinding.PopupBattleTipsBinding
 import com.majeur.psclient.util.dp
 import kotlin.math.max
 
+/**
+ * Implemented by tipped views that contain several independently tippable regions (e.g. the team
+ * icons inside [PlayerInfoView]). It lets the view decide, per touch, what should be shown in the
+ * popup and where it should be anchored horizontally.
+ */
+interface TipPopupContentProvider {
+    /** Data object to bind for a touch at the given view-local coordinates, or null if nothing is tippable there. */
+    fun getTipPopupData(touchX: Int, touchY: Int): Any?
+    /** Horizontal center (view-local px) to anchor the popup at, for the most recently queried touch. */
+    fun getTipPopupAnchorX(): Int
+}
+
 class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
 
     var bindPopupListener: ((anchorView: View, titleView: TextView, descView: TextView, placeHolderTop: ImageView, placeHolderBottom: ImageView) -> Unit)? = null
@@ -23,6 +35,7 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     private var currentAnchorView: View? = null
 
     private val thumbOffset = context.dp(8f)
+    private var downX = 0
     private var downY = 0
     private var isUserTouching = false
     private var longPressPerformed = false
@@ -32,7 +45,11 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     private val longPressTimeout
         get() = ViewConfiguration.getLongPressTimeout().toLong()
     private val topWindowInset
-        get() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) currentAnchorView!!.rootWindowInsets.stableInsetTop else 0
+        get() = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> currentAnchorView!!.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).top
+            Build.VERSION.SDK_INT > Build.VERSION_CODES.M -> @Suppress("DEPRECATION") currentAnchorView!!.rootWindowInsets.stableInsetTop
+            else -> 0
+        }
 
     init {
         setBackgroundDrawable(null)
@@ -63,7 +80,8 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     private fun showPopup() {
         measureContentView(tempRect)
         currentAnchorView!!.getLocationInWindow(tempArr)
-        val x = tempArr[0] + currentAnchorView!!.width / 2 - tempRect.width() / 2
+        val anchorCenterX = (currentAnchorView as? TipPopupContentProvider)?.getTipPopupAnchorX() ?: (currentAnchorView!!.width / 2)
+        val x = tempArr[0] + anchorCenterX - tempRect.width() / 2
         val windowInsetTop = topWindowInset
         val y = max(windowInsetTop, windowInsetTop + tempArr[1] + downY - tempRect.height() - thumbOffset)
         showAtLocation(currentAnchorView, Gravity.NO_GRAVITY, x, y)
@@ -71,13 +89,22 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
 
     override fun onTouch(view: View, motionEvent: MotionEvent) = when (motionEvent.action) {
         MotionEvent.ACTION_DOWN -> {
-            currentAnchorView = view
+            downX = motionEvent.x.toInt()
             downY = motionEvent.y.toInt()
-            isUserTouching = true
-            // If view is clickable, we wait for a long press to be done before triggering popup, if not, we show immediately
-            if (view.isClickable) view.postDelayed(longPressCheckRunnable, longPressTimeout)
-            else longPressCheckRunnable.run()
-            true
+            // Views may dynamically decide what (if anything) is tippable at the touched location.
+            val provider = view as? TipPopupContentProvider
+            val data = provider?.getTipPopupData(downX, downY)
+            if (provider != null && data == null) {
+                false // Nothing tippable here, let the view handle the touch normally
+            } else {
+                if (data != null) view.setTag(R.id.battle_data_tag, data)
+                currentAnchorView = view
+                isUserTouching = true
+                // If view is clickable, we wait for a long press to be done before triggering popup, if not, we show immediately
+                if (view.isClickable) view.postDelayed(longPressCheckRunnable, longPressTimeout)
+                else longPressCheckRunnable.run()
+                true
+            }
         }
         MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
             isUserTouching = false

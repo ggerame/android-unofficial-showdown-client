@@ -50,7 +50,7 @@ object SmogonTeamBuilder {
         }
         if (dexPokemon.gender == null && (pokemon.gender.equals("m", ignoreCase = true) ||
                 pokemon.gender.equals("f", ignoreCase = true))) {
-            builder.append(" (${pokemon.gender.toUpperCase(Locale.ROOT)})")
+            builder.append(" (${pokemon.gender.uppercase()})")
         }
         if (pokemon.item.isNotBlank()) {
             val item = assetLoader.item(pokemon.item.toId())?.name ?: pokemon.item

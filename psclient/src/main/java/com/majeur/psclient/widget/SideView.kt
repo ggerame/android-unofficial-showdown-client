@@ -71,7 +71,7 @@ class SideView(context: Context?) : View(context) {
         rawSide = rawSide.trim { it <= ' ' }
         val spaceIndex = rawSide.indexOf(' ')
         return if (spaceIndex >= 0) (rawSide.substring(0, 1) + rawSide.substring(spaceIndex + 1, spaceIndex + 2))
-                .toUpperCase() else rawSide.substring(0, 2).toUpperCase()
+                .uppercase() else rawSide.substring(0, 2).uppercase()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

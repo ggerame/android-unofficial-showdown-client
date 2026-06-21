@@ -150,9 +150,12 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
             intent.putExtra(TeamBuilderActivity.INTENT_EXTRA_FORMATS, battleFormats as Serializable)
         if (team != null)
             intent.putExtra(TeamBuilderActivity.INTENT_EXTRA_TEAM, team)
+        @Suppress("DEPRECATION")
         startActivityForResult(intent, TeamBuilderActivity.INTENT_REQUEST_CODE)
     }
 
+    @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == TeamBuilderActivity.INTENT_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             val team = data.getSerializableExtra(TeamBuilderActivity.INTENT_EXTRA_TEAM) as Team

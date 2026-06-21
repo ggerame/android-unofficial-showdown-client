@@ -206,7 +206,7 @@ class StatusView(context: Context?) : View(context) {
 
         val teraText = teraType?.let { "TERA " + it.toUpperCase() } ?: ""
         val totalText = teraText + status + volatileStatus.values.filter { it.label != null }.joinToString(separator = "") +
-                statsModifiers.map { DECIMAL_FORMAT.format(it.value) + it.key.capitalize() }.joinToString(separator = "")
+                statsModifiers.map { DECIMAL_FORMAT.format(it.value) + it.key.replaceFirstChar { c -> c.uppercaseChar() } }.joinToString(separator = "")
         paint.apply {
             typeface = defaultTypeFace
             textSize = tagTextSize.toFloat()
@@ -239,7 +239,7 @@ class StatusView(context: Context?) : View(context) {
         }
         for (entry in statsModifiers.entries) {
             if (entry.value == 1f) continue
-            val text = DECIMAL_FORMAT.format(entry.value) + entry.key.capitalize()
+            val text = DECIMAL_FORMAT.format(entry.value) + entry.key.replaceFirstChar { it.uppercaseChar() }
             tempRect3.set(tempRect2)
             drawTag(null, left, cY, text, if (entry.value < 1f) Colors.STAT_UNBOOST else Colors.STAT_BOOST,
                     Colors.WHITE, tempRect3)

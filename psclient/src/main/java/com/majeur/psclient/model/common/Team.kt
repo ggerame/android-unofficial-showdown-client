@@ -33,10 +33,10 @@ class Team private constructor(
         for (set in pokemons) {
             if (buf.isNotEmpty()) buf.append("]")
             // name
-            buf.append(if (set.name != null) set.name else set.species)
+            buf.append(set.name)
 
             // species
-            val blank = set.name == null || set.name?.toId() == set.species.toId()
+            val blank = set.name.toId() == set.species.toId()
             buf.append("|").append(if (blank) "" else set.species)
 
             // item
@@ -66,11 +66,7 @@ class Team private constructor(
             if (set.evs.spe != 0) buf.append(set.evs.spe)
 
             // gender
-            if (set.gender != null) {
-                buf.append("|").append(set.gender)
-            } else {
-                buf.append("|")
-            }
+            buf.append("|").append(set.gender)
 
             // ivs
             buf.append("|")
@@ -106,9 +102,9 @@ class Team private constructor(
             } else {
                 buf.append("|")
             }
-            if (set.hpType != null) buf.append(",").append(set.hpType)
-            if (set.pokeball != null && set.pokeball != "pokeball")
-                buf.append(",").append(set.pokeball?.toId() ?: "")
+            buf.append(",").append(set.hpType)
+            if (set.pokeball != "pokeball")
+                buf.append(",").append(set.pokeball.toId())
         }
         return buf.toString()
     }

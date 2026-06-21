@@ -94,6 +94,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         service?.battleMessageObserver?.uiCallbacks = null
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         inactiveBattleOverlayDrawable = InactiveBattleOverlayDrawable(resources)
@@ -102,6 +103,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             battleLog.movementMethod = LinkMovementMethod()
             battleLog.setText("", TextView.BufferType.EDITABLE) // Setting the editable buffer type
             overlayImage.setImageDrawable(inactiveBattleOverlayDrawable)
+            // Allow tapping the already-appeared team icons to show their tip popup (moves, etc.).
+            battleTipPopup.addTippedView(trainerInfo)
+            battleTipPopup.addTippedView(foeInfo)
             battleDecisionWidget.onRevealListener = { reveal ->
                 if (reveal) {
                     extraActionLayout.hideItem(R.id.undo_button)
@@ -330,7 +334,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
 
             var ability: String? = null
-            if (pokemon.trainer && lastDecisionRequest?.side != null) {
+            // A switched-out Pokémon keeps a stale `position`, so only the Pokémon currently stored
+            // as active for its slot may read the position-indexed decision-request side data.
+            val isActive = observer.getBattlingPokemon(pokemon.id) === pokemon
+            if (isActive && pokemon.trainer && lastDecisionRequest?.side != null) {
                 val sidePokemon = lastDecisionRequest!!.side[pokemon.position]
                 if (pokemon.transformSpecies == null) { // Ditto case
                     pokemon.statModifiers.apply {
@@ -357,6 +364,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 val dexPokemon = assetLoader.dexPokemon(pokemon.species.toId())
                 if (dexPokemon == null) {
                     append("No dex entry for ${pokemon.species}")
+                    appendRevealedMoves(descView, pokemon)
                     return@launch
                 }
                 if (pokemon.teraType != null) {
@@ -367,7 +375,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     dexPokemon.secondType?.let { placeHolderBottom.setImageResource(Type.getResId(it)) }
                 }
 
-                if (pokemon.trainer && observer.isUserPlaying) {
+                if (isActive && pokemon.trainer && observer.isUserPlaying) {
                     if (ability == null) return@launch
                     val abilityName = if (dexPokemon.hiddenAbility?.toId() == ability) dexPokemon.hiddenAbility
                     else  dexPokemon.abilities.firstOrNull { it.toId() == ability }
@@ -386,8 +394,19 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 }
                 val speedRange = Stats.calculateSpeedRange(pokemon.level, dexPokemon.baseStats.spe, "Random Battle", observer.gen)
                 append("Speed: ".small() concat "${speedRange[0]} to ${speedRange[1]}" concat " (before items/abilities/modifiers)".small())
+                appendRevealedMoves(descView, pokemon)
             }
         }
+    }
+
+    /** Appends the moves an opponent's (or spectated) Pokémon has revealed so far, persisting across switches. */
+    private fun appendRevealedMoves(descView: TextView, pokemon: BattlingPokemon) {
+        if (pokemon.trainer && observer.isUserPlaying) return
+        val moves = observer.getRevealedMoves(pokemon)
+        if (moves.isEmpty()) return
+        descView.append("\n")
+        descView.append("Moves: ".small())
+        descView.append(moves.joinToString(", "))
     }
 
     private fun bindMoveTipPopup(move: Move, titleView: TextView, descView: TextView, placeHolderTop: ImageView,

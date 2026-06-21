@@ -177,7 +177,7 @@ class TeamFragment : Fragment() {
                 }
             }.also { it.addItem(BattleFormat.FORMAT_OTHER) }
             setAdapter(spinnerAdapter)
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("UNCHECKED_CAST", "DEPRECATION")
             val battleFormats = requireArguments().getSerializable(ARG_FORMATS) as List<BattleFormat.Category>?
             var indexInAdapter = 0
             battleFormats?.forEach { category ->

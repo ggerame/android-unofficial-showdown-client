@@ -3,7 +3,7 @@ package com.majeur.psclient.ui
 import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
-import android.text.Html
+import androidx.core.text.HtmlCompat
 import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.View
@@ -163,7 +163,7 @@ class NewsDialog : BottomSheetDialogFragment() {
     class News(json: JSONObject) {
         val id = json.optInt("id", 0)
         val title: String = json.optString("title", "")
-        val content: Spanned = Html.fromHtml(json.optString("summaryHTML", ""))
+        val content: Spanned = HtmlCompat.fromHtml(json.optString("summaryHTML", ""), HtmlCompat.FROM_HTML_MODE_LEGACY)
         val author: String = json.optString("author", "")
         val date = json.optLong("date", 0L)
 

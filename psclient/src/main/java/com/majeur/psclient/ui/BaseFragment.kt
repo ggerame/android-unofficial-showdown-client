@@ -6,11 +6,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.majeur.psclient.service.ShowdownService
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlin.coroutines.CoroutineContext
+import timber.log.Timber
 
 open class BaseFragment : Fragment(), MainActivity.Callbacks {
 
@@ -49,8 +51,13 @@ open class BaseFragment : Fragment(), MainActivity.Callbacks {
 
         private val supervisorJob = SupervisorJob()
 
+        // Prevents an uncaught exception inside any launched coroutine from crashing the whole app.
+        private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            Timber.e(throwable, "Uncaught exception in fragment coroutine")
+        }
+
         override val coroutineContext: CoroutineContext
-            get() = supervisorJob + Dispatchers.Main
+            get() = supervisorJob + Dispatchers.Main + exceptionHandler
 
         @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         fun destroy() = coroutineContext.cancelChildren()

@@ -49,7 +49,9 @@ All notable changes made are documented here.
   staggered vertically (a staircase, like the web client) so they never collide
   regardless of Pokémon name length, and the on-field sprites are shrunk a touch
   more than the bars in multi-Pokémon formats to free up the crowded field while
-  keeping the HP text legible.
+  keeping the HP text legible. The battle field was also made a little taller and
+  the foe's Pokémon nudged downward so their HP bars stack upward into open space
+  instead of being drawn over the foe sprites.
 - **Untappable UI on full-screen / camera-cutout devices**: on Android 15 the
   system forces edge-to-edge, which drew the app behind the status bar,
   navigation bar and camera cutout. The top and bottom controls ended up under
@@ -58,15 +60,17 @@ All notable changes made are documented here.
   every device, and keeps the system-bar icons readable in light and dark mode.
 
 ### Fixed — Sprites
-- **Missing battle sprites** caused by Glide's default 2.5s network timeout.
-  During a battle the on-field sprites, the background and the hazard
-  `fx` graphics all download at once from `play.pokemonshowdown.com`,
-  so the larger animated GIFs routinely exceeded that limit and timed out —
-  falling through the sprite fallback chain to `missingno`/nothing,
-  independently per request (which is why a Pokémon could show one facing but not the other).
-  The sprites themselves were fine and returned HTTP 200; browsers impose no such timeout,
-  which is why the web client never shows this. The network timeout for sprite,
-  background and `fx` downloads was raised to 15s in `GlideHelper`.
+- **More robust battle sprite loading** against download timeouts. Glide's
+  default network timeout is only 2.5s; during a battle the on-field sprites,
+  the background and the hazard `fx` graphics all download at once from
+  `play.pokemonshowdown.com`, so on a slow/congested link the larger animated
+  GIFs could exceed that limit and time out — falling through the sprite
+  fallback chain to `missingno`/nothing, independently per request. Browsers impose no such
+  timeout, which is why the web client never shows this. The network timeout for
+  sprite, background and `fx` downloads was raised to 15s in `GlideHelper`.
+  (Note: some transient broken images are server-side — the official sprite
+  host occasionally serves real 404s — which no client timeout can fix, but the
+  longer timeout makes the client degrade more gracefully during such hiccups.)
 
 ### Changed — Dependencies
 - Upgraded **Glide 4.8.0 → 4.16.0**. The removed `SimpleTarget` API was

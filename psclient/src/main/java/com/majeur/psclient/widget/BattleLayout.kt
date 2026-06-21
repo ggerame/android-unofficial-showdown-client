@@ -285,28 +285,31 @@ class BattleLayout @JvmOverloads constructor(
         val farStatusViews = if (flipped) p1StatusViews else p2StatusViews
         val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
         val point = Point()
+        val nearPositions = REL_BATTLE_P1_POS[count - 1]
+        val farPositions = REL_BATTLE_P2_POS[count - 1]
         for (i in 0 until count) {
-            point.set((REL_BATTLE_P1_POS[count - 1][i].x * width).toInt(), (REL_BATTLE_P1_POS[count - 1][i].y * height).toInt())
+            point.set((nearPositions[i].x * width).toInt(), (nearPositions[i].y * height).toInt())
             var cX = point.x
             var cY = point.y
             layoutChild(nearImageViews[i], cX, cY, Gravity.CENTER, false, point)
             // With several Pokémon per side the fixed-width HP bars can't fit side by side, so we
-            // stack them: the near (bottom) bars step upward into the field, the back Pokémon
-            // highest, so they never overlap and follow the on-field depth order.
+            // stack them upward into the field. The stagger level is keyed off each sprite's actual
+            // vertical position (not its slot index) so the higher Pokémon always gets the higher
+            // bar — this guarantees the bars never overlap whatever order the anchors are declared in.
             val nearStatus = nearStatusViews[i]
-            val nearStagger = if (count > 1) (count - 1 - i) * nearStatus.measuredHeight else 0
+            val nearStagger = if (count > 1) staggerLevel(nearPositions, i) * nearStatus.measuredHeight else 0
             layoutChild(nearStatus, cX, point.y - statusBarOffset - nearStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
             val j = count - i - 1
-            point[(REL_BATTLE_P2_POS[count - 1][j].x * width).toInt()] = (REL_BATTLE_P2_POS[count - 1][j].y * height).toInt()
+            point[(farPositions[j].x * width).toInt()] = (farPositions[j].y * height).toInt()
             cX = point.x
             cY = point.y
             layoutChild(farImageViews[j], cX, cY, Gravity.CENTER, false, point)
-            // The far (top) bars sit against the top edge, so stack them downward instead (front
-            // Pokémon lowest); pushing them up would clamp them together and overlap.
+            // Same upward stack for the foe side, so the bars sit in the open space above the foe
+            // sprites (which are nudged down a little, see REL_BATTLE_P2_POS) instead of over them.
             val farStatus = farStatusViews[j]
-            val farStagger = if (count > 1) (count - 1 - j) * farStatus.measuredHeight else 0
-            layoutChild(farStatus, cX, point.y - statusBarOffset + farStagger, Gravity.CENTER_HORIZONTAL, true)
+            val farStagger = if (count > 1) staggerLevel(farPositions, j) * farStatus.measuredHeight else 0
+            layoutChild(farStatus, cX, point.y - statusBarOffset - farStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
         }
         val nearSideView = if (flipped) p2SideView else p1SideView
@@ -315,6 +318,16 @@ class BattleLayout @JvmOverloads constructor(
         farSideView.gravity = Gravity.END
         layoutChild(nearSideView, 0, 4 * height / 5, Gravity.CENTER_VERTICAL, true)
         layoutChild(farSideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
+    }
+
+    // How many bar-heights to push this sprite's HP bar upward: equal to the number of sprites on
+    // the same side that sit lower on screen (larger y). The highest sprite therefore gets the
+    // tallest stack and the bars always clear each other regardless of anchor declaration order.
+    private fun staggerLevel(positions: Array<PointF>, index: Int): Int {
+        val y = positions[index].y
+        var lower = 0
+        for (pos in positions) if (pos.y > y) lower++
+        return lower
     }
 
     private fun prepareViews(inLayout: Boolean, width: Int, height: Int) {
@@ -551,7 +564,7 @@ class BattleLayout @JvmOverloads constructor(
         const val MODE_BATTLE_DOUBLE = 2
         const val MODE_BATTLE_TRIPLE = 3
 
-        private const val ASPECT_RATIO = 16f / 9f
+        private const val ASPECT_RATIO = 16f / 11f
         // Reference width used to scale web fx sprite sizes/offsets to the battle field.
         private const val HAZARD_SCALE_REF = 480f
         // Ground anchors (fractions of field size) where each side's hazards are clustered.
@@ -560,6 +573,6 @@ class BattleLayout @JvmOverloads constructor(
         private val REL_TEAMPREV_P1_LINE = arrayOf(PointF(0.125f, 0.728f), PointF(0.820f, 0.806f))
         private val REL_TEAMPREV_P2_LINE = arrayOf(PointF(0.180f, 0.267f), PointF(0.875f, 0.344f))
         private val REL_BATTLE_P1_POS = arrayOf(arrayOf(PointF(0.225f, 0.748f)), arrayOf(PointF(0.225f, 0.738f), PointF(0.425f, 0.758f)), arrayOf(PointF(0.125f, 0.728f), PointF(0.325f, 0.748f), PointF(0.525f, 0.768f)))
-        private val REL_BATTLE_P2_POS = arrayOf(arrayOf(PointF(0.775f, 0.397f)), arrayOf(PointF(0.775f, 0.297f), PointF(0.575f, 0.267f)), arrayOf(PointF(0.475f, 0.267f), PointF(0.675f, 0.287f), PointF(0.875f, 0.307f)))
+        private val REL_BATTLE_P2_POS = arrayOf(arrayOf(PointF(0.775f, 0.397f)), arrayOf(PointF(0.775f, 0.347f), PointF(0.575f, 0.317f)), arrayOf(PointF(0.475f, 0.317f), PointF(0.675f, 0.337f), PointF(0.875f, 0.357f)))
     }
 }

@@ -32,6 +32,18 @@ class BattleLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
     private var battleLayoutMode = MODE_BATTLE_SINGLE
+
+    // When true the two sides are swapped on screen (the foe is shown on the near/bottom side
+    // and the trainer on the far/top side). Purely a display concern: the logical Player a
+    // Pokémon belongs to is unchanged. Used to let spectators/replay viewers flip the viewpoint.
+    var flipped = false
+        set(value) {
+            if (field == value) return
+            field = value
+            requestLayout()
+            invalidate()
+        }
+
     private val statusBarOffset = dp(18f)
     private var p1PreviewTeamSize = 6
     private var p2PreviewTeamSize = 6
@@ -240,45 +252,60 @@ class BattleLayout @JvmOverloads constructor(
     }
 
     private fun layoutPreviewMode(width: Int, height: Int) {
-        val p1Count = p1PreviewTeamSize
+        // Near (bottom) line is normally the trainer's, far (top) line the foe's; swapped when flipped.
+        val nearImageViews = if (flipped) p2ImageViews else p1ImageViews
+        val nearCount = if (flipped) p2PreviewTeamSize else p1PreviewTeamSize
+        val farImageViews = if (flipped) p1ImageViews else p2ImageViews
+        val farCount = if (flipped) p1PreviewTeamSize else p2PreviewTeamSize
         var startPoint = Point((REL_TEAMPREV_P1_LINE[0].x * width).toInt(),
                 (REL_TEAMPREV_P1_LINE[0].y * height).toInt())
         var endPoint = Point((REL_TEAMPREV_P1_LINE[1].x * width).toInt(),
                 (REL_TEAMPREV_P1_LINE[1].y * height).toInt())
-        var xStep = (endPoint.x - startPoint.x) / p1Count
-        var yStep = (endPoint.y - startPoint.y) / p1Count
-        for (i in 0 until p1Count) layoutChild(p1ImageViews[i], startPoint.x + i * xStep,
+        var xStep = (endPoint.x - startPoint.x) / nearCount
+        var yStep = (endPoint.y - startPoint.y) / nearCount
+        for (i in 0 until nearCount) layoutChild(nearImageViews[i], startPoint.x + i * xStep,
                 startPoint.y + i * yStep, Gravity.CENTER, false)
-        val p2Count = p2PreviewTeamSize
         startPoint = Point((REL_TEAMPREV_P2_LINE[0].x * width).toInt(),
                 (REL_TEAMPREV_P2_LINE[0].y * height).toInt())
         endPoint = Point((REL_TEAMPREV_P2_LINE[1].x * width).toInt(),
                 (REL_TEAMPREV_P2_LINE[1].y * height).toInt())
-        xStep = (endPoint.x - startPoint.x) / p2Count
-        yStep = (endPoint.y - startPoint.y) / p2Count
-        for (i in 0 until p2Count) layoutChild(p2ImageViews[i], startPoint.x + (i + 1) * xStep,
+        xStep = (endPoint.x - startPoint.x) / farCount
+        yStep = (endPoint.y - startPoint.y) / farCount
+        for (i in 0 until farCount) layoutChild(farImageViews[i], startPoint.x + (i + 1) * xStep,
                 startPoint.y + (i + 1) * yStep, Gravity.CENTER, false)
     }
 
     private fun layoutBattleMode(count: Int, width: Int, height: Int) {
+        // The near (bottom) and far (top) physical slots are normally occupied by the trainer (p1)
+        // and the foe (p2) respectively. When flipped, the two sides swap places on screen.
+        val nearImageViews = if (flipped) p2ImageViews else p1ImageViews
+        val nearStatusViews = if (flipped) p2StatusViews else p1StatusViews
+        val nearToasterViews = if (flipped) p2ToasterViews else p1ToasterViews
+        val farImageViews = if (flipped) p1ImageViews else p2ImageViews
+        val farStatusViews = if (flipped) p1StatusViews else p2StatusViews
+        val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
         val point = Point()
         for (i in 0 until count) {
             point.set((REL_BATTLE_P1_POS[count - 1][i].x * width).toInt(), (REL_BATTLE_P1_POS[count - 1][i].y * height).toInt())
             var cX = point.x
             var cY = point.y
-            layoutChild(p1ImageViews[i], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(p1StatusViews[i], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
-            layoutChild(p1ToasterViews[i], cX, cY, Gravity.CENTER, false)
+            layoutChild(nearImageViews[i], cX, cY, Gravity.CENTER, false, point)
+            layoutChild(nearStatusViews[i], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
             val j = count - i - 1
             point[(REL_BATTLE_P2_POS[count - 1][j].x * width).toInt()] = (REL_BATTLE_P2_POS[count - 1][j].y * height).toInt()
             cX = point.x
             cY = point.y
-            layoutChild(p2ImageViews[j], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(p2StatusViews[j], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
-            layoutChild(p2ToasterViews[j], cX, cY, Gravity.CENTER, false)
+            layoutChild(farImageViews[j], cX, cY, Gravity.CENTER, false, point)
+            layoutChild(farStatusViews[j], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
         }
-        layoutChild(p1SideView, 0, 4 * height / 5, Gravity.CENTER_VERTICAL, true)
-        layoutChild(p2SideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
+        val nearSideView = if (flipped) p2SideView else p1SideView
+        val farSideView = if (flipped) p1SideView else p2SideView
+        nearSideView.gravity = Gravity.LEFT
+        farSideView.gravity = Gravity.END
+        layoutChild(nearSideView, 0, 4 * height / 5, Gravity.CENTER_VERTICAL, true)
+        layoutChild(farSideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
     }
 
     private fun prepareViews(inLayout: Boolean, width: Int, height: Int) {
@@ -462,8 +489,10 @@ class BattleLayout @JvmOverloads constructor(
         if (width == 0 || height == 0) return
         if (p1HazardLayers.isEmpty() && p2HazardLayers.isEmpty()) return
         val factor = width / HAZARD_SCALE_REF
-        drawHazardsForSide(canvas, p1HazardLayers, HAZARD_NEAR_ANCHOR, factor)
-        drawHazardsForSide(canvas, p2HazardLayers, HAZARD_FAR_ANCHOR, factor)
+        val nearLayers = if (flipped) p2HazardLayers else p1HazardLayers
+        val farLayers = if (flipped) p1HazardLayers else p2HazardLayers
+        drawHazardsForSide(canvas, nearLayers, HAZARD_NEAR_ANCHOR, factor)
+        drawHazardsForSide(canvas, farLayers, HAZARD_FAR_ANCHOR, factor)
     }
 
     private fun drawHazardsForSide(canvas: Canvas, layers: ArrayMap<String, Int>, anchor: PointF, factor: Float) {

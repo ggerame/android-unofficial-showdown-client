@@ -96,7 +96,11 @@ class GlideHelper(context: Context) {
 
     fun loadBattleSprite(pokemon: BattlingPokemon, imageView: ImageView) {
         val spriteId = pokemon.transformSpecies ?: pokemon.spriteId
-        loadSprite(spriteId, pokemon.trainer, pokemon.shiny, true,
+        // When the battle view is flipped the two sides swap places: the near (bottom) side shows
+        // its back to the viewer and is drawn larger, regardless of which logical player it is.
+        val flipped = (imageView.parent as? BattleLayout)?.flipped ?: false
+        val nearSide = pokemon.trainer != flipped
+        loadSprite(spriteId, nearSide, pokemon.shiny, true,
                 SpriteType.D3ANIMATED, SpriteType.D2ANIMATED, SpriteType.D2)
             .into(object : AnimatedImageViewTarget(imageView) {
 
@@ -119,9 +123,9 @@ class GlideHelper(context: Context) {
             }
 
                 override fun onApplyResourceSize(w: Int, h: Int) {
-                val fieldWidth = (imageView.parent as BattleLayout).width
-                var scale = fieldWidth * MAGIC_SCALE
-                if (!pokemon.foe) scale *= 1.5f
+                val battleLayout = imageView.parent as BattleLayout
+                var scale = battleLayout.width * MAGIC_SCALE
+                if (pokemon.trainer != battleLayout.flipped) scale *= 1.5f
                 getView().layoutParams.apply {
                     width = (w * scale).roundToInt()
                     height = (h * scale).roundToInt()
@@ -131,7 +135,8 @@ class GlideHelper(context: Context) {
     }
 
     fun loadPreviewSprite(player: Player, pokemon: BasePokemon, imageView: ImageView) {
-        loadSprite(pokemon.spriteId, player == Player.TRAINER, false, true,
+        val flipped = (imageView.parent as? BattleLayout)?.flipped ?: false
+        loadSprite(pokemon.spriteId, (player == Player.TRAINER) != flipped, false, true,
                 SpriteType.D3ANIMATED, SpriteType.D2ANIMATED, SpriteType.D2)
             .into(object : AnimatedImageViewTarget(imageView) {
                 override fun onInitInAnimation(viewPropertyAnimator: ViewPropertyAnimator) = Unit

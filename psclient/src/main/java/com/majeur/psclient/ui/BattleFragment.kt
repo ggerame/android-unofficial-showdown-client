@@ -59,6 +59,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private var timerEnabled = false
     private var soundEnabled = false
     private var wasPlayingBattleMusicWhenPaused = false
+    private var battleViewFlipped = false
 
     private var _binding: FragmentBattleBinding? = null
     private val binding get() = _binding!!
@@ -120,6 +121,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             extraActions.timerButton.setOnClickListener(this@BattleFragment)
             extraActions.forfeitButton.setOnClickListener(this@BattleFragment)
             extraActions.sendButton.setOnClickListener(this@BattleFragment)
+            extraActions.flipButton.setOnClickListener(this@BattleFragment)
             undoButton.setOnClickListener(this@BattleFragment)
             rematchButton.setOnClickListener(this@BattleFragment)
             uploadReplayButton.setOnClickListener(this@BattleFragment)
@@ -258,6 +260,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             binding.extraActions.timerButton -> {
                 if (battleRunning) sendTimerCommand(!timerEnabled)
             }
+            binding.extraActions.flipButton -> {
+                setBattleViewFlipped(!battleViewFlipped)
+            }
             binding.undoButton -> {
                 binding.undoButton.isEnabled = false
                 sendUndoCommand()
@@ -279,6 +284,41 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             binding.replayActions.replayPlayButton -> {
                 if (service?.replayManager?.isPaused == true) unpauseReplay() else pauseReplay()
             }
+        }
+    }
+
+    // Swaps the on-screen viewpoint so the foe is shown on the near (bottom) side and the trainer
+    // on the far (top) side. Purely cosmetic; mainly useful when spectating or watching a replay.
+    private fun setBattleViewFlipped(flipped: Boolean) {
+        battleViewFlipped = flipped
+        binding.battleLayout.flipped = flipped
+        // Back/front sprite art and on-field scale depend on the side, so reload the on-field sprites.
+        binding.battleLayout.apply {
+            (getSpriteViews(Player.TRAINER) + getSpriteViews(Player.FOE)).forEach { view ->
+                (view.getTag(R.id.battle_data_tag) as? BattlingPokemon)?.let { pokemon ->
+                    glideHelper.loadBattleSprite(pokemon, view)
+                }
+            }
+        }
+        // The two team-roster bars live outside the battle field, so move them to match the swap.
+        binding.apply {
+            val offset = (trainerInfo.top - foeInfo.top).toFloat()
+            trainerInfo.animate().translationY(if (flipped) -offset else 0f).setDuration(250).start()
+            foeInfo.animate().translationY(if (flipped) offset else 0f).setDuration(250).start()
+        }
+        val color = ContextCompat.getColor(requireActivity(),
+                if (flipped) R.color.secondary else R.color.onSurfaceBackground)
+        binding.extraActions.flipButton.drawable.setTint(color)
+    }
+
+    private fun resetBattleViewFlip() {
+        battleViewFlipped = false
+        _binding?.apply {
+            battleLayout.flipped = false
+            trainerInfo.translationY = 0f
+            foeInfo.translationY = 0f
+            extraActions.flipButton.drawable.setTint(
+                    ContextCompat.getColor(requireActivity(), R.color.onSurfaceBackground))
         }
     }
 
@@ -566,6 +606,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         if (!observer.isUserPlaying) { // Spectator cannot forfeit nor toggle timer
             binding.extraActions.forfeitButton.setImageResource(R.drawable.ic_exit)
             binding.extraActions.timerButton.visibility = GONE
+            binding.extraActions.flipButton.visibility = VISIBLE
         }
     }
 
@@ -898,6 +939,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         soundEnabled = Preferences.isBattleSoundEnabled(requireContext())
         lastDecisionRequest = null
         onTimerEnabled(false)
+        resetBattleViewFlip()
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismissNow()
@@ -909,6 +951,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 forfeitButton.setImageResource(R.drawable.ic_forfeit)
                 timerButton.visibility = VISIBLE
                 sendButton.visibility = VISIBLE
+                flipButton.visibility = GONE
             }
             backgroundImage.animate().apply {
                 duration = 100
@@ -926,6 +969,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     sendButton.visibility = GONE
                     timerButton.visibility = GONE
                     forfeitButton.setImageResource(R.drawable.ic_exit)
+                    flipButton.visibility = VISIBLE
                 }
                 replayActions.apply {
                     replayPlayButton.setImageResource(R.drawable.ic_replay_pause)
@@ -946,6 +990,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         inactiveBattleOverlayDrawable.setWinner(null)
         clearBattleFieldUi(animate = false)
         onTimerEnabled(false)
+        resetBattleViewFlip()
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismiss()
@@ -959,6 +1004,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 forfeitButton.setImageResource(R.drawable.ic_forfeit)
                 timerButton.visibility = VISIBLE
                 sendButton.visibility = VISIBLE
+                flipButton.visibility = GONE
             }
         }
         audioManager.stopBattleMusic()

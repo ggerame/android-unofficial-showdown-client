@@ -55,6 +55,8 @@ desktop computer.
   waiting for it to return to the field.
 - Battle replays with turn-by-turn playback controls.
 - Spectate ongoing battles.
+- **Flip viewpoint**: when spectating or watching a replay, swap the on-screen
+  perspective so the other player is shown on the near (bottom) side.
 - Chat rooms.
 - Team builder with Smogon import/export.
 
@@ -182,10 +184,12 @@ strongly test your changes — ideally against a live battle — before opening 
 pull request. Bug reports and feature ideas via issues are appreciated.
 
 ## TODO
+- **Test the team builder on newer Android versions** — the team builder hasn't
+  been re-tested against recent Android releases yet; its drag-and-drop, Smogon
+  import/export and validation flows need a pass to confirm they still behave
+  correctly (and to catch any layout or storage regressions).
 - **Room user list** — handle the `@!` (away) marker and sort users by rank;
   usernames are already md5-coloured.
-- **Polish spectator mode** — some tip and popup behaviour is still rough when
-  you are neither player.
 - **More unit tests** — not a priority, but always welcome.
 - Anything else that can be integrated nicely.
 

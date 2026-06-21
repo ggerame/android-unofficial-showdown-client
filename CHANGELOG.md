@@ -1,13 +1,8 @@
 # Changelog
 
-All notable changes made in this fork are documented here.
+All notable changes made are documented here.
 
-This fork revives the abandoned upstream project (last upstream release:
-`1.0-alpha09`, built against Pokémon data from ~2020) and brings it up to
-date with the modern Pokémon Showdown server, Generation 9 data, and a number
-of UI and reliability improvements.
-
-## [Unreleased] – New Android Versions and Moves tracking
+## [1.2.0] – New Android Versions and Moves tracking
 
 ### Added — Battle info
 - **Revealed move tracking**: the opponent's moves are now
@@ -25,6 +20,12 @@ of UI and reliability improvements.
 - **Larger team icons**: the team icons in the player info bars were enlarged
   (16sp → 24sp) to make better use of the previously wasted space in the bar and
   to give the new tap targets more room.
+- **Flip viewpoint**: a new button in the battle controls (shown when spectating
+  a live battle or watching a replay) swaps the on-screen perspective, so the
+  other player is shown on the near (bottom) side. The whole field follows the
+  swap — sprite positions, back/front art and scale, HP/status bars, side
+  conditions, graphical hazards and the two team-roster bars. It is purely a
+  display toggle and does not affect battle logic.
 
 ### Fixed — Stability
 - **Crash on entering battles** (`ArrayIndexOutOfBoundsException: length=0;
@@ -146,5 +147,3 @@ All locally bundled raw assets were regenerated from live Showdown data:
 
 ---
 
-Upstream project (for reference):
-<https://github.com/MajeurAndroid/Android-Unofficial-Showdown-Client>

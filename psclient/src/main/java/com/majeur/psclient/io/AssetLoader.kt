@@ -10,6 +10,16 @@ import android.util.JsonReader
 import android.util.JsonToken
 import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.Move
+import com.majeur.psclient.model.battle.AnimCall
+import com.majeur.psclient.model.battle.AnimCoord
+import com.majeur.psclient.model.battle.AnimPos
+import com.majeur.psclient.model.battle.AnimSequence
+import com.majeur.psclient.model.battle.BackgroundEffect
+import com.majeur.psclient.model.battle.OtherAnim
+import com.majeur.psclient.model.battle.ShowEffect
+import com.majeur.psclient.model.battle.SpriteAnim
+import com.majeur.psclient.model.battle.SpriteDelay
+import com.majeur.psclient.model.battle.Wait
 import com.majeur.psclient.model.common.Item
 import com.majeur.psclient.model.common.Stats
 import com.majeur.psclient.model.pokemon.DexPokemon
@@ -48,6 +58,10 @@ class AssetLoader(val context: Context) {
 
     private val moveDetailsLoader by lazy {
         MoveDetailsLoader(context)
+    }
+
+    private val battleAnimLoader by lazy {
+        BattleAnimLoader(context)
     }
 
     private val itemIconLoader by lazy {
@@ -97,6 +111,21 @@ class AssetLoader(val context: Context) {
         moveIds.map { if (it.startsWith("-z", ignoreCase = true)) it.substring(2).toId() else it.toId() }.run {
             moveDetailsLoader.load(*toTypedArray())
         }
+    }
+
+    /** Move animation sequence (key = move id), from res/raw/battle_animations.json. */
+    suspend fun moveAnim(moveName: String) = withContext(Dispatchers.IO) {
+        battleAnimLoader.load("moves/${moveName.toId()}")
+    }
+
+    /** A shared BattleOtherAnims entry (e.g. "contactattack") that moves delegate to. */
+    suspend fun otherAnim(name: String) = withContext(Dispatchers.IO) {
+        battleAnimLoader.load("other/${name.toId()}")
+    }
+
+    /** A shared BattleStatusAnims entry (e.g. "flinch"). */
+    suspend fun statusAnim(name: String) = withContext(Dispatchers.IO) {
+        battleAnimLoader.load("status/${name.toId()}")
     }
 
     suspend fun itemIcon(spriteId: Int) = withContext(Dispatchers.IO) {
@@ -501,6 +530,171 @@ class AssetLoader(val context: Context) {
                 }
                 reader.endObject()
             }
+        }
+    }
+
+    /**
+     * Loads a single animation sequence from res/raw/battle_animations.json.
+     * The asset id is "<section>/<id>", e.g. "moves/flamethrower" or
+     * "other/contactattack". Results are cached per id by the base [Loader].
+     */
+    class BattleAnimLoader(context: Context) : Loader<AnimSequence>(context) {
+
+        @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+        override fun compute(assetId: String): AnimSequence? {
+            val sep = assetId.indexOf('/')
+            if (sep < 0) return null
+            val section = assetId.substring(0, sep)
+            val id = assetId.substring(sep + 1)
+            return jsonReader(R.raw.battle_animations).use { reader ->
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    if (reader.nextName() == section) {
+                        reader.beginObject()
+                        while (reader.hasNext()) {
+                            if (reader.nextName() == id) return@use parseSequence(reader)
+                            else reader.skipValue()
+                        }
+                        reader.endObject()
+                        return@use null
+                    } else reader.skipValue()
+                }
+                reader.endObject()
+                null
+            }
+        }
+
+        @Throws(IOException::class)
+        private fun parseSequence(reader: JsonReader): AnimSequence {
+            var anim = emptyList<AnimCall>()
+            var prepare = emptyList<AnimCall>()
+            var residual = emptyList<AnimCall>()
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.nextName()) {
+                    "anim" -> anim = parseCalls(reader)
+                    "prepareAnim" -> prepare = parseCalls(reader)
+                    "residualAnim" -> residual = parseCalls(reader)
+                    else -> reader.skipValue()
+                }
+            }
+            reader.endObject()
+            return AnimSequence(anim, prepare, residual)
+        }
+
+        @Throws(IOException::class)
+        private fun parseCalls(reader: JsonReader): List<AnimCall> {
+            val calls = mutableListOf<AnimCall>()
+            reader.beginArray()
+            while (reader.hasNext()) parseCall(reader)?.let { calls.add(it) }
+            reader.endArray()
+            return calls
+        }
+
+        @Throws(IOException::class)
+        private fun parseCall(reader: JsonReader): AnimCall? {
+            var type: String? = null
+            var effect: String? = null
+            var sprite: String? = null
+            var name: String? = null
+            var color: String? = null
+            var after: String? = null
+            var transition: String? = null
+            var time = 0
+            var delay = 0
+            var opacity: Float? = null
+            var start: AnimPos? = null
+            var end: AnimPos? = null
+            var pos: AnimPos? = null
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.nextName()) {
+                    "type" -> type = reader.nextString()
+                    "effect" -> effect = reader.nextString()
+                    "sprite" -> sprite = reader.nextString()
+                    "name" -> name = reader.nextString()
+                    "color" -> color = reader.nextStringOrNull()
+                    "after" -> after = reader.nextStringOrNull()
+                    "transition" -> transition = reader.nextStringOrNull()
+                    "time" -> time = reader.nextInt()
+                    "delay" -> delay = reader.nextInt()
+                    "opacity" -> opacity = reader.nextDoubleOrNull()?.toFloat()
+                    "start" -> start = parsePos(reader)
+                    "end" -> end = parsePos(reader)
+                    "pos" -> pos = parsePos(reader)
+                    else -> reader.skipValue()
+                }
+            }
+            reader.endObject()
+            return when (type) {
+                "showEffect" -> ShowEffect(effect ?: "?", start, end, transition, after)
+                "spriteAnim" -> SpriteAnim(sprite ?: "attacker", pos ?: EMPTY_POS, transition)
+                "spriteDelay" -> SpriteDelay(sprite ?: "attacker", time)
+                "backgroundEffect" -> BackgroundEffect(color, time, opacity, delay)
+                "wait" -> Wait(time)
+                "otherAnim" -> OtherAnim(name ?: "")
+                else -> null
+            }
+        }
+
+        @Throws(IOException::class)
+        private fun parsePos(reader: JsonReader): AnimPos? {
+            if (reader.peek() == JsonToken.NULL) { reader.nextNull(); return null }
+            var x: AnimCoord? = null
+            var y: AnimCoord? = null
+            var z: AnimCoord? = null
+            var scale: Float? = null
+            var xscale: Float? = null
+            var yscale: Float? = null
+            var opacity: Float? = null
+            var time: Int? = null
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.nextName()) {
+                    "x" -> x = parseCoord(reader)
+                    "y" -> y = parseCoord(reader)
+                    "z" -> z = parseCoord(reader)
+                    "scale" -> scale = reader.nextDouble().toFloat()
+                    "xscale" -> xscale = reader.nextDouble().toFloat()
+                    "yscale" -> yscale = reader.nextDouble().toFloat()
+                    "opacity" -> opacity = reader.nextDouble().toFloat()
+                    "time" -> time = reader.nextInt()
+                    else -> reader.skipValue()
+                }
+            }
+            reader.endObject()
+            return AnimPos(x, y, z, scale, xscale, yscale, opacity, time)
+        }
+
+        @Throws(IOException::class)
+        private fun parseCoord(reader: JsonReader): AnimCoord {
+            if (reader.peek() == JsonToken.BEGIN_OBJECT) {
+                var rel: String? = null
+                var axis: String? = null
+                var offset = 0f
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    when (reader.nextName()) {
+                        "rel" -> rel = reader.nextString()
+                        "axis" -> axis = reader.nextString()
+                        "offset" -> offset = reader.nextDouble().toFloat()
+                        else -> reader.skipValue()
+                    }
+                }
+                reader.endObject()
+                return AnimCoord(rel, axis, offset)
+            }
+            return AnimCoord(null, null, reader.nextDouble().toFloat())
+        }
+
+        private fun JsonReader.nextStringOrNull(): String? =
+            if (peek() == JsonToken.NULL) { nextNull(); null } else nextString()
+
+        private fun JsonReader.nextDoubleOrNull(): Double? =
+            if (peek() == JsonToken.NULL) { nextNull(); null } else nextDouble()
+
+        companion object {
+            private val EMPTY_POS = AnimPos(null, null, null, null, null, null, null, null)
         }
     }
 

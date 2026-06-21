@@ -101,6 +101,20 @@ class GlideHelper(context: Context) {
         })
     }
 
+    /**
+     * Loads a move-animation particle. [effect] is either a full `https://` URL or an fx/ particle
+     * basename (e.g. "fireball"), which is resolved to play.pokemonshowdown.com/fx/{effect}.png.
+     */
+    fun loadAnimFxBitmap(effect: String, callback: (Bitmap) -> Unit) {
+        val uri = if (effect.startsWith("http")) Uri.parse(effect)
+        else Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
+                .appendPath("fx").appendPath("$effect.png").build()
+        glide.asBitmap().load(uri).timeout(NETWORK_TIMEOUT_MS).into(object : CustomTarget<Bitmap>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) = callback(resource)
+            override fun onLoadCleared(placeholder: Drawable?) {}
+        })
+    }
+
     fun loadBattleSprite(pokemon: BattlingPokemon, imageView: ImageView) {
         val spriteId = pokemon.transformSpecies ?: pokemon.spriteId
         // When the battle view is flipped the two sides swap places: the near (bottom) side shows

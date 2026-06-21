@@ -46,6 +46,9 @@ desktop computer.
 - Find, accept and cancel battles and challenges.
 - Full single and double battle UI with tips, types, stats, status, weather and
   terrain overlays, plus **Terastallization** and graphical entry hazards.
+- **Native move animations**: moves play Pokémon Showdown's actual on-field
+  animations — particle effects, sprite lunges and screen flashes — rendered
+  natively, with the `fx` graphics fetched at runtime.
 - Move **type-effectiveness** hints computed against the foe's current
   (Tera-aware) types.
 - **Revealed-move tracking**: the opponent's moves are remembered as they are
@@ -100,6 +103,7 @@ these assets:
 | `psclient/src/main/res/raw/item_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
 | `psclient/src/main/res/raw/learnsets.json` | `build-tools/build_learnsets.py` |
 | `psclient/src/main/res/raw/moves.json` | `build-tools/build_moves.py` |
+| `psclient/src/main/res/raw/battle_animations.json` | `build-tools/build_battle_animations.py` |
 
 **Prerequisites:** Python 3 + `pip install requests`
 
@@ -117,6 +121,18 @@ confirmation (`y`) before overwriting the local file. Without these updates,
 newer Pokémon won't appear in the team-builder autocomplete and their
 types/stats will be missing.
 
+The **move-animation** data (`battle_animations.json`) is regenerated
+separately: it additionally requires **Node.js** (used to execute Showdown's
+animation script) and is run from the repository root rather than `build-tools/`:
+
+```bash
+# from the repository root; requires Node.js in addition to Python 3
+python3 build-tools/build_battle_animations.py
+```
+
+Only animation *data* is bundled; the `fx` particle graphics it references are
+fetched at runtime and are not redistributed (see [NOTICE](NOTICE)).
+
 ## Technical overview
 A brief tour of the packages and their main components, to help you find how
 things fit together.
@@ -131,6 +147,7 @@ Base package: `com.majeur.psclient`
 | [`.io`](psclient/src/main/java/com/majeur/psclient/io) | Content loading via [`AssetLoader`](psclient/src/main/java/com/majeur/psclient/io/AssetLoader.kt): local dex/move data and dex icons, web sprites through [`GlideHelper`](psclient/src/main/java/com/majeur/psclient/io/GlideHelper.kt), battle text ([`BattleTextBuilder`](psclient/src/main/java/com/majeur/psclient/io/BattleTextBuilder.java)) and audio ([`BattleAudioManager`](psclient/src/main/java/com/majeur/psclient/io/BattleAudioManager.java)). |
 | [`.model`](psclient/src/main/java/com/majeur/psclient/model) | Data classes (battle state, Pokémon, types, …). |
 | [`.widget`](psclient/src/main/java/com/majeur/psclient/widget) | Custom UI components such as [`BattleLayout`](psclient/src/main/java/com/majeur/psclient/widget/BattleLayout.kt) and [`StatusView`](psclient/src/main/java/com/majeur/psclient/widget/StatusView.kt). |
+| [`.battleanim`](psclient/src/main/java/com/majeur/psclient/battleanim) | The native move-animation engine: [`BattleAnimProjection`](psclient/src/main/java/com/majeur/psclient/battleanim/BattleAnimProjection.kt) (a port of Showdown's `BattleScene` coordinate projection and easings), [`BattleAnimController`](psclient/src/main/java/com/majeur/psclient/battleanim/BattleAnimController.kt) (plays an animation sequence) and [`AnimParticle`](psclient/src/main/java/com/majeur/psclient/battleanim/AnimParticle.kt) (a drawn particle). Data comes from `res/raw/battle_animations.json`. |
 | [`.util`](psclient/src/main/java/com/majeur/psclient/util) | Utilities, including minimal [`html`](psclient/src/main/java/com/majeur/psclient/util/html) rendering for `|html|` / `|raw|` messages and Smogon team [parsing](psclient/src/main/java/com/majeur/psclient/util/smogon/SmogonTeamParser.kt) and [building](psclient/src/main/java/com/majeur/psclient/util/smogon/SmogonTeamBuilder.kt). |
 
 ### Architecture

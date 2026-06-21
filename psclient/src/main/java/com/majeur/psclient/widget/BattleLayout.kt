@@ -3,10 +3,12 @@ package com.majeur.psclient.widget
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.Gravity
@@ -18,11 +20,13 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.util.forEach
 import androidx.core.util.plus
 import com.majeur.psclient.R
+import com.majeur.psclient.battleanim.AnimParticle
 import com.majeur.psclient.model.battle.Hazards
 import com.majeur.psclient.model.battle.Player
 import com.majeur.psclient.model.battle.PokemonId
 import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.toId
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 class BattleLayout @JvmOverloads constructor(
@@ -68,6 +72,20 @@ class BattleLayout @JvmOverloads constructor(
     private val requestedHazardFiles = mutableSetOf<String>()
     private val hazardPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val hazardDstRect = Rect()
+
+    // Move-animation particles (spawned by BattleAnimController), drawn above the sprites on a
+    // self-scheduling animation clock. Each particle expires on its own and is then discarded.
+    private val animParticles = mutableListOf<AnimParticle>()
+    private val animPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private var animClockRunning = false
+
+    // A transient full-field colour flash (backgroundEffect), drawn behind the sprites. Its alpha
+    // ramps up then back down over its lifetime, peaking at bgFlashPeak.
+    private var bgFlashColor = 0
+    private var bgFlashStart = 0L
+    private var bgFlashDuration = 0
+    private var bgFlashPeak = 0f
+    private val bgFlashPaint = Paint()
 
     init {
         addView(p1SideView)
@@ -179,6 +197,86 @@ class BattleLayout @JvmOverloads constructor(
         }, 175)
         drawFx = true
         invalidate()
+    }
+
+    /** Registers a move-animation particle and (re)starts the animation clock if needed. */
+    fun addAnimParticle(particle: AnimParticle) {
+        animParticles.add(particle)
+        startAnimClock()
+    }
+
+    /** Discards any in-flight move-animation particles and the background flash. */
+    fun clearAnimParticles() {
+        animParticles.clear()
+        bgFlashDuration = 0
+        invalidate()
+    }
+
+    /**
+     * Triggers a transient full-field colour flash (a backgroundEffect). [color] may be any CSS
+     * colour string; `url(...)`/gradient values are ignored (no tint), and null flashes white.
+     */
+    fun flashAnimBackground(color: String?, opacity: Float, timeMs: Int) {
+        val parsed = parseFlashColor(color) ?: return
+        bgFlashColor = parsed
+        bgFlashPeak = opacity.coerceIn(0f, 1f)
+        bgFlashDuration = timeMs.coerceAtLeast(1)
+        bgFlashStart = SystemClock.uptimeMillis()
+        startAnimClock()
+    }
+
+    private fun parseFlashColor(color: String?): Int? {
+        if (color == null) return Color.WHITE
+        if (color.startsWith("url(") || color.contains("gradient")) return null
+        return try {
+            Color.parseColor(color.trim())
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
+
+    private val animTick = object : Runnable {
+        override fun run() {
+            val now = SystemClock.uptimeMillis()
+            animParticles.removeAll { it.isFinished(now) }
+            invalidate()
+            if (animParticles.isNotEmpty() || isBgFlashActive(now)) {
+                postOnAnimation(this)
+            } else {
+                animClockRunning = false
+            }
+        }
+    }
+
+    private fun startAnimClock() {
+        if (animClockRunning) return
+        animClockRunning = true
+        postOnAnimation(animTick)
+    }
+
+    private fun isBgFlashActive(now: Long) = now < bgFlashStart + bgFlashDuration
+
+    private fun drawBgFlash(canvas: Canvas) {
+        val now = SystemClock.uptimeMillis()
+        if (!isBgFlashActive(now)) return
+        val p = (now - bgFlashStart).toFloat() / bgFlashDuration
+        // Triangular envelope: fade in to the peak at the midpoint, then back out.
+        val alpha = bgFlashPeak * (1f - kotlin.math.abs(2f * p - 1f))
+        bgFlashPaint.color = bgFlashColor
+        bgFlashPaint.alpha = (alpha.coerceIn(0f, 1f) * 255f).toInt()
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgFlashPaint)
+    }
+
+    private fun drawAnimParticles(canvas: Canvas) {
+        if (animParticles.isEmpty()) return
+        val now = SystemClock.uptimeMillis()
+        try {
+            for (particle in animParticles) particle.draw(canvas, now, animPaint)
+        } catch (e: Exception) {
+            // A misbehaving particle must never crash the view's draw pass: drop them all and move on.
+            animParticles.clear()
+            Timber.w(e, "Dropped battle animation particles after a draw failure")
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -509,10 +607,12 @@ class BattleLayout @JvmOverloads constructor(
 
     override fun dispatchDraw(canvas: Canvas) {
         drawHazards(canvas)
+        drawBgFlash(canvas)
         super.dispatchDraw(canvas)
         if (drawFx) {
             fxDrawable.draw(canvas)
         }
+        drawAnimParticles(canvas)
     }
 
     private fun drawHazards(canvas: Canvas) {

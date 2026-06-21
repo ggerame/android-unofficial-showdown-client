@@ -184,6 +184,13 @@ strongly test your changes — ideally against a live battle — before opening 
 pull request. Bug reports and feature ideas via issues are appreciated.
 
 ## TODO
+- **Route Glide through the app's OkHttp client** — battle sprites, backgrounds
+  and `fx` graphics are currently fetched with Glide's default networking. Wiring
+  Glide through the existing tuned OkHttp client (via the
+  `glide-okhttp3-integration` library) would add real retry/connection-pool
+  behaviour and share the IPv4-first + `Origin` header tuning, making sprite
+  downloads more reliable on slow/congested connections than the current raised
+  timeout alone.
 - **Test the team builder on newer Android versions** — the team builder hasn't
   been re-tested against recent Android releases yet; its drag-and-drop, Smogon
   import/export and validation flows need a pass to confirm they still behave

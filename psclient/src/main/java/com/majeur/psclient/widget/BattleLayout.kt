@@ -284,24 +284,29 @@ class BattleLayout @JvmOverloads constructor(
         val farImageViews = if (flipped) p1ImageViews else p2ImageViews
         val farStatusViews = if (flipped) p1StatusViews else p2StatusViews
         val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
-        // With more than one Pokémon per side the fixed-width HP bars are centered on sprite anchors
-        // that are too close together horizontally, so they would overlap. Stagger them vertically
-        // (a staircase, like the web client) so every bar stays readable regardless of name length.
-        val statusStagger = if (count > 1) dp(30f) else 0
         val point = Point()
         for (i in 0 until count) {
             point.set((REL_BATTLE_P1_POS[count - 1][i].x * width).toInt(), (REL_BATTLE_P1_POS[count - 1][i].y * height).toInt())
             var cX = point.x
             var cY = point.y
             layoutChild(nearImageViews[i], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(nearStatusViews[i], cX, point.y - statusBarOffset - i * statusStagger, Gravity.CENTER_HORIZONTAL, true)
+            // With several Pokémon per side the fixed-width HP bars can't fit side by side, so we
+            // stack them: the near (bottom) bars step upward into the field, the back Pokémon
+            // highest, so they never overlap and follow the on-field depth order.
+            val nearStatus = nearStatusViews[i]
+            val nearStagger = if (count > 1) (count - 1 - i) * nearStatus.measuredHeight else 0
+            layoutChild(nearStatus, cX, point.y - statusBarOffset - nearStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
             val j = count - i - 1
             point[(REL_BATTLE_P2_POS[count - 1][j].x * width).toInt()] = (REL_BATTLE_P2_POS[count - 1][j].y * height).toInt()
             cX = point.x
             cY = point.y
             layoutChild(farImageViews[j], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(farStatusViews[j], cX, point.y - statusBarOffset - j * statusStagger, Gravity.CENTER_HORIZONTAL, true)
+            // The far (top) bars sit against the top edge, so stack them downward instead (front
+            // Pokémon lowest); pushing them up would clamp them together and overlap.
+            val farStatus = farStatusViews[j]
+            val farStagger = if (count > 1) (count - 1 - j) * farStatus.measuredHeight else 0
+            layoutChild(farStatus, cX, point.y - statusBarOffset + farStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
         }
         val nearSideView = if (flipped) p2SideView else p1SideView
@@ -374,12 +379,18 @@ class BattleLayout @JvmOverloads constructor(
     private fun set(view: View?) {
         if (view == null) return
         view.bringToFront()
-        // In doubles/triples shrink the sprites a bit more than the status views: this frees up
-        // room on the crowded field while keeping the HP bars (and their text) legible.
-        val scale = when {
-            battleLayoutMode == MODE_BATTLE_SINGLE -> 1f
-            view is StatusView -> 0.85f
-            else -> 0.8f
+        // HP bars get a dedicated compact mode in multi-Pokémon formats (kept at full scale so the
+        // text stays crisp); sprites/toasters are simply shrunk a bit to free up the crowded field.
+        if (view is StatusView) {
+            view.compact = battleLayoutMode != MODE_BATTLE_SINGLE
+            view.scaleX = 1f
+            view.scaleY = 1f
+            return
+        }
+        val scale = when (battleLayoutMode) {
+            MODE_BATTLE_SINGLE -> 1f
+            MODE_BATTLE_DOUBLE -> 0.7f
+            else -> 0.65f // triples are even more crowded
         }
         view.scaleX = scale
         view.scaleY = scale

@@ -42,18 +42,28 @@ class StatusView(context: Context?) : View(context) {
     private val defaultTypeFace by lazy { Typeface.create(Typeface.DEFAULT, Typeface.NORMAL) }
     private val boldTypeFace by lazy { Typeface.create("sans-serif-medium", Typeface.NORMAL) }
 
-    private val labelTextSize = sp(14f)
-    private val tagTextSize = sp(9f)
+    // Compact mode is used in doubles/triples, where several bars share a crowded field: it
+    // shrinks the label text and health-bar width so the bars take less room and overlap less.
+    var compact = false
+        set(value) {
+            if (field == value) return
+            field = value
+            requestLayout()
+            invalidate()
+        }
+
+    private val labelTextSize get() = if (compact) sp(11f) else sp(14f)
+    private val tagTextSize get() = if (compact) sp(8f) else sp(9f)
     private val tagCornerRadius = dp(2f)
     private val verticalSpacing = dp(3.5f)
     private val horizontalSpacing = dp(3f)
-    private val healthBarWidth = dp(126f)
+    private val healthBarWidth get() = if (compact) dp(84f) else dp(126f)
     private val healthBarHeight = dp(5f)
     private val healthBarStrokeWidth = dp(1f)
     private val shadowRadius = dp(4f).toFloat()
     private val shadowDy = shadowRadius / 4f
 
-    private val maxTagLineWidth = healthBarWidth + healthBarStrokeWidth
+    private val maxTagLineWidth get() = healthBarWidth + healthBarStrokeWidth
 
     init {
         setPadding(shadowRadius.toInt(), (shadowRadius - shadowDy).roundToInt(), shadowRadius.toInt(),

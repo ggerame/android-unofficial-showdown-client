@@ -55,6 +55,13 @@ class GlideHelper(context: Context) {
     companion object {
         private const val MAGIC_SCALE = 0.0027777777777778f
 
+        // Glide's default network timeout is only 2.5s. During a battle many sprites, the
+        // background and the hazard fx all download at once from play.pokemonshowdown.com, so the
+        // larger animated GIFs routinely exceeded that and timed out, leaving Pokémon with no
+        // sprite (or only one facing). Browsers impose no such limit, which is why the web client
+        // never shows this. Give the downloads a generous timeout instead.
+        private const val NETWORK_TIMEOUT_MS = 15000
+
         // Same backdrops the web client picks from for gen 6+ formats (sprites/gen6bgs/).
         private val BATTLE_BACKDROPS = arrayOf(
                 "bg-aquacordtown.jpg", "bg-beach.jpg", "bg-city.jpg", "bg-dampcave.jpg",
@@ -81,14 +88,14 @@ class GlideHelper(context: Context) {
         val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
                 .appendPath("sprites").appendPath("gen6bgs").appendPath(battleBackdropFor(roomId)).build()
         glide.load(uri)
-                .apply(RequestOptions().centerCrop().error(R.drawable.battle_bg_1))
+                .apply(RequestOptions().centerCrop().timeout(NETWORK_TIMEOUT_MS).error(R.drawable.battle_bg_1))
                 .into(imageView)
     }
 
     fun loadFieldFxBitmap(fileName: String, callback: (Bitmap) -> Unit) {
         val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
                 .appendPath("fx").appendPath(fileName).build()
-        glide.asBitmap().load(uri).into(object : CustomTarget<Bitmap>() {
+        glide.asBitmap().load(uri).timeout(NETWORK_TIMEOUT_MS).into(object : CustomTarget<Bitmap>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) = callback(resource)
             override fun onLoadCleared(placeholder: Drawable?) {}
         })
@@ -171,6 +178,7 @@ class GlideHelper(context: Context) {
                            overrideSize: Boolean, vararg spriteTypes: SpriteType): RequestBuilder<Drawable> {
         val options = RequestOptions().apply {
             if (overrideSize) override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            timeout(NETWORK_TIMEOUT_MS)
             if (spriteTypes.size == 1) error(R.drawable.missingno) // No more sprite types, default fallback
         }
         return glide.load(spriteTypes.first().uri(spriteId, shiny, back)).apply {

@@ -57,6 +57,17 @@ All notable changes made are documented here.
   content to the safe area (status bar, navigation bar and display cutout) on
   every device, and keeps the system-bar icons readable in light and dark mode.
 
+### Fixed — Sprites
+- **Missing battle sprites** caused by Glide's default 2.5s network timeout.
+  During a battle the on-field sprites, the background and the hazard
+  `fx` graphics all download at once from `play.pokemonshowdown.com`,
+  so the larger animated GIFs routinely exceeded that limit and timed out —
+  falling through the sprite fallback chain to `missingno`/nothing,
+  independently per request (which is why a Pokémon could show one facing but not the other).
+  The sprites themselves were fine and returned HTTP 200; browsers impose no such timeout,
+  which is why the web client never shows this. The network timeout for sprite,
+  background and `fx` downloads was raised to 15s in `GlideHelper`.
+
 ### Changed — Dependencies
 - Upgraded **Glide 4.8.0 → 4.16.0**. The removed `SimpleTarget` API was
   migrated to `CustomTarget` (with the now-required `onLoadCleared`), and

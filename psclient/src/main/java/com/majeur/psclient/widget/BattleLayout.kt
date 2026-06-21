@@ -284,20 +284,24 @@ class BattleLayout @JvmOverloads constructor(
         val farImageViews = if (flipped) p1ImageViews else p2ImageViews
         val farStatusViews = if (flipped) p1StatusViews else p2StatusViews
         val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
+        // With more than one Pokémon per side the fixed-width HP bars are centered on sprite anchors
+        // that are too close together horizontally, so they would overlap. Stagger them vertically
+        // (a staircase, like the web client) so every bar stays readable regardless of name length.
+        val statusStagger = if (count > 1) dp(30f) else 0
         val point = Point()
         for (i in 0 until count) {
             point.set((REL_BATTLE_P1_POS[count - 1][i].x * width).toInt(), (REL_BATTLE_P1_POS[count - 1][i].y * height).toInt())
             var cX = point.x
             var cY = point.y
             layoutChild(nearImageViews[i], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(nearStatusViews[i], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(nearStatusViews[i], cX, point.y - statusBarOffset - i * statusStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
             val j = count - i - 1
             point[(REL_BATTLE_P2_POS[count - 1][j].x * width).toInt()] = (REL_BATTLE_P2_POS[count - 1][j].y * height).toInt()
             cX = point.x
             cY = point.y
             layoutChild(farImageViews[j], cX, cY, Gravity.CENTER, false, point)
-            layoutChild(farStatusViews[j], cX, point.y - statusBarOffset, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(farStatusViews[j], cX, point.y - statusBarOffset - j * statusStagger, Gravity.CENTER_HORIZONTAL, true)
             layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
         }
         val nearSideView = if (flipped) p2SideView else p1SideView
@@ -370,13 +374,15 @@ class BattleLayout @JvmOverloads constructor(
     private fun set(view: View?) {
         if (view == null) return
         view.bringToFront()
-        if (battleLayoutMode == MODE_BATTLE_SINGLE) {
-            view.scaleX = 1f
-            view.scaleY = 1f
-        } else {
-            view.scaleX = 0.9f
-            view.scaleY = 0.9f
+        // In doubles/triples shrink the sprites a bit more than the status views: this frees up
+        // room on the crowded field while keeping the HP bars (and their text) legible.
+        val scale = when {
+            battleLayoutMode == MODE_BATTLE_SINGLE -> 1f
+            view is StatusView -> 0.85f
+            else -> 0.8f
         }
+        view.scaleX = scale
+        view.scaleY = scale
     }
 
     private fun fillNeededViews(pXImageViews: SparseArray<ImageView>, needed: Int, inLayout: Boolean, width: Int, height: Int) {

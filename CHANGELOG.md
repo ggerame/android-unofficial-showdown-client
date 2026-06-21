@@ -43,6 +43,13 @@ All notable changes made are documented here.
   process (matches the existing `SupervisorJob` behaviour for siblings).
 
 ### Fixed — Display
+- **Overlapping HP bars in doubles/triples**: the fixed-width HP/status bars
+  were centred on sprite anchors that sit too close together, so on phone-width
+  screens they overlapped and became unreadable. The bars on each side are now
+  staggered vertically (a staircase, like the web client) so they never collide
+  regardless of Pokémon name length, and the on-field sprites are shrunk a touch
+  more than the bars in multi-Pokémon formats to free up the crowded field while
+  keeping the HP text legible.
 - **Untappable UI on full-screen / camera-cutout devices**: on Android 15 the
   system forces edge-to-edge, which drew the app behind the status bar,
   navigation bar and camera cutout. The top and bottom controls ended up under

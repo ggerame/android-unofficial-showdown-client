@@ -42,6 +42,14 @@ All notable changes made are documented here.
   `CoroutineExceptionHandler` and logged via Timber, rather than crashing the
   process (matches the existing `SupervisorJob` behaviour for siblings).
 
+### Fixed — Display
+- **Untappable UI on full-screen / camera-cutout devices**: on Android 15 the
+  system forces edge-to-edge, which drew the app behind the status bar,
+  navigation bar and camera cutout. The top and bottom controls ended up under
+  the system bars and could not be tapped. The main screen now insets its
+  content to the safe area (status bar, navigation bar and display cutout) on
+  every device, and keeps the system-bar icons readable in light and dark mode.
+
 ### Changed — Dependencies
 - Upgraded **Glide 4.8.0 → 4.16.0**. The removed `SimpleTarget` API was
   migrated to `CustomTarget` (with the now-required `onLoadCleared`), and

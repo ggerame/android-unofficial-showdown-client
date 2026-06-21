@@ -292,11 +292,14 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private fun setBattleViewFlipped(flipped: Boolean) {
         battleViewFlipped = flipped
         binding.battleLayout.flipped = flipped
-        // Back/front sprite art and on-field scale depend on the side, so reload the on-field sprites.
+        // Back/front sprite art and on-field scale depend on the side, so reload the on-field
+        // sprites so they face the right way. This covers both in-battle sprites (tagged with a
+        // BattlingPokemon) and team-preview sprites (tagged with a plain BasePokemon).
         binding.battleLayout.apply {
-            (getSpriteViews(Player.TRAINER) + getSpriteViews(Player.FOE)).forEach { view ->
-                (view.getTag(R.id.battle_data_tag) as? BattlingPokemon)?.let { pokemon ->
-                    glideHelper.loadBattleSprite(pokemon, view)
+            for (player in Player.values()) getSpriteViews(player).forEach { view ->
+                when (val data = view.getTag(R.id.battle_data_tag)) {
+                    is BattlingPokemon -> glideHelper.loadBattleSprite(data, view)
+                    is BasePokemon -> glideHelper.loadPreviewSprite(player, data, view)
                 }
             }
         }
@@ -617,6 +620,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             getSpriteViews(Player.TRAINER).plus(getSpriteViews(Player.FOE)).forEach { view ->
                 (view.getTag(R.id.glide_tag) as? AnimatedImageViewTarget)?.request?.clear()
                 view.setTag(R.id.glide_tag, null)
+                view.setTag(R.id.battle_data_tag, null) // Drop stale team-preview Pokémon tags
             }
         }
         when (observer.gameType) {
@@ -668,6 +672,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         if (isReplay) return // We skip team previewing for replays
         binding.battleLayout.getSpriteView(id)?.apply {
             // Can be null when joining a battle where the preview has already been done
+            setTag(R.id.battle_data_tag, pokemon) // Lets the flip button re-orient preview sprites
             glideHelper.loadPreviewSprite(id.player, pokemon, this)
         }
     }

@@ -21,6 +21,11 @@ All notable changes made are documented here.
   is bundled; a participant's own sprite is reused for `{attacker}` /
   `{defender}` effects. The animation *data* is CC0-1.0 / MIT licensed — see
   [`NOTICE`](NOTICE).
+- **Correct direction and target**: effects, sprite lunges and background flashes
+  play from the *actual* attacker toward the *actual* defender — right whether
+  you or the opponent uses the move, and in the flipped spectator/replay view.
+  Self-targeting or no-target moves (Swords Dance, Recover, …) centre on the
+  caster, and in doubles/triples each effect is placed on the correct Pokémon.
 - **Crash-safe with a graceful fallback**: moves without an animation (or before
   the field is laid out) fall back to the existing hit indicator, and malformed
   data, load/playback errors and sprites recycled mid-animation (e.g. a faint)

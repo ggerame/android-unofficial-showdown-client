@@ -48,7 +48,8 @@ desktop computer.
   terrain overlays, plus **Terastallization** and graphical entry hazards.
 - **Native move animations**: moves play Pokémon Showdown's actual on-field
   animations — particle effects, sprite lunges and screen flashes — rendered
-  natively, with the `fx` graphics fetched at runtime.
+  natively for both players' moves in singles and doubles (including
+  self-targeting moves), with the `fx` graphics fetched at runtime.
 - Move **type-effectiveness** hints computed against the foe's current
   (Tera-aware) types.
 - **Revealed-move tracking**: the opponent's moves are remembered as they are

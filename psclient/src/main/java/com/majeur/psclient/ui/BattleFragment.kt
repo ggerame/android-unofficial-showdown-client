@@ -712,17 +712,26 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     override fun onMove(sourceId: PokemonId, targetId: PokemonId?, moveName: String, shouldAnim: Boolean) {
         if (!shouldAnim) return
-        // Self-targeting / no-target moves (Swords Dance, Recover, …) arrive without a target; the
-        // animation then centres on the caster, so fall back to the source as its own target.
-        val defenderId = targetId ?: sourceId
         val layout = binding.battleLayout
-        val sourceView = layout.getSpriteView(sourceId)
-        val targetView = layout.getSpriteView(defenderId)
-        if (sourceView == null || targetView == null || layout.width == 0 || layout.height == 0) {
-            playHitIndicatorFallback(moveName, defenderId)
-            return
-        }
         fragmentScope.launch {
+            val moveDetails = try {
+                assetLoader.moveDetails(moveName)
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to load move details for %s", moveName)
+                null
+            }
+            // The "defender" the animation is anchored to: Showdown plays a self-targeting move
+            // (Roost, Swords Dance, Recover, …) on the caster itself; otherwise on the actual
+            // target, falling back to the caster only when no target is known.
+            val defenderId =
+                if (moveDetails?.target == Move.Target.SELF) sourceId else (targetId ?: sourceId)
+
+            val sourceView = layout.getSpriteView(sourceId)
+            val targetView = layout.getSpriteView(defenderId)
+            if (sourceView == null || targetView == null || layout.width == 0 || layout.height == 0) {
+                playHitIndicatorFallback(moveName, defenderId)
+                return@launch
+            }
             val sequence = try {
                 assetLoader.moveAnim(moveName)
             } catch (e: Exception) {

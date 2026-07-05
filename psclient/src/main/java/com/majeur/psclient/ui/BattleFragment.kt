@@ -711,12 +711,15 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     }
 
     override fun onMove(sourceId: PokemonId, targetId: PokemonId?, moveName: String, shouldAnim: Boolean) {
-        if (!shouldAnim || targetId == null) return
+        if (!shouldAnim) return
+        // Self-targeting / no-target moves (Swords Dance, Recover, …) arrive without a target; the
+        // animation then centres on the caster, so fall back to the source as its own target.
+        val defenderId = targetId ?: sourceId
         val layout = binding.battleLayout
         val sourceView = layout.getSpriteView(sourceId)
-        val targetView = layout.getSpriteView(targetId)
+        val targetView = layout.getSpriteView(defenderId)
         if (sourceView == null || targetView == null || layout.width == 0 || layout.height == 0) {
-            playHitIndicatorFallback(moveName, targetId)
+            playHitIndicatorFallback(moveName, defenderId)
             return
         }
         fragmentScope.launch {
@@ -727,7 +730,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 null
             }
             if (sequence == null) {
-                playHitIndicatorFallback(moveName, targetId)
+                playHitIndicatorFallback(moveName, defenderId)
                 return@launch
             }
             val bitmaps = HashMap<String, Bitmap?>()
@@ -742,6 +745,13 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 override fun participantRect(who: String): RectF? {
                     val v = if (who == "defender") targetView else sourceView
                     return RectF(v.left.toFloat(), v.top.toFloat(), v.right.toFloat(), v.bottom.toFloat())
+                }
+
+                override fun participantZ(who: String): Float {
+                    // A Pokémon is on the far (top) side when it's a foe and the view isn't flipped,
+                    // or when it's the trainer and the view is flipped. Far = z 200, near = z 0.
+                    val id = if (who == "defender") defenderId else sourceId
+                    return if (id.foe != layout.flipped) 200f else 0f
                 }
 
                 override fun loadFx(effect: String, callback: (Bitmap) -> Unit) =

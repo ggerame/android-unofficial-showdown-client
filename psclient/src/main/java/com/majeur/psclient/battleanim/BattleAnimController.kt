@@ -29,6 +29,13 @@ interface BattleAnimScene {
     /** The participant's real on-screen sprite rect (layout px), used to anchor sprite tweens. */
     fun participantRect(who: String): RectF?
 
+    /**
+     * The participant's scene-space depth: 0 for the near (bottom) side, 200 for the far (top)
+     * side. This reflects who is *actually* attacking — when the foe uses a move, the "attacker"
+     * is on the far side and the "defender" near — so animations play toward the correct Pokémon.
+     */
+    fun participantZ(who: String): Float
+
     /** Asynchronously load an fx particle bitmap (an fx/ basename or a full `https://` URL). */
     fun loadFx(effect: String, callback: (Bitmap) -> Unit)
 
@@ -126,8 +133,8 @@ class BattleAnimController(private val scene: BattleAnimScene) {
         val endScene = resolveScenePos(call.end ?: call.start)
         val fromBox = BattleAnimProjection.project(startScene, FX_SIZE, FX_SIZE)
         val toBox = BattleAnimProjection.project(endScene, FX_SIZE, FX_SIZE)
-        val fromState = fxState(fromBox)
-        val toState = fxState(toBox)
+        val fromState = fxStateAnchored(fromBox, dominantRel(call.start ?: call.end))
+        val toState = fxStateAnchored(toBox, dominantRel(call.end ?: call.start))
         val dur = call.end?.time ?: call.start?.time ?: DEFAULT_TWEEN_MS
 
         val segments = ArrayList<AnimParticle.Segment>()
@@ -197,6 +204,37 @@ class BattleAnimController(private val scene: BattleAnimScene) {
         return AnimParticle.State(r.left, r.top, r.width(), r.height(), box.opacity)
     }
 
+    /**
+     * Positions an fx particle from its affine projection, then (for a participant-relative
+     * keyframe) shifts it so it sits on that participant's *actual* sprite slot rather than the
+     * single-battle centre. In single battles the shift is exactly zero (the real sprite sits on
+     * the calibrated anchor); in doubles/triples it moves the effect onto the correct left/right
+     * Pokémon. The fx keeps its own projected size.
+     */
+    private fun fxStateAnchored(box: SceneBox, who: String?): AnimParticle.State {
+        val screen = BattleAnimProjection.toScreen(box, scene.fieldWidth, scene.fieldHeight)
+        var left = screen.left
+        var top = screen.top
+        if (who != null) {
+            val realRect = scene.participantRect(who)
+            if (realRect != null) {
+                val restScreen = BattleAnimProjection.toScreen(
+                    BattleAnimProjection.project(restingScene(who), FX_SIZE, FX_SIZE),
+                    scene.fieldWidth, scene.fieldHeight,
+                )
+                left += realRect.centerX() - restScreen.centerX()
+                top += realRect.centerY() - restScreen.centerY()
+            }
+        }
+        return AnimParticle.State(left, top, screen.width(), screen.height(), box.opacity)
+    }
+
+    /** The participant a keyframe is anchored to (the first relative axis), or null if absolute. */
+    private fun dominantRel(pos: AnimPos?): String? {
+        if (pos == null) return null
+        return pos.x?.rel ?: pos.y?.rel ?: pos.z?.rel
+    }
+
     private fun loadEffectBitmap(effect: String, cb: (Bitmap) -> Unit) {
         when (effect) {
             "{attacker}" -> scene.participantBitmap("attacker")?.let(cb)
@@ -222,11 +260,14 @@ class BattleAnimController(private val scene: BattleAnimScene) {
     private fun resolveCoord(c: AnimCoord): Float =
         if (c.isRelative) baseFor(c.rel, c.axis) + c.value else c.value
 
+    // A coordinate relative to a participant is offset from that participant's actual scene
+    // position. Both active Pokémon sit at scene x=y=0; only their depth (z) differs by side, and
+    // which side each is on depends on who is attacking (see BattleAnimScene.participantZ).
     private fun baseFor(who: String?, axis: String?): Float =
-        if (axis == "z" && who == "defender") 200f else 0f
+        if (axis == "z" && who != null) scene.participantZ(who) else 0f
 
     private fun restingScene(who: String): ScenePos =
-        if (who == "defender") ScenePos(z = 200f) else ScenePos()
+        ScenePos(z = scene.participantZ(who))
 
     /** Converts an anim-relative [offset] (ms from play start) to a UI-thread post. */
     private fun schedule(offset: Long, action: () -> Unit) {

@@ -151,7 +151,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     override fun onResume() {
         super.onResume()
         if (wasPlayingBattleMusicWhenPaused) {
-            audioManager.playBattleMusic()
+            audioManager.playBattleMusic(observedRoomId)
             wasPlayingBattleMusicWhenPaused = false
         }
     }
@@ -637,7 +637,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             GameType.TRIPLE -> binding.battleLayout.setMode(BattleLayout.MODE_BATTLE_TRIPLE)
             null -> Unit
         }
-        if (soundEnabled) audioManager.playBattleMusic()
+        if (soundEnabled) audioManager.playBattleMusic(observedRoomId)
         //sendChatMessage("[Playing from the unofficial Android Showdown client]");
     }
 

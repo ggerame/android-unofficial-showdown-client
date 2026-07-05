@@ -8,6 +8,8 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import com.majeur.psclient.R;
 import com.majeur.psclient.model.pokemon.BasePokemon;
 
@@ -29,6 +31,44 @@ public class BattleAudioManager implements AudioManager.OnAudioFocusChangeListen
     private boolean mPlaybackNowAuthorized;
     private boolean mResumeOnFocusGain;
     private boolean mUserHasPaused;
+
+    private String mRoomId;
+    private int mLoopStartMs;
+    private int mLoopEndMs;
+    private final Handler mLoopHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mLoopRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mMediaPlayer != null && mLoopEndMs > 0) {
+                try {
+                    if (mMediaPlayer.isPlaying() && mMediaPlayer.getCurrentPosition() >= mLoopEndMs)
+                        mMediaPlayer.seekTo(mLoopStartMs);
+                } catch (IllegalStateException ignored) {
+                }
+            }
+            mLoopHandler.postDelayed(this, LOOP_CHECK_INTERVAL_MS);
+        }
+    };
+
+    // Streamed battle themes, mirroring the web client (BattleScene.setBgm, cases 1..15). The track
+    // is chosen from the numeric battle id so both players hear the same music. Each MP3 plays once
+    // from the start, then the [loopStart, loopEnd] section (in ms) is looped seamlessly.
+    private static final String BGM_BASE_URL = "https://play.pokemonshowdown.com/audio/";
+    private static final long LOOP_CHECK_INTERVAL_MS = 200;
+    private static final String[] BGM_FILES = {
+            "dpp-trainer.mp3", "dpp-rival.mp3", "hgss-johto-trainer.mp3", "hgss-kanto-trainer.mp3",
+            "bw-trainer.mp3", "bw-rival.mp3", "bw-subway-trainer.mp3", "bw2-kanto-gym-leader.mp3",
+            "bw2-rival.mp3", "xy-trainer.mp3", "xy-rival.mp3", "oras-trainer.mp3",
+            "oras-rival.mp3", "sm-trainer.mp3", "sm-rival.mp3",
+    };
+    private static final int[] BGM_LOOP_START = {
+            13440, 13888, 23731, 13003, 14629, 19180, 15503, 14626,
+            7152, 7802, 7802, 13579, 14303, 8323, 11389,
+    };
+    private static final int[] BGM_LOOP_END = {
+            96959, 66352, 125086, 94656, 110109, 57373, 110984, 58986,
+            68708, 82469, 58634, 91548, 69149, 89230, 62158,
+    };
 
     public BattleAudioManager(Context context) {
         mContext = context;
@@ -160,12 +200,14 @@ public class BattleAudioManager implements AudioManager.OnAudioFocusChangeListen
         });
     }
 
-    public void playBattleMusic() {
+    public void playBattleMusic(String roomId) {
         if (mPlaybackDelayed)
             return;
 
         if (isPlayingBattleMusic())
             return;
+
+        mRoomId = roomId;
 
         int result = requestAudioFocus();
         if (result == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
@@ -193,7 +235,7 @@ public class BattleAudioManager implements AudioManager.OnAudioFocusChangeListen
     }
 
     public void stopBattleMusic() {
-        if (!isPlayingBattleMusic())
+        if (mMediaPlayer == null)
             return;
 
         stopPlayback();
@@ -203,46 +245,73 @@ public class BattleAudioManager implements AudioManager.OnAudioFocusChangeListen
         return mMediaPlayer != null && mMediaPlayer.isPlaying();
     }
 
-    private boolean mFirstPlayerHasComplete;
     private void startPlayback() {
-        final MediaPlayer mediaPlayer1 = newMediaPlayer(R.raw.battle_sm_intro);
-        final MediaPlayer mediaPlayer2 = newMediaPlayer(R.raw.battle_sm_loop);
+        int index = bgmIndexFor(mRoomId);
+        mLoopStartMs = BGM_LOOP_START[index];
+        mLoopEndMs = BGM_LOOP_END[index];
 
-        mFirstPlayerHasComplete = false;
-        mediaPlayer1.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        final MediaPlayer mediaPlayer = newMediaPlayer(BGM_BASE_URL + BGM_FILES[index]);
+        if (mediaPlayer == null) return;
+        mediaPlayer.setAudioAttributes(mMusicAudioAttrs);
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mediaPlayer.start();
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+                startLoopWatch();
             }
         });
-        mediaPlayer1.setAudioAttributes(mMusicAudioAttrs);
-        mediaPlayer1.prepareAsync();
-        mediaPlayer1.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        // Fallback if a track's true end is reached before the section loop kicks in.
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                mFirstPlayerHasComplete = true;
-                mMediaPlayer = mediaPlayer2;
-                mediaPlayer.release();
+            public void onCompletion(MediaPlayer mp) {
+                try {
+                    mp.seekTo(mLoopStartMs);
+                    mp.start();
+                } catch (IllegalStateException ignored) {
+                }
             }
         });
-        mMediaPlayer = mediaPlayer1;
+        // Streaming can fail (network); bail out gracefully instead of crashing or looping a dead player.
+        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                stopLoopWatch();
+                return true;
+            }
+        });
+        mMediaPlayer = mediaPlayer;
+        mediaPlayer.prepareAsync();
+    }
 
-        mediaPlayer2.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mediaPlayer.setLooping(true);
-                if (mFirstPlayerHasComplete)
-                    mediaPlayer.start();
-                else
-                    mediaPlayer1.setNextMediaPlayer(mediaPlayer);
+    private void startLoopWatch() {
+        mLoopHandler.removeCallbacks(mLoopRunnable);
+        mLoopHandler.postDelayed(mLoopRunnable, LOOP_CHECK_INTERVAL_MS);
+    }
+
+    private void stopLoopWatch() {
+        mLoopHandler.removeCallbacks(mLoopRunnable);
+    }
+
+    private int bgmIndexFor(String roomId) {
+        long n = -1;
+        if (roomId != null) {
+            int dash = roomId.lastIndexOf('-');
+            String tail = (dash >= 0 ? roomId.substring(dash + 1) : roomId).trim();
+            try {
+                n = Long.parseLong(tail);
+            } catch (NumberFormatException e) {
+                n = -1;
             }
-        });
-        mediaPlayer2.setAudioAttributes(mMusicAudioAttrs);
-        mediaPlayer2.prepareAsync();
+        }
+        if (n < 0) n = (long) (Math.random() * 1000000);
+        int index = (int) (n % BGM_FILES.length);
+        if (index < 0) index += BGM_FILES.length;
+        return index;
     }
 
     private void pausePlayback(boolean abandonFocus) {
         if (mPlaybackNowAuthorized) {
+            stopLoopWatch();
             if (mMediaPlayer != null && mMediaPlayer.isPlaying())
                 mMediaPlayer.pause();
 
@@ -256,23 +325,28 @@ public class BattleAudioManager implements AudioManager.OnAudioFocusChangeListen
 
     private void resumePlayback() {
         if (mPlaybackNowAuthorized) {
-            if (mMediaPlayer != null)
+            if (mMediaPlayer != null) {
                 mMediaPlayer.start();
+                startLoopWatch();
+            }
         }
     }
 
     private void stopPlayback() {
-        if (mPlaybackNowAuthorized) {
-            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                mMediaPlayer.stop();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
+        stopLoopWatch();
+        if (mMediaPlayer != null) {
+            try {
+                if (mMediaPlayer.isPlaying())
+                    mMediaPlayer.stop();
+            } catch (IllegalStateException ignored) {
             }
-
-            int result = abandonAudioFocus();
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                mPlaybackNowAuthorized = false;
+            mMediaPlayer.release();
+            mMediaPlayer = null;
         }
+
+        int result = abandonAudioFocus();
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+            mPlaybackNowAuthorized = false;
     }
 
     private MediaPlayer newMediaPlayer(int resId) {

@@ -50,6 +50,8 @@ desktop computer.
   animations — particle effects, sprite lunges and screen flashes — rendered
   natively for both players' moves in singles and doubles (including
   self-targeting moves), with the `fx` graphics fetched at runtime.
+- **Battle music matching the web client**: the per-battle theme is streamed from
+  Showdown (with a bundled fallback), instead of a single fixed track.
 - Move **type-effectiveness** hints computed against the foe's current
   (Tera-aware) types.
 - **Revealed-move tracking**: the opponent's moves are remembered as they are
@@ -87,9 +89,10 @@ the Android SDK installed.
 The generated APK is written to
 `psclient/build/outputs/apk/debug/psclient-debug.apk`.
 
-> Pokémon sprites, battle backgrounds and field-effect graphics are fetched at
-> runtime from `play.pokemonshowdown.com`, so an internet connection is required
-> both to play and to display battle assets.
+> Pokémon sprites, battle backgrounds, field-effect graphics and battle music are
+> fetched at runtime from `play.pokemonshowdown.com`, so an internet connection is
+> required both to play and to display battle assets. (A bundled battle theme is
+> played as a fallback when the music can't be streamed.)
 
 ## Updating local data (new generations)
 For fast start-up, frequently accessed data (dex, moves, learnsets, icon

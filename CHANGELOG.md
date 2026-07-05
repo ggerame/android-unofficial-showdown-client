@@ -2,6 +2,17 @@
 
 All notable changes made are documented here.
 
+## [1.4.0] – Streaming battle music
+
+### Changed — Battle music
+- **Battle music now matches the web client.** Instead of the single bundled
+  Sun/Moon theme, the app streams the same per-battle track Pokémon Showdown
+  plays — one of 15 themes chosen from the numeric battle id (so both players
+  hear the same music) and looped over the same section. If the music can't be
+  streamed (no/poor network), it falls back to the bundled theme so a battle is
+  never silent.
+- `BattleAudioManager` was converted from Java to Kotlin as part of this change.
+
 ## [1.3.0] – Battle move animations
 
 ### Added — Battle move animations

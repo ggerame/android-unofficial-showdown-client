@@ -412,7 +412,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
 
             fragmentScope.launch {
-                val dexPokemon = assetLoader.dexPokemon(pokemon.species.toId())
+                val dexPokemon = assetLoader.dexPokemon(pokemon)
                 if (dexPokemon == null) {
                     append("No dex entry for ${pokemon.species}")
                     appendRevealedMoves(descView, pokemon)
@@ -556,7 +556,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         placeHolderTop.setImageDrawable(null)
         placeHolderBottom.setImageDrawable(null)
         fragmentScope.launch {
-            assetLoader.dexPokemon(pokemon.species.toId())?.let {dexPokemon ->
+            assetLoader.dexPokemon(pokemon)?.let {dexPokemon ->
                 placeHolderTop.setImageResource(Type.getResId(dexPokemon.firstType))
                 if (dexPokemon.secondType != null) placeHolderBottom.setImageResource(Type.getResId(dexPokemon.secondType))
                 val abilityName = dexPokemon.matchingAbility(pokemon.ability, or = "")
@@ -569,7 +569,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private suspend fun foeDefendingTypes(): List<String>? {
         val foe = observer.getBattlingPokemon(PokemonId(Player.FOE, 0)) ?: return null
         foe.teraType?.let { return listOf(it) }
-        return assetLoader.dexPokemon(foe.species.toId())?.let { listOfNotNull(it.firstType, it.secondType) }
+        return assetLoader.dexPokemon(foe)?.let { listOfNotNull(it.firstType, it.secondType) }
     }
 
     private fun effectivenessLabel(multiplier: Double): CharSequence? = when {

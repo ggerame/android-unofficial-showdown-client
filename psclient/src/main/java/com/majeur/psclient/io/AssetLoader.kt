@@ -22,6 +22,7 @@ import com.majeur.psclient.model.battle.SpriteDelay
 import com.majeur.psclient.model.battle.Wait
 import com.majeur.psclient.model.common.Item
 import com.majeur.psclient.model.common.Stats
+import com.majeur.psclient.model.pokemon.BasePokemon
 import com.majeur.psclient.model.pokemon.DexPokemon
 import com.majeur.psclient.util.toId
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +92,17 @@ class AssetLoader(val context: Context) {
 
     suspend fun dexPokemon(species: String) = withContext(Dispatchers.IO) {
         dexPokemonLoader.load(species)
+    }
+
+    /**
+     * Dex data for a battling/team Pokémon, falling back to its base species when the exact forme
+     * has no entry — cosmetic formes (Florges-Yellow, Sawsbuck-Summer, Vivillon patterns, …) share
+     * their base species' dex data.
+     */
+    suspend fun dexPokemon(pokemon: BasePokemon) = withContext(Dispatchers.IO) {
+        val id = pokemon.species.toId()
+        dexPokemonLoader.load(id)
+            ?: pokemon.baseSpecies.toId().takeIf { it != id }?.let { dexPokemonLoader.load(it) }
     }
 
     suspend fun item(itemId: String) = withContext(Dispatchers.IO) {

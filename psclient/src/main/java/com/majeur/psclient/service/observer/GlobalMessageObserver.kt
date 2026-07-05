@@ -283,20 +283,32 @@ class GlobalMessageObserver(service: ShowdownService)
         @Suppress("UNCHECKED_CAST")
         val fromMap = (service.getSharedData<Map<String, String>>("challenge_from")?.toMutableMap())
                 ?: mutableMapOf()
+        var challengeTo = service.getSharedData<String>("challenge_to")
+        var toFormat = service.getSharedData<String>("challenge_to_format")
 
-        if (mine) {
-            // PM is from us: it reflects an outgoing challenge (or its resolution).
-            service.putSharedData("challenge_to", if (format != null) otherUser else null)
-            service.putSharedData("challenge_to_format", format)
-            if (format == null) fromMap.remove(otherUser.toId()) // Challenge resolved
+        if (format != null) {
+            // A new challenge is being opened; the sender is always the challenger.
+            if (mine) {
+                challengeTo = otherUser
+                toFormat = format
+            } else {
+                fromMap[otherUser.toId()] = format
+            }
         } else {
-            // PM is from another user challenging us (or cancelling).
-            if (format != null) fromMap[otherUser.toId()] = format else fromMap.remove(otherUser.toId())
+            // Challenge resolved (accepted, cancelled or rejected). The closing PM can be
+            // sent by *either* side (e.g. the other user accepting/rejecting our outgoing
+            // challenge), so don't trust `mine` here: clear whichever slot actually
+            // concerns this user instead of assuming the original challenger sent it.
+            if (challengeTo != null && challengeTo.toId() == otherUser.toId()) {
+                challengeTo = null
+                toFormat = null
+            }
+            fromMap.remove(otherUser.toId())
         }
-        service.putSharedData("challenge_from", fromMap)
 
-        val challengeTo = service.getSharedData<String>("challenge_to")
-        val toFormat = service.getSharedData<String>("challenge_to_format")
+        service.putSharedData("challenge_to", challengeTo)
+        service.putSharedData("challenge_to_format", toFormat)
+        service.putSharedData("challenge_from", fromMap)
         onChallengesChange(challengeTo, toFormat, fromMap)
     }
 

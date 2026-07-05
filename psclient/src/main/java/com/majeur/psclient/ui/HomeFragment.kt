@@ -188,6 +188,16 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                         }
                     }
                 }
+                override fun onRejectButtonClick(with: String) {
+                    if (isAcceptingChallenge && isAcceptingFrom?.toId() == with.toId()) {
+                        isAcceptingChallenge = false
+                        isAcceptingFrom = null
+                        setBattleButtonUIState("Battle !")
+                        showSearchableFormatsOnly(true)
+                        binding.formatsSelector.isEnabled = true
+                    }
+                    service?.sendGlobalCommand("reject", with.toId())
+                }
             }
         }
 

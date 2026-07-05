@@ -76,8 +76,17 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
     private fun getEntryOrCreate(with: String) = entries.find { it.matchWith(with) } ?: Entry(with).also { entry ->
         val view = layoutInflater.inflate(R.layout.list_item_pmentry, this, false) as ViewGroup
         view.setOnClickListener(this)
-        view.findViewById<View>(R.id.button_challenge).setOnClickListener(this)
         view.tag = entry
+        view.findViewById<View>(R.id.button_challenge).setOnClickListener {
+            if (entry.challengeFormat != null && !entry.challengeFromMe) {
+                onItemButtonClickListener?.onAcceptButtonClick(entry.with, entry.challengeFormat!!)
+            } else {
+                onItemButtonClickListener?.onChallengeButtonClick(entry.with)
+            }
+        }
+        view.findViewById<View>(R.id.button_reject).setOnClickListener {
+            onItemButtonClickListener?.onRejectButtonClick(entry.with)
+        }
         addView(view)
     }
 
@@ -88,8 +97,10 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
         val label = view.findViewById<TextView>(R.id.label)
         label.text = entry.with.bold()
         val button = view.findViewById<MaterialButton>(R.id.button_challenge)
+        val rejectButton = view.findViewById<MaterialButton>(R.id.button_reject)
         button.text = "Challenge" // Default behaviour: challenging a user we are private chatting with
         button.isEnabled = true
+        rejectButton.visibility = View.GONE
         val hasChallenge = entry.challengeFormat != null
         if (hasChallenge) { // Second behaviour: waiting for response or send our response to a challenge request
             if (entry.challengeFromMe) { // Already challenging this user so button should be disabled
@@ -97,6 +108,7 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
             } else { // This user is challenging us
                 button.text = "Accept"
                 button.isEnabled = true
+                rejectButton.visibility = View.VISIBLE
                 label.append(" wants to battle!".color(colorSecondary).small() concat
                         "\n" concat resolveFormat(entry.challengeFormat!!).small())
             }
@@ -112,18 +124,9 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
         return if (formats != null) resolveName(formats, format) else format
     }
 
-    override fun onClick(v: View) {
-        if (v is MaterialButton) { // Challenge btn
-            val entry = (v.getParent() as View).tag as Entry
-            if (entry.challengeFormat != null && !entry.challengeFromMe) {
-                onItemButtonClickListener?.onAcceptButtonClick(entry.with, entry.challengeFormat!!)
-            } else {
-                onItemButtonClickListener?.onChallengeButtonClick(entry.with)
-            }
-        } else {
-            val entry = v.tag as Entry
-            onItemClickListener?.onItemClick(entry.with)
-        }
+    override fun onClick(v: View) { // Item root click (buttons have their own listeners)
+        val entry = v.tag as Entry
+        onItemClickListener?.onItemClick(entry.with)
     }
 
     interface OnItemClickListener {
@@ -133,6 +136,7 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
     interface OnItemButtonClickListener {
         fun onChallengeButtonClick(with: String)
         fun onAcceptButtonClick(with: String, format: String)
+        fun onRejectButtonClick(with: String)
     }
 
     private class Entry(var with: String) {

@@ -15,12 +15,27 @@
             android:textSize="18sp"
             android:textColor="?attr/colorOnSurface"/>
 
-    <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_challenge"
+    <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|center_vertical"
-            android:text="Challenge"
-            style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_reject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="Reject"
+                style="@style/Widget.MaterialComponents.Button.TextButton"/>
+
+        <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_challenge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Challenge"
+                style="@style/Widget.MaterialComponents.Button.TextButton"/>
+
+    </LinearLayout>
 
 </FrameLayout>

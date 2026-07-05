@@ -780,7 +780,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 Timber.w(e, "Move animation failed for %s", moveName)
                 sourceView.alpha = 1f
                 targetView.alpha = 1f
-                playHitIndicatorFallback(moveName, targetId)
+                playHitIndicatorFallback(moveName, defenderId)
             }
         }
     }

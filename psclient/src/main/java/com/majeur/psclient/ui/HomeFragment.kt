@@ -732,15 +732,23 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onShowPopup(message: String) {
-        if (message.length > 120 || message.count { it == '\n' } > 4) { // If there is a lot of text, rather show a dialog
+        // A popup arriving while we're challenging someone means the challenge failed. The server
+        // answers "User X not found" for an offline user too, which is misleading (the name may be
+        // perfectly valid), so clarify it while we still know who we were challenging.
+        val displayMessage = if (isChallengingSomeone && message.contains("not found", ignoreCase = true))
+            "Couldn't challenge ${challengeTo ?: "that user"}: they appear to be offline. You can only" +
+                    " challenge users who are currently online."
+        else message
+
+        if (displayMessage.length > 120 || displayMessage.count { it == '\n' } > 4) { // If there is a lot of text, rather show a dialog
             AlertDialog.Builder(requireContext()).apply {
-                setMessage(message)
+                setMessage(displayMessage)
                 setPositiveButton("Ok") { _, _ -> }
                 show()
             }
             activeSnackbar?.dismiss()
         } else {
-            makeSnackbar(message, indefinite = true, maxLines = 5, action = "Ok" to {})
+            makeSnackbar(displayMessage, indefinite = true, maxLines = 5, action = "Ok" to {})
         }
 
         if (isChallengingSomeone) { // Resetting pending challenges

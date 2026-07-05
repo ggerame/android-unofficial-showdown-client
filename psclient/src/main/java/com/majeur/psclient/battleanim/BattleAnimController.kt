@@ -108,7 +108,7 @@ class BattleAnimController(private val scene: BattleAnimScene) {
                     val start = spriteCursor[who] ?: timeOffset
                     val dur = call.pos.time ?: DEFAULT_TWEEN_MS
                     val fromScene = spriteScene[who] ?: restingScene(who)
-                    val toScene = resolveScenePos(call.pos)
+                    val toScene = resolveSpritePos(call.pos, fromScene)
                     spawnSpriteAnim(who, fromScene, toScene, call.transition, dur, start)
                     spriteScene[who] = toScene
                     spriteCursor[who] = start + dur
@@ -130,11 +130,16 @@ class BattleAnimController(private val scene: BattleAnimScene) {
         val hasStart = call.start != null
         val hasEnd = call.end != null
         val startScene = resolveScenePos(call.start ?: call.end)
-        val endScene = resolveScenePos(call.end ?: call.start)
+        // Like Showdown's `end = {...start, ...end}`, the end keyframe inherits any axis/scale/opacity
+        // it doesn't set from the start keyframe (many effects give only a start position and just
+        // scale/fade in place, e.g. selfstatus/Curse — otherwise they'd snap to absolute (0,0,0)).
+        val startWho = dominantRel(call.start ?: call.end)
+        val endScene = resolveEndPos(call.end, startScene)
+        val endWho = dominantRel(call.end) ?: startWho
         val fromBox = BattleAnimProjection.project(startScene, FX_SIZE, FX_SIZE)
         val toBox = BattleAnimProjection.project(endScene, FX_SIZE, FX_SIZE)
-        val fromState = fxStateAnchored(fromBox, dominantRel(call.start ?: call.end))
-        val toState = fxStateAnchored(toBox, dominantRel(call.end ?: call.start))
+        val fromState = fxStateAnchored(fromBox, startWho)
+        val toState = fxStateAnchored(toBox, endWho)
         val dur = call.end?.time ?: call.start?.time ?: DEFAULT_TWEEN_MS
 
         val segments = ArrayList<AnimParticle.Segment>()
@@ -250,6 +255,42 @@ class BattleAnimController(private val scene: BattleAnimScene) {
             x = pos.x?.let { resolveCoord(it) } ?: 0f,
             y = pos.y?.let { resolveCoord(it) } ?: 0f,
             z = pos.z?.let { resolveCoord(it) } ?: 0f,
+            scale = scale,
+            xscale = pos.xscale ?: scale,
+            yscale = pos.yscale ?: scale,
+            opacity = pos.opacity ?: 1f,
+        )
+    }
+
+    /**
+     * An effect's end keyframe: any axis/scale/opacity it doesn't set is inherited from [start]
+     * (Showdown's `end = {...start, ...end}`), so an effect with only a start position stays put
+     * instead of snapping to the scene origin.
+     */
+    private fun resolveEndPos(pos: AnimPos?, start: ScenePos): ScenePos {
+        if (pos == null) return start
+        return ScenePos(
+            x = pos.x?.let { resolveCoord(it) } ?: start.x,
+            y = pos.y?.let { resolveCoord(it) } ?: start.y,
+            z = pos.z?.let { resolveCoord(it) } ?: start.z,
+            scale = pos.scale ?: start.scale,
+            xscale = pos.xscale ?: start.xscale,
+            yscale = pos.yscale ?: start.yscale,
+            opacity = pos.opacity ?: start.opacity,
+        )
+    }
+
+    /**
+     * A sprite tween's target: unset axes stay at the sprite's current position [from]; scale and
+     * opacity default to 1 (Showdown's `end = {x:this.x, y:this.y, z:this.z, scale:1, opacity:1}`).
+     */
+    private fun resolveSpritePos(pos: AnimPos?, from: ScenePos): ScenePos {
+        if (pos == null) return from
+        val scale = pos.scale ?: 1f
+        return ScenePos(
+            x = pos.x?.let { resolveCoord(it) } ?: from.x,
+            y = pos.y?.let { resolveCoord(it) } ?: from.y,
+            z = pos.z?.let { resolveCoord(it) } ?: from.z,
             scale = scale,
             xscale = pos.xscale ?: scale,
             yscale = pos.yscale ?: scale,

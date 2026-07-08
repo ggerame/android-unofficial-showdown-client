@@ -2,6 +2,12 @@
 
 All notable changes made are documented here.
 
+## [1.4.1] – BasePokemon fallback
+
+### Fixed
+- **Pokemon info not found**. Update dexPokemon method to
+  accept BasePokemon and handle forme fallback
+
 ## [1.4.0] – Streaming battle music
 
 ### Changed — Battle music

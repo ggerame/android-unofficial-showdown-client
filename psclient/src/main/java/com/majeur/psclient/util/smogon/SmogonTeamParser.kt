@@ -48,8 +48,9 @@ object SmogonTeamParser {
     }
 
     private suspend fun parseTeam(rawString: String, format: String, label: String, assetLoader: AssetLoader): Team? {
-        // Make sure there is no CR char when we split with LF
-        val rawPokemons = rawString.replace("\r", "").split("\n\n").toTypedArray()
+        // Clipboard HTML often turns a blank line into whitespace-only text.
+        val rawPokemons = rawString.replace("\r\n", "\n").replace('\r', '\n')
+                .split(Regex("\\n[\\t ]*\\n"))
         if (rawPokemons.isEmpty()) return null
 
         val pokemons = rawPokemons.mapNotNull { parsePokemon(it.trim(), assetLoader) }
@@ -113,7 +114,7 @@ object SmogonTeamParser {
         }
         val moves = mutableListOf<String>()
         for (i in 1 until lines.size) {
-            val line = lines[i]
+            val line = lines[i].trim()
             if (line.startsWith("-")) {
                 // its a move!
                 // same as items, it's a real name , we need an id.
@@ -152,6 +153,8 @@ object SmogonTeamParser {
                 val matchingAbility = dexPokemon?.matchingAbility(ability.toId(), "") ?: ""
                 if (matchingAbility.isNotBlank())
                     p.ability = matchingAbility
+            } else if (line.startsWith("Tera Type:")) {
+                p.teraType = line.removePrefix("Tera Type:").trim()
             } else if (line.startsWith("Level:")) {
                 val level = line.removePrefix("Level:").trim()
                 p.level = level.toIntOrNull() ?: 100

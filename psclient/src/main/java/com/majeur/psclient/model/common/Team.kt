@@ -96,15 +96,17 @@ class Team private constructor(
                 buf.append("|")
             }
 
-            // happiness
-            if (set.happiness != 255) {
-                buf.append("|").append(set.happiness)
+            // happiness and later packed-team fields
+            val pokeball = set.pokeball.toId().takeUnless { it == "pokeball" }.orEmpty()
+            if (set.happiness != 255 || set.hpType.isNotBlank() || pokeball.isNotBlank() || set.teraType.isNotBlank()) {
+                buf.append("|")
+                if (set.happiness != 255) buf.append(set.happiness)
+                buf.append(",").append(set.hpType)
+                buf.append(",").append(pokeball)
+                buf.append(",,,").append(set.teraType)
             } else {
                 buf.append("|")
             }
-            buf.append(",").append(set.hpType)
-            if (set.pokeball != "pokeball")
-                buf.append(",").append(set.pokeball.toId())
         }
         return buf.toString()
     }
@@ -240,14 +242,15 @@ class Team private constructor(
                 j = buf.indexOf(']', i)
                 var misc: List<String> = emptyList()
                 if (j < 0) {
-                    if (i < buf.length) misc = buf.substring(i).split(",").take(3)
+                    if (i < buf.length) misc = buf.substring(i).split(",").take(6)
                 } else {
-                    if (i != j) misc = buf.substring(i, j).split(",").take(3)
+                    if (i != j) misc = buf.substring(i, j).split(",").take(6)
                 }
                 if (misc.isNotEmpty()) {
                     pokemon.happiness = misc[0].toIntOrNull() ?: 255
-                    // poke.hpType = misc[1];
-                    // poke.pokeball = misc[2];TODO
+                    pokemon.hpType = misc.getOrNull(1).orEmpty()
+                    pokemon.pokeball = misc.getOrNull(2).orEmpty()
+                    pokemon.teraType = misc.getOrNull(5).orEmpty()
                 }
                 if (j < 0) break
                 i = j + 1

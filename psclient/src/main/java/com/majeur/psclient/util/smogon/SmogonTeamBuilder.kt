@@ -81,6 +81,10 @@ object SmogonTeamBuilder {
             builder.append("\n")
             builder.append("Hidden Power: ${pokemon.hpType}")
         }
+        if (pokemon.teraType.isNotBlank()) {
+            builder.append("\n")
+            builder.append("Tera Type: ${pokemon.teraType}")
+        }
         if (pokemon.evs.sum() > 0) {
             builder.append("\n")
             builder.append(

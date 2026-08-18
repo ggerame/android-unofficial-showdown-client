@@ -1,21 +1,22 @@
 package com.majeur.psclient.ui
 
 import android.content.ClipData
-import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.text.HtmlCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogImportTeamBinding
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.util.smogon.SmogonTeamBuilder
 import com.majeur.psclient.util.smogon.SmogonTeamParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl
 
 class ImportTeamDialog : BottomSheetDialogFragment() {
@@ -30,6 +31,21 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
 
     private val teamFragment
         get() = parentFragment as TeamsFragment
+
+    private val selectImportFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        fragmentScope.launch {
+            val data = withContext(Dispatchers.IO) {
+                runCatching {
+                    requireContext().contentResolver.openInputStream(uri)
+                            ?.bufferedReader()
+                            ?.use { it.readText() }
+                }.getOrNull()
+            }
+            if (data.isNullOrBlank()) makeSnackbar("Could not read selected file")
+            else handleRawTeamData(data)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +75,7 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
             binding.error.text = ""
             when (checkedId) {
                 R.id.clipboard_radio -> hideAllUrlInputTextViews()
+                R.id.file_radio -> hideAllUrlInputTextViews()
                 R.id.pastebin_radio -> showPastebinTextViewHideOthers()
                 R.id.pokepaste_radio -> showPokepasteTextViewHideOthers()
             }
@@ -66,6 +83,7 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
         binding.importButton.setOnClickListener {
             when (binding.radioGroup.checkedRadioButtonId) {
                 R.id.clipboard_radio -> importFromClipboard()
+                R.id.file_radio -> selectImportFile.launch(arrayOf("text/plain", "text/*"))
                 R.id.pastebin_radio -> importFromPastebin()
                 R.id.pokepaste_radio -> importFromPokepaste()
             }
@@ -109,14 +127,16 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
 
     private fun importFromClipboard() {
         val clip = clipboardManager.primaryClip
-        if (clip == null || clip.itemCount == 0 || (!clip.description.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) &&
-                        !clip.description.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML))) {
+        if (clip == null || clip.itemCount == 0) {
             makeSnackbar("There is nothing that looks like a Pokemon in clipboard")
             return
         }
-        val rawTeam = if (clip.description.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML))
-            HtmlCompat.fromHtml(clip.getItemAt(0).htmlText, 0) else clip.getItemAt(0).text
-        handleRawTeamData(rawTeam.toString())
+        val rawTeam = clip.getItemAt(0).coerceToText(requireContext()).toString()
+        if (rawTeam.isBlank()) {
+            makeSnackbar("There is nothing that looks like a Pokemon in clipboard")
+            return
+        }
+        handleRawTeamData(rawTeam)
     }
 
     private fun importFromPastebin() {

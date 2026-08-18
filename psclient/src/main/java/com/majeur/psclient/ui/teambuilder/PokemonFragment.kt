@@ -141,6 +141,7 @@ class PokemonFragment : Fragment() {
                     happiness = poke.happiness
                     hpType = poke.hpType
                     pokeball = poke.pokeball
+                    teraType = poke.teraType
                 }
                 toggleInputViewsEnabled(false)
                 bindToPokemon()

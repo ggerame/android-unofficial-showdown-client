@@ -35,6 +35,12 @@
                 android:checked="true"/>
 
         <RadioButton
+                android:id="@+id/file_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="File"/>
+
+        <RadioButton
                 android:id="@+id/pastebin_radio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

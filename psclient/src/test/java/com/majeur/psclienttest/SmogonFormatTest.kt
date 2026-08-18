@@ -4,6 +4,7 @@ import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.battle.Move
 import com.majeur.psclient.model.common.Item
 import com.majeur.psclient.model.common.Stats
+import com.majeur.psclient.model.common.Team
 import com.majeur.psclient.model.pokemon.DexPokemon
 import com.majeur.psclient.model.pokemon.TeamPokemon
 import com.majeur.psclient.util.smogon.SmogonTeamBuilder
@@ -40,6 +41,7 @@ class SmogonFormatTest {
         val text = """
             The bat (Crobat) (F) @ Flyinium Z  
             Ability: Infiltrator  
+            Tera Type: Ghost
             Level: 58  
             Shiny: Yes  
             EVs: 252 Atk / 4 Def / 252 Spe  
@@ -58,6 +60,7 @@ class SmogonFormatTest {
             assert(gender.toId() == "f") { "Wrong gender: $gender" }
             assert(item.toId() == "flyiniumz") { "Wrong item: $item" }
             assert(ability == "Infiltrator") { "Wrong ability: $ability" }
+            assert(teraType == "Ghost") { "Wrong tera type: $teraType" }
             assert(level == 58) { "Wrong level: $level" }
             assert(shiny == true) { "Wrong shinyness: $shiny" }
             assert(evs.atk == 252 && evs.def == 4 && evs.spe == 252) { "Wrong evs: ${evs.joinToString()}" }
@@ -298,6 +301,36 @@ class SmogonFormatTest {
     }
 
     @Test
+    fun `test_Parse whitespace separators and preserve tera type`(): Unit = runBlocking(Dispatchers.Unconfined) {
+        Mockito.`when`(assetLoader.dexPokemon("crobat")).thenReturn(crobat)
+
+        val text = """
+            === [gen9ou] Tera team ===
+
+            Crobat @ Flyinium Z
+            Ability: Infiltrator
+            Tera Type: Ghost
+            - Brave Bird
+
+            Crobat @ Flyinium Z
+            Ability: Infiltrator
+            Tera Type: Flying
+            - Roost
+        """.trimIndent().replace("\n\n", "\n \t\n")
+
+        val team = SmogonTeamParser.parseTeams(text, assetLoader).single()
+        assert(team.pokemons.size == 2) { "Wrong pokemon count: ${team.pokemons.size}" }
+        assert(team.pokemons.map { it.teraType } == listOf("Ghost", "Flying"))
+
+        val packed = team.pack()
+        val unpacked = Team.unpack(team.label, team.format, packed)!!
+        assert(unpacked.pokemons.map { it.teraType } == listOf("Ghost", "Flying")) {
+            "Packed tera types lost: $packed"
+        }
+        Unit
+    }
+
+    @Test
     fun `test_Build a single pokemon`(): Unit = runBlocking(Dispatchers.Unconfined) {
         Mockito.`when`(assetLoader.dexPokemon("crobat")).thenReturn(crobat)
         Mockito.`when`(assetLoader.item("flyiniumz")).thenReturn(flyiniumz)
@@ -312,6 +345,7 @@ class SmogonFormatTest {
             gender = "f"
             item = "flyiniumz"
             ability = "infiltrator"
+            teraType = "Ghost"
             level = 58
             shiny = true
             evs.apply { atk = 252; def = 4; spe = 252 }
@@ -327,6 +361,7 @@ class SmogonFormatTest {
             Ability: Infiltrator  
             Shiny: Yes  
             Level: 58  
+            Tera Type: Ghost
             EVs: 252 Atk / 4 Def / 252 Spe  
             Jolly Nature  
             IVs: 15 SpA  

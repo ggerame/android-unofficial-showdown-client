@@ -2,6 +2,17 @@
 
 All notable changes made are documented here.
 
+## [1.4.2] – Team import reliability
+
+### Fixed
+- **Pokémon Showdown team imports** now preserve every set when clipboard
+  formatting turns blank separators into whitespace, and accept `Tera Type`.
+- Imported Gen 9 teams retain their Tera Types when exported, saved, or sent to
+  the server in packed-team form.
+
+### Added
+- Team import can now read a text file through Android's document picker.
+
 ## [1.4.1] – BasePokemon fallback
 
 ### Fixed
@@ -222,4 +233,3 @@ All locally bundled raw assets were regenerated from live Showdown data:
 - Rewrote the README.
 
 ---
-

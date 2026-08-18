@@ -17,6 +17,7 @@ class TeamPokemon() : BasePokemon() {
     var happiness = 255
     var hpType: String = ""
     var pokeball: String = ""
+    var teraType: String = ""
 
     constructor(species: String) : this() {
         this.species = species

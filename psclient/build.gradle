@@ -31,6 +31,12 @@ android {
     }
 }
 
+androidComponents {
+    beforeVariants(selector().all()) { variantBuilder ->
+        variantBuilder.enableAndroidTest = false
+    }
+}
+
 dependencies {
     def nav_version = "2.3.0"
     implementation 'androidx.appcompat:appcompat:1.1.0'

@@ -2,6 +2,28 @@
 
 All notable changes made are documented here.
 
+## [1.4.3] – Format-aware teambuilder
+
+### Added
+- New teams now start from the live Pokémon Showdown format catalog in a
+  touch-friendly searchable accordion grouped by the server's official
+  sections; the last catalog remains available offline.
+- The editor adapts its fields to the selected generation and supports Tera
+  Type, Dynamax Level, Gigantamax, and Poké Ball packed-team data.
+- Invalid teams can be kept as visible local drafts. Search and challenges now
+  wait for authoritative `/vtm` server validation before starting.
+- Registered users can load their server team index, lazily open remote teams,
+  and explicitly upload, change privacy, or remove the server copy while
+  retaining local data.
+
+### Changed
+- Local team storage is versioned, uses persistent UUIDs and atomic writes, and
+  automatically backs up and migrates the previous JSON format.
+- The live `|formats|` parser now preserves stable IDs, sections, columns and
+  current capability flags instead of deriving behavior from display labels.
+- Generation detection mirrors Showdown's `Dex.formatGen`, so digit-prefixed
+  format names such as Gen 9 `1-2 Switch` are not misread as “Gen 912”.
+
 ## [1.4.2] – Team import reliability
 
 ### Fixed

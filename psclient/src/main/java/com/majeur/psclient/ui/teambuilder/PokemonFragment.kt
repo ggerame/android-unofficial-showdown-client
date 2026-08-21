@@ -141,6 +141,8 @@ class PokemonFragment : Fragment() {
                     happiness = poke.happiness
                     hpType = poke.hpType
                     pokeball = poke.pokeball
+                    gigantamax = poke.gigantamax
+                    dynamaxLevel = poke.dynamaxLevel
                     teraType = poke.teraType
                 }
                 toggleInputViewsEnabled(false)
@@ -178,6 +180,9 @@ class PokemonFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val profile = (requireActivity() as TeamBuilderActivity).currentFormat?.profile
+                ?: com.majeur.psclient.model.common.FormatProfile.from(
+                        (requireActivity() as TeamBuilderActivity).team.format.orEmpty())
         binding.speciesInput.apply {
             threshold = 1
             dropDownWidth = dp(196f)
@@ -284,6 +289,46 @@ class PokemonFragment : Fragment() {
                 }
             }
         }
+        binding.teraTypeSelector.apply {
+            val choices = listOf("Default") + Type.ALL
+            adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, choices)
+            onItemSelectedListener = object : SimpleOnItemSelectedListener() {
+                override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
+                    pokemon.teraType = if (i == 0) "" else choices[i]
+                }
+            }
+        }
+        binding.dynamaxLevelInput.apply {
+            addTextChangedListener(RangeNumberTextWatcher(0, 10))
+            addTextChangedListener(object : SimpleTextWatcher() {
+                override fun afterTextChanged(editable: Editable) {
+                    pokemon.dynamaxLevel = editable.toString().toIntOrNull() ?: 10
+                }
+            })
+        }
+        binding.gigantamaxInput.setOnCheckedChangeListener { _, checked -> pokemon.gigantamax = checked }
+        binding.pokeballInput.addTextChangedListener(object : SimpleTextWatcher() {
+            override fun afterTextChanged(editable: Editable?) {
+                pokemon.pokeball = editable?.toString().orEmpty()
+            }
+        })
+        binding.apply {
+            textView7.visibility = if (profile.hasAbilities) View.VISIBLE else View.GONE
+            abilitySelector.visibility = if (profile.hasAbilities) View.VISIBLE else View.GONE
+            textView8.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
+            itemInput.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
+            textView11.visibility = if (profile.hasNatures) View.VISIBLE else View.GONE
+            natureSelector.visibility = if (profile.hasNatures) View.VISIBLE else View.GONE
+            textView12.visibility = if (profile.hasHiddenPower) View.VISIBLE else View.GONE
+            hpTypeSelector.visibility = if (profile.hasHiddenPower) View.VISIBLE else View.GONE
+            teraFields.visibility = if (profile.hasTera) View.VISIBLE else View.GONE
+            dynamaxFields.visibility = if (profile.hasDynamax) View.VISIBLE else View.GONE
+            pokeballInput.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
+            textView6.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
+            happinessInput.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
+            textView2.visibility = if (profile.hasShiny) View.VISIBLE else View.GONE
+            shiny.visibility = if (profile.hasShiny) View.VISIBLE else View.GONE
+        }
         toggleInputViewsEnabled(false)
         if (pokemon.species.isNotBlank()) {
             bindToPokemon()
@@ -331,6 +376,13 @@ class PokemonFragment : Fragment() {
             val selection = Type.HP_TYPES.indexOfFirst { it.toId() == pokemon.hpType.toId() }
             if (selection > 0) setSelection(selection)
         }
+        binding.teraTypeSelector.apply {
+            val selection = Type.ALL.indexOfFirst { it.toId() == pokemon.teraType.toId() }
+            setSelection(if (selection < 0) 0 else selection + 1)
+        }
+        binding.dynamaxLevelInput.setText(pokemon.dynamaxLevel.toString())
+        binding.gigantamaxInput.isChecked = pokemon.gigantamax
+        binding.pokeballInput.setText(pokemon.pokeball)
     }
 
     private fun trySpecies(species: String, ability: String? = null, moves: List<String>? = null) {
@@ -398,6 +450,10 @@ class PokemonFragment : Fragment() {
             statsTable.isEnabled = enabled
             natureSelector.isEnabled = enabled
             hpTypeSelector.isEnabled = enabled
+            teraTypeSelector.isEnabled = enabled
+            dynamaxLevelInput.isEnabled = enabled
+            gigantamaxInput.isEnabled = enabled
+            pokeballInput.isEnabled = enabled
         }
         moveInputs.forEach { it.isEnabled = enabled }
     }
@@ -420,7 +476,8 @@ class PokemonFragment : Fragment() {
             object : Filter() {
 
                 override fun performFiltering(constraint: CharSequence?): FilterResults {
-                    val species = assetLoader.allSpeciesNonSuspend(constraint?.toString() ?: "")
+                    val generation = (requireActivity() as TeamBuilderActivity).currentFormat?.profile?.generation ?: 9
+                    val species = assetLoader.allSpeciesNonSuspend(constraint?.toString() ?: "", generation)
                     return FilterResults().apply {
                         count = species?.size ?: 0
                         values = species

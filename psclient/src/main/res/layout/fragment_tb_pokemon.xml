@@ -340,6 +340,70 @@
             app:layout_constraintEnd_toStartOf="@+id/hpTypeSelector"
             app:layout_constraintTop_toTopOf="@+id/hpTypeSelector"/>
 
+        <LinearLayout
+            android:id="@+id/formatFields"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/hpTypeSelector">
+
+            <LinearLayout
+                android:id="@+id/teraFields"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tera Type:" />
+
+                <Spinner
+                    android:id="@+id/teraTypeSelector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/dynamaxFields"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dynamax Level:" />
+
+                <EditText
+                    android:id="@+id/dynamaxLevelInput"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="2"
+                    android:selectAllOnFocus="true" />
+
+                <CheckBox
+                    android:id="@+id/gigantamaxInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gigantamax" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/pokeballInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Poké Ball (optional)"
+                android:inputType="textShortMessage"
+                android:singleLine="true" />
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

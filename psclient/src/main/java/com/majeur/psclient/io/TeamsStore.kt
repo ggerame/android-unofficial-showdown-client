@@ -10,7 +10,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 
 class TeamsStore(context: Context) {
@@ -28,7 +27,10 @@ class TeamsStore(context: Context) {
 
     @Throws(IOException::class, JSONException::class)
     private fun getInternal(): List<Team.Group> {
-        return readJsonFromFile().run {
+        val raw = jsonFile.readText()
+        val legacy = raw.trimStart().startsWith("[")
+        val groupsJson = if (legacy) JSONArray(raw) else JSONObject(raw).getJSONArray(JSON_KEY_GROUPS)
+        val groups = groupsJson.run {
             val groups = mutableListOf<Team.Group>()
             (0 until length()).map { getJSONObject(it) }.forEach { groupJson ->
                 val format = groupJson.getString(JSON_KEY_FORMAT)
@@ -37,12 +39,28 @@ class TeamsStore(context: Context) {
                 (0 until teamsJson.length()).map { teamsJson.getJSONObject(it) }.forEach {
                     val label = it.optString(JSON_KEY_TEAM_LABEL)
                     val data = it.getString(JSON_KEY_TEAM_DATA)
-                    Team.unpack(label, format, data)?.let { team -> group.teams.add(team) }
+                    val id = it.optString(JSON_KEY_TEAM_ID).ifBlank { java.util.UUID.randomUUID().toString() }
+                    Team.unpack(label, format, data, id, legacyMiscOrder = legacy)?.let { team ->
+                        team.remoteTeamId = it.optString(JSON_KEY_REMOTE_ID).ifBlank { null }
+                        team.remoteOwnerId = it.optString(JSON_KEY_REMOTE_OWNER).ifBlank { null }
+                        team.remotePrivate = it.optBoolean(JSON_KEY_REMOTE_PRIVATE, true)
+                        team.remoteState = try {
+                            Team.RemoteState.valueOf(it.optString(JSON_KEY_REMOTE_STATE, Team.RemoteState.LOCAL_ONLY.name))
+                        } catch (_: IllegalArgumentException) { Team.RemoteState.LOCAL_ONLY }
+                        team.isRemoteStub = it.optBoolean(JSON_KEY_REMOTE_STUB, false)
+                        group.teams.add(team)
+                    }
                 }
                 groups.add(group)
             }
             groups
         }
+        if (legacy) {
+            val backup = File(jsonFile.parentFile, "$FILE_NAME.v1.bak")
+            if (!backup.exists()) jsonFile.copyTo(backup)
+            writeJsonToFile(makeJson(groups))
+        }
+        return groups
     }
 
     suspend fun store(groups: List<Team.Group>): Boolean = withContext(Dispatchers.IO) {
@@ -56,7 +74,7 @@ class TeamsStore(context: Context) {
     }
 
     @Throws(JSONException::class)
-    private fun makeJson(groups: List<Team.Group>): JSONArray {
+    private fun makeJson(groups: List<Team.Group>): JSONObject {
         val jsonArray = JSONArray()
         val formats = groups.map { it.format.toId() }.toSet()
         formats.forEach { formatId ->
@@ -67,27 +85,46 @@ class TeamsStore(context: Context) {
                 put(JSON_KEY_TEAMS, JSONArray().apply {
                     teams.forEach { team ->
                         put(JSONObject().apply {
+                            put(JSON_KEY_TEAM_ID, team.uniqueId)
                             put(JSON_KEY_TEAM_LABEL, team.label)
                             put(JSON_KEY_TEAM_DATA, team.pack())
+                            put(JSON_KEY_REMOTE_ID, team.remoteTeamId)
+                            put(JSON_KEY_REMOTE_OWNER, team.remoteOwnerId)
+                            put(JSON_KEY_REMOTE_PRIVATE, team.remotePrivate)
+                            put(JSON_KEY_REMOTE_STATE, team.remoteState.name)
+                            put(JSON_KEY_REMOTE_STUB, team.isRemoteStub)
                         })
                     }
                 })
             }.also { jsonArray.put(it) }
         }
-        return jsonArray
+        return JSONObject().put(JSON_KEY_VERSION, STORE_VERSION).put(JSON_KEY_GROUPS, jsonArray)
     }
 
-    @Throws(JSONException::class, FileNotFoundException::class)
-    private fun readJsonFromFile() = JSONArray(jsonFile.readText())
-
-    private fun writeJsonToFile(json: JSONArray) = jsonFile.writeText(json.toString())
+    private fun writeJsonToFile(json: JSONObject) {
+        val temporary = File(jsonFile.parentFile, "$FILE_NAME.tmp")
+        temporary.writeText(json.toString())
+        if (!temporary.renameTo(jsonFile)) {
+            temporary.copyTo(jsonFile, overwrite = true)
+            temporary.delete()
+        }
+    }
 
     companion object {
         private const val FILE_NAME = "user_teams.json"
+        private const val STORE_VERSION = 2
+        private const val JSON_KEY_VERSION = "version"
+        private const val JSON_KEY_GROUPS = "groups"
         private const val JSON_KEY_FORMAT = "label"
         private const val JSON_KEY_TEAMS = "teams"
         private const val JSON_KEY_TEAM_LABEL = "label"
+        private const val JSON_KEY_TEAM_ID = "id"
         private const val JSON_KEY_TEAM_DATA = "data"
+        private const val JSON_KEY_REMOTE_ID = "remoteId"
+        private const val JSON_KEY_REMOTE_OWNER = "remoteOwner"
+        private const val JSON_KEY_REMOTE_PRIVATE = "remotePrivate"
+        private const val JSON_KEY_REMOTE_STATE = "remoteState"
+        private const val JSON_KEY_REMOTE_STUB = "remoteStub"
     }
 
 }

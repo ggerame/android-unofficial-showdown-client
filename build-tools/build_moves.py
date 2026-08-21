@@ -6,13 +6,13 @@ from json import dumps
 
 app_data_dir = "../psclient/src/main/res/raw"
 target_file_name = "moves.json"
-url_js_file = "http://play.pokemonshowdown.com/data/moves.js"
+url_js_file = "https://play.pokemonshowdown.com/data/moves.js"
 
 data = get_remote_data(url_js_file)
 
 log("Decoding JavaScript data...")
 obj = parse(data)
-keys = ["accuracy","basePower","category","desc","shortDesc","type","priority","name","pp","zMovePower","target","zMoveEffect","gmaxPower"]
+keys = ["accuracy","basePower","category","desc","shortDesc","type","priority","name","pp","gen","isNonstandard","zMovePower","target","zMoveEffect","gmaxPower"]
 properties = obj['body'][0]['expression']['right']['properties']
 moves = dict()   
 set_log_p() 

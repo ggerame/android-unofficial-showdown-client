@@ -7,11 +7,17 @@ import java.util.*
 
 
 class Team private constructor(
-        val uniqueId: Int,
+        val uniqueId: String,
        var label: String,
        var pokemons: List<TeamPokemon>,
        var format: String?)
     : Serializable, Comparable<Team> {
+
+    var remoteTeamId: String? = null
+    var remoteOwnerId: String? = null
+    var remotePrivate = true
+    var remoteState = RemoteState.LOCAL_ONLY
+    var isRemoteStub = false
 
     class Group(val format: String) {
 
@@ -19,7 +25,9 @@ class Team private constructor(
 
     }
 
-    constructor(label: String, pokemons: List<TeamPokemon>, format: String?) : this(sUniqueIdInc++, label, pokemons, format) {}
+    enum class RemoteState { LOCAL_ONLY, REMOTE_ONLY, REMOTE_CLEAN, LOCAL_CHANGES, DISCONNECTED }
+
+    constructor(label: String, pokemons: List<TeamPokemon>, format: String?) : this(UUID.randomUUID().toString(), label, pokemons, format) {}
 
     constructor(source: Team) : this(copiedTeamLabel(source.label), source.pokemons, source.format) {}
 
@@ -98,12 +106,15 @@ class Team private constructor(
 
             // happiness and later packed-team fields
             val pokeball = set.pokeball.toId().takeUnless { it == "pokeball" }.orEmpty()
-            if (set.happiness != 255 || set.hpType.isNotBlank() || pokeball.isNotBlank() || set.teraType.isNotBlank()) {
+            if (set.happiness != 255 || set.hpType.isNotBlank() || pokeball.isNotBlank() ||
+                    set.gigantamax || set.dynamaxLevel != 10 || set.teraType.isNotBlank()) {
                 buf.append("|")
                 if (set.happiness != 255) buf.append(set.happiness)
-                buf.append(",").append(set.hpType)
                 buf.append(",").append(pokeball)
-                buf.append(",,,").append(set.teraType)
+                buf.append(",").append(set.hpType)
+                buf.append(",").append(if (set.gigantamax) "G" else "")
+                buf.append(",").append(if (set.dynamaxLevel == 10) "" else set.dynamaxLevel)
+                buf.append(",").append(set.teraType)
             } else {
                 buf.append("|")
             }
@@ -112,8 +123,6 @@ class Team private constructor(
     }
 
     companion object {
-
-        private var sUniqueIdInc = 1
 
         private fun copiedTeamLabel(label: String): String {
             return "$label (Copy)"
@@ -140,8 +149,9 @@ class Team private constructor(
             return Team(label, pokemons, null)
         }
 
-        fun unpack(label: String, format: String?, buf: String?): Team? {
-            if (buf == null || buf.isBlank()) return Team(label, emptyList(), format)
+        fun unpack(label: String, format: String?, buf: String?, uniqueId: String = UUID.randomUUID().toString(),
+                   legacyMiscOrder: Boolean = false): Team? {
+            if (buf == null || buf.isBlank()) return Team(uniqueId, label, emptyList(), format)
             if (buf[0] == '[' && buf[buf.length - 1] == ']') {
                 // TODO buf = this.packTeam(JSON.parse(buf));
             }
@@ -248,14 +258,16 @@ class Team private constructor(
                 }
                 if (misc.isNotEmpty()) {
                     pokemon.happiness = misc[0].toIntOrNull() ?: 255
-                    pokemon.hpType = misc.getOrNull(1).orEmpty()
-                    pokemon.pokeball = misc.getOrNull(2).orEmpty()
+                    pokemon.pokeball = misc.getOrNull(if (legacyMiscOrder) 2 else 1).orEmpty()
+                    pokemon.hpType = misc.getOrNull(if (legacyMiscOrder) 1 else 2).orEmpty()
+                    pokemon.gigantamax = misc.getOrNull(3) == "G"
+                    pokemon.dynamaxLevel = misc.getOrNull(4)?.toIntOrNull() ?: 10
                     pokemon.teraType = misc.getOrNull(5).orEmpty()
                 }
                 if (j < 0) break
                 i = j + 1
             }
-            return Team(label, team, format)
+            return Team(uniqueId, label, team, format)
         }
     }
 

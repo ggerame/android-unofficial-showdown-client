@@ -28,6 +28,12 @@ abstract class CategoryAdapter(context: Context?) : BaseAdapter() {
         notifyDataSetChanged()
     }
 
+    fun replaceItems(items: Collection<Any>) {
+        mSpinnerItems.clear()
+        mSpinnerItems.addAll(items)
+        notifyDataSetChanged()
+    }
+
     fun findItemIndex(item: Any) = mSpinnerItems.indexOf(item)
     fun findItemIndex(predicate: (Any) -> Boolean) = mSpinnerItems.indexOfFirst(predicate)
 
@@ -35,7 +41,9 @@ abstract class CategoryAdapter(context: Context?) : BaseAdapter() {
 
     protected abstract fun isCategoryItem(position: Int): Boolean
 
-    override fun isEnabled(position: Int) = !isCategoryItem(position)
+    protected open fun isCategoryEnabled(position: Int) = false
+
+    override fun isEnabled(position: Int) = !isCategoryItem(position) || isCategoryEnabled(position)
 
     override fun areAllItemsEnabled() = false
 

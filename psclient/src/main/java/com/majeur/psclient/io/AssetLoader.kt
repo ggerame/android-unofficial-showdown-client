@@ -149,7 +149,8 @@ class AssetLoader(val context: Context) {
 //    Not used for now
 //    fun dexPokemonNonSuspend(species: String) = dexPokemonLoader.load(species)
 
-    fun allSpeciesNonSuspend(species: String) = allSpeciesLoader.load(species)
+    fun allSpeciesNonSuspend(species: String, generation: Int = 9) =
+            allSpeciesLoader.load("$generation|$species")
 
     abstract class Loader<T>(
             protected val context: Context,
@@ -218,14 +219,19 @@ class AssetLoader(val context: Context) {
 
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
         @Throws(IOException::class)
-        override fun compute(constraint: String): List<String>? {
+        override fun compute(assetId: String): List<String>? {
+            val generation = assetId.substringBefore('|').toIntOrNull() ?: 9
+            val constraint = assetId.substringAfter('|', assetId)
+            val maxDexNumber = intArrayOf(0, 151, 251, 386, 493, 649, 721, 809, 905, 1025)
+                    .getOrElse(generation) { Int.MAX_VALUE }
             val species = mutableListOf<String>()
             jsonReader(R.raw.dex).use { reader ->
                 reader.beginObject()
                 while (reader.hasNext()) {
                     val speciesId = reader.nextName()
                     if (speciesId.startsWith(constraint, ignoreCase = true)) {
-                        species.add(parseSpeciesName(reader, speciesId))
+                        val (name, number) = parseSpecies(reader, speciesId)
+                        if (number in 1..maxDexNumber) species.add(name)
                     } else {
                         reader.skipValue()
                     }
@@ -236,17 +242,19 @@ class AssetLoader(val context: Context) {
         }
 
         @Throws(IOException::class)
-        private fun parseSpeciesName(reader: JsonReader, speciesId: String): String {
+        private fun parseSpecies(reader: JsonReader, speciesId: String): Pair<String, Int> {
             var name = speciesId
+            var number = 0
             reader.beginObject()
             while (reader.hasNext()) {
                 when (reader.nextName()) {
                     "name" -> name = reader.nextString()
+                    "num" -> number = reader.nextInt()
                     else -> reader.skipValue()
                 }
             }
             reader.endObject()
-            return name
+            return name to number
         }
     }
 

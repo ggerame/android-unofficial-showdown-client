@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.FragmentTbTeamBinding
@@ -20,6 +21,7 @@ import com.majeur.psclient.databinding.ListItemPokemonBinding
 import com.majeur.psclient.io.GlideHelper
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.Nature
+import com.majeur.psclient.model.common.TeamDraftValidator
 import com.majeur.psclient.model.common.toId
 import com.majeur.psclient.model.pokemon.TeamPokemon
 import com.majeur.psclient.ui.BaseFragment
@@ -85,12 +87,6 @@ class TeamFragment : Fragment() {
             return
         }
 
-        if (team.isEmpty || team.pokemons.all { it.species.isBlank() }) {
-            Snackbar.make(binding.root, "Team is empty", Snackbar.LENGTH_LONG)
-                    .show()
-            return
-        }
-
         val battleFormat = binding.header.formatsSelector.selectedItem as BattleFormat? ?: BattleFormat.FORMAT_OTHER
         team.apply {
             label = name
@@ -99,6 +95,20 @@ class TeamFragment : Fragment() {
             format = battleFormat.toId()
         }
 
+        val issues = TeamDraftValidator.validate(team, battleFormat)
+        if (issues.isNotEmpty()) {
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Save as draft?")
+                    .setMessage(issues.joinToString("\n") { "• $it" })
+                    .setPositiveButton("Save draft") { _, _ -> finishWithTeam() }
+                    .setNegativeButton("Keep editing", null)
+                    .show()
+            return
+        }
+        finishWithTeam()
+    }
+
+    private fun finishWithTeam() {
         val data = Intent()
         data.putExtra(TeamBuilderActivity.INTENT_EXTRA_TEAM, team)
         requireActivity().apply {
@@ -146,6 +156,12 @@ class TeamFragment : Fragment() {
             binding.fab.setOnClickListener {
                 adapter.addItem(TeamPokemon().apply {
                     moves = mutableListOf("", "", "", "") // Ensure we have a 4 items mutable list
+                    val format = (requireActivity() as TeamBuilderActivity).currentFormat
+                    level = format?.defaultLevel ?: 100
+                    if ((format?.profile?.generation ?: 9) <= 2) {
+                        ivs = com.majeur.psclient.model.common.Stats(15)
+                        evs = com.majeur.psclient.model.common.Stats(252)
+                    }
                 })
                 val lastItemPosition = adapter.itemCount - 1
                 binding.list.scrollToPosition(lastItemPosition)
@@ -163,6 +179,7 @@ class TeamFragment : Fragment() {
             setText(if (team.label.isBlank()) "Unnamed team" else team.label)
         }
         binding.header.formatsSelector.apply {
+            var confirmedFormatId = team.format
             val spinnerAdapter = object : CategoryAdapter(context) {
                 override fun isCategoryItem(position: Int): Boolean {
                     return getItem(position) is BattleFormat.Category
@@ -190,6 +207,26 @@ class TeamFragment : Fragment() {
                         indexInAdapter++
                         if (it.toId() == team.format?.toId()) setSelection(indexInAdapter, false)
                     }
+                }
+            }
+            onItemSelectedListener = object : SimpleOnItemSelectedListener() {
+                override fun onItemSelected(adapterView: android.widget.AdapterView<*>, view: View?, i: Int, l: Long) {
+                    val selected = adapterView.adapter.getItem(i) as? BattleFormat ?: return
+                    if (confirmedFormatId == null || selected.id == confirmedFormatId) return
+                    MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Change team format?")
+                            .setMessage("Existing sets will be preserved, but incompatible fields will make this team a draft.")
+                            .setPositiveButton("Change") { _, _ ->
+                                confirmedFormatId = selected.id
+                                team.format = selected.id
+                            }
+                            .setNegativeButton("Cancel") { _, _ ->
+                                val previous = spinnerAdapter.findItemIndex {
+                                    (it as? BattleFormat)?.id == confirmedFormatId
+                                }
+                                if (previous >= 0) setSelection(previous, false)
+                            }
+                            .show()
                 }
             }
         }

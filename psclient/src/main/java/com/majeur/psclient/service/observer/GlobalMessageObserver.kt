@@ -3,6 +3,8 @@ package com.majeur.psclient.service.observer
 import com.majeur.psclient.model.BattleRoomInfo
 import com.majeur.psclient.model.ChatRoomInfo
 import com.majeur.psclient.model.common.BattleFormat
+import com.majeur.psclient.model.common.BattleFormatParser
+import com.majeur.psclient.io.BattleFormatCache
 import com.majeur.psclient.service.ServerMessage
 import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.util.Utils
@@ -99,6 +101,7 @@ class GlobalMessageObserver(service: ShowdownService)
     private fun processQueryResponse(msg: ServerMessage) {
         val query = msg.nextArg
         val queryResponse = msg.remainingArgsRaw
+        if (service.consumeTeamCommand(query, queryResponse)) return
         when (query) {
             "rooms" -> processRoomsQueryResponse(queryResponse)
             "roomlist" -> processRoomListQueryResponse(queryResponse)
@@ -201,30 +204,16 @@ class GlobalMessageObserver(service: ShowdownService)
     }
 
     private fun processAvailableFormats(msg: ServerMessage) {
-        val rawText: String = msg.remainingArgsRaw
-        val categories: MutableList<BattleFormat.Category> = LinkedList() // /!\ needs to impl Serializable
-
-        rawText.split("|,").forEach { rawCategory ->
-            val catName = rawCategory.substringAfter("|").substringBefore("|")
-            val formats = rawCategory.substringAfter(catName).split("|")
-                    .filter { s -> s.isNotBlank() }
-                    .mapNotNull { s ->
-                        val name = s.substringBefore(",")
-                        val flags = s.substringAfter(",", "").substringBefore(",").trim().toIntOrNull(16) ?: 0
-                        if (name.isBlank()) null else BattleFormat(name, flags)
-                    }
-            BattleFormat.Category().apply {
-                this.formats.addAll(formats)
-                label = catName
-            }.also {
-                categories.add(it)
-            }
-        }
+        val categories = BattleFormatParser.parse(msg.args)
+        BattleFormatCache(service).store(categories)
         service.putSharedData("formats", categories)
         onBattleFormatsChanged(categories)
     }
 
-    private fun handlePopup(msg: ServerMessage) = onShowPopup(msg.args.joinToString("\n"))
+    private fun handlePopup(msg: ServerMessage) {
+        val message = msg.args.joinToString("\n")
+        if (!service.consumeValidationPopup(message) && !service.consumeTeamCommandPopup(message)) onShowPopup(message)
+    }
 
     private fun handleUpdateSearch(msg: ServerMessage) {
         val jsonObject = Utils.jsonObject(msg.remainingArgsRaw) ?: return
@@ -374,4 +363,3 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onNetworkError()
     }
 }
-

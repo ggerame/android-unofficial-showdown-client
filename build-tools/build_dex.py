@@ -6,13 +6,13 @@ from json import dumps
 
 app_data_dir = "../psclient/src/main/res/raw"
 target_file_name = "dex.json"
-url_js_file = "http://play.pokemonshowdown.com/data/pokedex.js"
+url_js_file = "https://play.pokemonshowdown.com/data/pokedex.js"
 
 data = get_remote_data(url_js_file)
 
 log("Decoding JavaScript data...")
 obj = parse(data)
-keys = ["num", "name", "types", "baseStats", "abilities", "heightm", "weightkg", "color", "gender", "LC", "evos", "requiredItem"]
+keys = ["num", "name", "baseSpecies", "forme", "types", "baseStats", "abilities", "heightm", "weightkg", "color", "gender", "gen", "isNonstandard", "LC", "evos", "requiredItem"]
 properties = obj['body'][0]['expression']['right']['properties']
 dex = dict()   
 set_log_p() 

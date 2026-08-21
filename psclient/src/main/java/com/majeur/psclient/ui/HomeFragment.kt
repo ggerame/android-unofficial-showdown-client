@@ -404,17 +404,32 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 makeSnackbar("Your team is empty !")
                 return
             }
-            service?.sendGlobalCommand("utm", team.pack())
+            if (team.format?.toId() != currentBattleFormat!!.id) {
+                makeSnackbar("Choose a team built for ${currentBattleFormat!!.label}")
+                return
+            }
+            setBattleButtonUIState("Validating…", enabled = false, showCancel = false)
+            service?.validateTeam(team.pack(), currentBattleFormat!!.id) { result ->
+                if (result.valid) startValidatedBattle() else {
+                    setBattleButtonUIState("Battle !", enabled = true, showCancel = false, tintCard = false)
+                    onShowPopup(result.message)
+                }
+            }
+            return
         } else {
             service?.sendGlobalCommand("utm", "null")
         }
+        startValidatedBattle()
+    }
+
+    private fun startValidatedBattle() {
         when {
             isChallengingSomeone -> {
-                service?.sendGlobalCommand("challenge", challengeTo!!.toId(), currentBattleFormat!!.label.toId())
+                service?.sendGlobalCommand("challenge", challengeTo!!.toId(), currentBattleFormat!!.id)
                 setBattleButtonUIState("Challenging\n$challengeTo...", enabled = false, showCancel = true, tintCard = true)
             }
             isAcceptingChallenge -> service?.sendGlobalCommand("accept", isAcceptingFrom!!)
-            else -> service?.sendGlobalCommand("search", currentBattleFormat!!.label.toId())
+            else -> service?.sendGlobalCommand("search", currentBattleFormat!!.id)
         }
     }
 
@@ -624,6 +639,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         val signInDialog = childFragmentManager.findFragmentByTag(SignInDialog.FRAGMENT_TAG) as SignInDialog?
         signInDialog?.dismissAllowingStateLoss()
+        teamsFragment.onAccountChanged(userName, isGuest)
     }
 
     override fun onUpdateCounts(userCount: Int, battleCount: Int) {

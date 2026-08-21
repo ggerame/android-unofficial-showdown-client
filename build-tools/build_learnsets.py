@@ -6,7 +6,7 @@ from json import dumps
 
 app_data_dir = "../psclient/src/main/res/raw"
 target_file_name = "learnsets.json"
-url_js_file = "http://play.pokemonshowdown.com/data/learnsets.js"
+url_js_file = "https://play.pokemonshowdown.com/data/learnsets.js"
 
 data = get_remote_data(url_js_file)
 

@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -19,10 +20,12 @@ import com.majeur.psclient.model.common.toId
 
 class TeamBuilderActivity : AppCompatActivity() {
 
-    // As I am writing this code, fragment navigation framework does not manage fragments instance states.
-    // The common fix is to use a shared LiveData or ViewModel, so as we are not using MVVM here, we use
-    // activity as a common place to retrieve team pokemons.
-    lateinit var team: Team
+    private val viewModel by lazy { ViewModelProvider(this)[TeamBuilderViewModel::class.java] }
+    val team get() = viewModel.team
+    lateinit var formats: List<BattleFormat.Category>
+        private set
+    val currentFormat: BattleFormat?
+        get() = formats.asSequence().flatMap { it.formats.asSequence() }.firstOrNull { it.id == team.format }
 
     val glideHelper by lazy { GlideHelper(this) }
     val assetLoader by lazy { AssetLoader(this) }
@@ -53,7 +56,19 @@ class TeamBuilderActivity : AppCompatActivity() {
 
         // TODO Retrieve cached formats if null
         @Suppress("UNCHECKED_CAST", "DEPRECATION")
-        val formats = intent.getSerializableExtra(INTENT_EXTRA_FORMATS) as List<BattleFormat.Category>?
+        formats = intent.getSerializableExtra(INTENT_EXTRA_FORMATS) as List<BattleFormat.Category>? ?: emptyList()
+
+        if (!viewModel.isInitialized) {
+            @Suppress("DEPRECATION")
+            val suppliedTeam = intent.extras?.getSerializable(INTENT_EXTRA_TEAM) as Team?
+            val selectedFormat = intent.getStringExtra(INTENT_EXTRA_FORMAT_ID)
+            viewModel.team = suppliedTeam
+                    ?: Team("Unnamed team", emptyList(), selectedFormat ?: BattleFormat.FORMAT_OTHER.id)
+            team.pokemons = team.pokemons.toMutableList()
+            team.pokemons.forEach { poke ->
+                poke.moves = poke.moves.toMutableList().apply { for (i in size until 4) add("") }
+            }
+        }
 
         val navController = findNavController(R.id.nav_host_fragment)
         navController.setGraph(R.navigation.team_builder, bundleOf(
@@ -64,16 +79,6 @@ class TeamBuilderActivity : AppCompatActivity() {
             onBackPressedCallback.isEnabled = isStartDestination
         }
         setupActionBarWithNavController(navController)
-
-
-        @Suppress("DEPRECATION")
-        team = intent.extras?.getSerializable(INTENT_EXTRA_TEAM) as Team?
-                ?: Team("Unnamed team", emptyList(), BattleFormat.FORMAT_OTHER.toId())
-        team.pokemons = team.pokemons.toMutableList() // Ensure we have a mutable list under the hood
-        team.pokemons.forEach { poke ->
-            poke.moves = poke.moves.toMutableList() // Ensure we have a mutable list under the hood
-            for (i in poke.moves.size until 4) (poke.moves as MutableList<String>).add("") // Ensure we have a 4 element list
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -86,6 +91,7 @@ class TeamBuilderActivity : AppCompatActivity() {
         const val INTENT_REQUEST_CODE = 194
         const val INTENT_EXTRA_TEAM = "intent-extra-team"
         const val INTENT_EXTRA_FORMATS = "intent-extra-formats"
+        const val INTENT_EXTRA_FORMAT_ID = "intent-extra-format-id"
     }
 
 }

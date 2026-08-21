@@ -9,6 +9,8 @@ import android.util.Base64
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
 import com.majeur.psclient.service.observer.ChatRoomMessageObserver
 import com.majeur.psclient.service.observer.GlobalMessageObserver
+import com.majeur.psclient.model.common.TeamValidationResult
+import com.majeur.psclient.model.common.RemoteTeamSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -48,6 +50,14 @@ class ShowdownService : Service() {
     private val sharedData = mutableMapOf<String, Any?>()
     private var webSocket: WebSocket? = null
     private var _connected = AtomicBoolean(false)
+    private var validationCallback: ((TeamValidationResult) -> Unit)? = null
+    private var teamCommandCallback: ((Boolean, String) -> Unit)? = null
+    private val validationTimeout = Runnable {
+        validationCallback?.also { callback ->
+            validationCallback = null
+            callback(TeamValidationResult(false, "Team validation timed out"))
+        }
+    }
 
     @Suppress("ObjectLiteralToLambda")
     private val stopSelfRunnable = object : Runnable {
@@ -119,6 +129,7 @@ class ShowdownService : Service() {
         Timber.d("Attempting to close WS connection.")
         webSocket?.close(WS_CLOSE_NORMAL, "Normal closure")
         sharedData.clear()
+        finishValidation(TeamValidationResult(false, "Disconnected before team validation completed"))
     }
 
     fun sendTrnMessage(userName: String, assertion: String) {
@@ -133,17 +144,127 @@ class ShowdownService : Service() {
     fun sendGlobalCommand(command: String, vararg args: Any) =
             sendRoomMessage(null, "/$command ${args.joinToString(",")}")
 
+    fun validateTeam(packedTeam: String, formatId: String, callback: (TeamValidationResult) -> Unit) {
+        if (!isConnected) {
+            callback(TeamValidationResult(false, "Connect to Pokémon Showdown to validate this team"))
+            return
+        }
+        if (validationCallback != null) {
+            callback(TeamValidationResult(false, "Another team validation is already running"))
+            return
+        }
+        validationCallback = callback
+        uiHandler.postDelayed(validationTimeout, 15_000)
+        sendGlobalCommand("utm", packedTeam)
+        sendGlobalCommand("vtm", formatId)
+    }
+
+    fun consumeValidationPopup(message: String): Boolean {
+        if (validationCallback == null) return false
+        finishValidation(TeamValidationResult.fromPopup(message))
+        return true
+    }
+
+    fun loadRemoteTeams(callback: (List<RemoteTeamSummary>?, String?) -> Unit) {
+        requestTeamAction(mapOf("act" to "getteams")) { raw, error ->
+            if (raw == null) callback(null, error) else try {
+                callback(RemoteTeamSummary.parseResponse(raw), null)
+            } catch (e: Exception) {
+                Timber.e(e, "Invalid getteams response")
+                callback(null, "Could not read teams returned by the server")
+            }
+        }
+    }
+
+    fun loadRemoteTeam(teamId: String, callback: (String?, String?) -> Unit) {
+        requestTeamAction(mapOf("act" to "getteam", "teamid" to teamId)) { raw, error ->
+            if (raw == null) callback(null, error) else try {
+                callback(RemoteTeamSummary.parsePackedTeam(raw), null)
+            } catch (e: Exception) {
+                Timber.e(e, "Invalid getteam response")
+                callback(null, "Could not read this server team")
+            }
+        }
+    }
+
+    private fun requestTeamAction(parameters: Map<String, String>, callback: (String?, String?) -> Unit) {
+        val cookie = retrieveAuthCookieIfAny()
+        if (cookie == null) {
+            callback(null, "Sign in to load account teams")
+            return
+        }
+        val body = FormBody.Builder().apply { parameters.forEach { (key, value) -> add(key, value) } }.build()
+        val url = HttpUrl.Builder().scheme("https").host("play.pokemonshowdown.com")
+                .addPathSegment("~~showdown").addPathSegment("action.php").build()
+        okHttpClient.newCall(Request.Builder().url(url).addHeader("cookie", cookie).post(body).build())
+                .enqueue(object : Callback {
+                    override fun onResponse(call: Call, response: Response) {
+                        val raw = response.body()?.string()
+                        uiHandler.post {
+                            if (response.isSuccessful && !raw.isNullOrBlank()) callback(raw, null)
+                            else callback(null, "The Showdown team server returned ${response.code()}")
+                        }
+                    }
+
+                    override fun onFailure(call: Call, e: IOException) {
+                        Timber.e(e, "Team server call failed")
+                        uiHandler.post { callback(null, "Could not reach the Showdown team server") }
+                    }
+                })
+    }
+
+    fun saveRemoteTeam(team: com.majeur.psclient.model.common.Team, callback: (Boolean, String) -> Unit) {
+        if (teamCommandCallback != null) return callback(false, "Another account-team operation is running")
+        teamCommandCallback = callback
+        val name = team.label.replace(',', ' ')
+        val privacy = if (team.remotePrivate) 1 else 0
+        val command = if (team.remoteTeamId == null)
+            "/teams save $name, ${team.format}, $privacy, ${team.pack()}"
+        else
+            "/teams update ${team.remoteTeamId}, $name, ${team.format}, $privacy, ${team.pack()}"
+        sendRoomMessage(null, command)
+    }
+
+    fun consumeTeamCommand(query: String, response: String): Boolean {
+        if (query != "teamupload" && query != "teamupdate") return false
+        val callback = teamCommandCallback ?: return false
+        teamCommandCallback = null
+        callback(true, response)
+        return true
+    }
+
+    fun consumeTeamCommandPopup(message: String): Boolean {
+        val callback = teamCommandCallback ?: return false
+        teamCommandCallback = null
+        callback(false, message)
+        return true
+    }
+
+    fun deleteRemoteTeam(teamId: String) = sendRoomMessage(null, "/teams delete $teamId")
+    fun setRemoteTeamPrivacy(teamId: String, isPrivate: Boolean) =
+            sendRoomMessage(null, "/teams setprivacy $teamId,${if (isPrivate) "yes" else "no"}")
+
+    private fun finishValidation(result: TeamValidationResult) {
+        val callback = validationCallback ?: return
+        validationCallback = null
+        uiHandler.removeCallbacks(validationTimeout)
+        callback(result)
+    }
+
     fun sendRoomCommand(roomId: String?, command: String, vararg args: Any?) =
             sendRoomMessage(roomId, "/$command ${args.joinToString("|")}")
 
     fun sendRoomMessage(roomId: String?, message: String) = sendMessage("${roomId ?: ""}|$message")
 
     private fun sendMessage(message: String) {
+        val sensitive = message.startsWith("|/utm ") || message.startsWith("|/teams save") ||
+                message.startsWith("|/teams update")
+        val loggedMessage = if (sensitive) "<redacted team command>" else message
         if (isConnected) {
-            Timber.tag("WebSocket[SEND]").i(message)
+            Timber.tag("WebSocket[SEND]").i(loggedMessage)
             webSocket?.send(message)
         } else {
-            Timber.w("WebSocket not opened. Ignoring message: $message")
+            Timber.w("WebSocket not opened. Ignoring message: $loggedMessage")
         }
     }
 

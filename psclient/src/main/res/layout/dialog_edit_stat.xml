@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:minWidth="340dp"
-    android:padding="12dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        style="@style/TextAppearance.MaterialComponents.Headline5"/>
+        android:layout_marginBottom="12dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="EVs:"/>
+        android:text="@string/evs"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,20 +29,20 @@
         <SeekBar
             android:id="@+id/ev_slider"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
             android:max="252"/>
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/ev_value"
-            android:layout_width="38dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
+            android:layout_width="64dp"
+            android:layout_height="48dp"
             android:gravity="center"
-            android:inputType="number"/>
+            android:hint="@string/ev_value"
+            android:inputType="number"
+            android:maxLength="3"
+            android:selectAllOnFocus="true" />
 
     </LinearLayout>
 
@@ -50,8 +50,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textStyle="bold"
-        android:text="IVs:"/>
+        android:text="@string/ivs"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -62,31 +62,29 @@
         <SeekBar
             android:id="@+id/iv_slider"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
             android:max="31"
             style="@style/Widget.AppCompat.SeekBar.Discrete"/>
 
         <TextView
             android:id="@+id/iv_value"
-            android:layout_width="28dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
+            android:layout_width="64dp"
+            android:layout_height="48dp"
             android:gravity="center"
-            android:textColor="?attr/colorOnBackground"/>
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnSurface" />
 
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/ok_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_gravity="end"
         android:layout_marginTop="8dp"
-        android:text="Ok"
-        style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"/>
+        android:text="@android:string/ok"
+        style="@style/Widget.Material3.Button.TextButton.Dialog"/>
 
 </LinearLayout>

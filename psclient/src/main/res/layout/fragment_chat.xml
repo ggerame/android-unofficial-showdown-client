@@ -1,95 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp">
 
-    <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="?android:actionBarSize"
-            android:elevation="4dp"
-            android:paddingHorizontal="12dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="?attr/colorSurface">
+            android:layout_height="match_parent">
 
-        <TextView
+            <TextView
                 android:id="@+id/users_count"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_width="64dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackground"
+                android:ellipsize="end"
                 android:gravity="center"
+                android:maxLines="2"
                 android:textColor="?attr/colorOnSurface"
-                android:background="?selectableItemBackground"/>
+                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
+            <TextView
                 android:id="@+id/room_title"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="4"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:gravity="center"
-                android:textColor="?attr/colorOnSurface"/>
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/join_button"
+                app:layout_constraintStart_toEndOf="@id/users_count"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
+            <ImageButton
                 android:id="@+id/join_button"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackground"
+                android:layout_width="64dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/join_or_leave_room"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="12dp"
                 android:src="@drawable/ic_enter"
-                android:tint="?attr/colorOnSurface"/>
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="?attr/colorOnSurface" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
 
-    </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <ScrollView
+        <ScrollView
             android:id="@+id/chat_log_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent"
+            android:clipToPadding="false">
 
-        <TextView
+            <TextView
                 android:id="@+id/chat_log"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="?attr/colorOnBackground"
-                android:textSize="16sp"
                 android:lineSpacingExtra="2dp"
-                android:paddingHorizontal="12dp"/>
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="16sp" />
+        </ScrollView>
 
-    </ScrollView>
+        <TextView
+            android:id="@+id/empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="32dp"
+            android:text="@string/join_room_prompt"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </FrameLayout>
 
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:elevation="4dp"
-            android:paddingStart="12dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="?attr/colorSurface">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceContainer"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/message_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/message_input"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="textShortMessage"
                 android:imeOptions="actionSend"
+                android:inputType="textShortMessage"
                 android:maxLines="1"
-                android:hint="Message..."/>
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <ImageButton
-                android:id="@+id/send_button"
-                android:layout_width="52dp"
-                android:layout_height="match_parent"
-                android:background="?attr/selectableItemBackground"
-                android:src="@drawable/ic_send"
-                android:scaleType="fitXY"
-                android:padding="4dp"
-                android:tint="?attr/colorSecondary"/>
-
+            android:id="@+id/send_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/send_message"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_send"
+            app:tint="?attr/colorSecondary" />
     </LinearLayout>
-
 </LinearLayout>

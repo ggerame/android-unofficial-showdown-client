@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/replay_actions"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -11,29 +12,32 @@
 
     <ImageButton
         android:id="@+id/replay_back_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/replay_previous_turn"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_replay_back"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
     <ImageButton
         android:id="@+id/replay_play_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/replay_play_pause"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_replay_pause"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
     <ImageButton
         android:id="@+id/replay_forward_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/replay_next_turn"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_replay_forward"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
 </LinearLayout>

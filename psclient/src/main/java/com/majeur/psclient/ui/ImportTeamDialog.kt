@@ -7,11 +7,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogImportTeamBinding
 import com.majeur.psclient.io.AssetLoader
+import com.majeur.psclient.util.resizeForIme
 import com.majeur.psclient.util.smogon.SmogonTeamBuilder
 import com.majeur.psclient.util.smogon.SmogonTeamParser
 import kotlinx.coroutines.Dispatchers
@@ -69,10 +72,15 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
         _binding = null
     }
 
+    override fun onStart() {
+        super.onStart()
+        requireDialog().resizeForIme()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            binding.error.text = ""
+            makeSnackbar("")
             when (checkedId) {
                 R.id.clipboard_radio -> hideAllUrlInputTextViews()
                 R.id.file_radio -> hideAllUrlInputTextViews()
@@ -98,6 +106,16 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
                 teamFragment.makeSnackbar("${teams.size} team(s) copied to clipboard")
             }
         }
+        val importOnDone = { actionId: Int ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.importButton.callOnClick()
+                true
+            } else false
+        }
+        binding.pastebinUrlInput.setOnEditorActionListener { _, actionId, _ -> importOnDone(actionId) }
+        binding.pokepasteUrlInput.setOnEditorActionListener { _, actionId, _ -> importOnDone(actionId) }
+        binding.pastebinUrlInput.setOnFocusChangeListener { _, focused -> if (focused) expandBottomSheet() }
+        binding.pokepasteUrlInput.setOnFocusChangeListener { _, focused -> if (focused) expandBottomSheet() }
 
         if (arguments?.containsKey(ARG_PP_ID) == true) {
             val teamId = requireArguments().getString(ARG_PP_ID)
@@ -107,22 +125,29 @@ class ImportTeamDialog : BottomSheetDialogFragment() {
     }
 
     private fun hideAllUrlInputTextViews() {
-        binding.pastebinUrlInput.visibility = View.INVISIBLE
-        binding.pokepasteUrlInput.visibility = View.INVISIBLE
+        binding.pastebinUrlContainer.visibility = View.GONE
+        binding.pokepasteUrlContainer.visibility = View.GONE
     }
 
     private fun showPokepasteTextViewHideOthers() {
-        binding.pastebinUrlInput.visibility = View.INVISIBLE
-        binding.pokepasteUrlInput.visibility = View.VISIBLE
+        binding.pastebinUrlContainer.visibility = View.GONE
+        binding.pokepasteUrlContainer.visibility = View.VISIBLE
     }
 
     private fun showPastebinTextViewHideOthers() {
-        binding.pastebinUrlInput.visibility = View.VISIBLE
-        binding.pokepasteUrlInput.visibility = View.INVISIBLE
+        binding.pastebinUrlContainer.visibility = View.VISIBLE
+        binding.pokepasteUrlContainer.visibility = View.GONE
     }
 
     private fun makeSnackbar(msg: String) {
         binding.error.text = msg
+        binding.error.visibility = if (msg.isBlank()) View.GONE else View.VISIBLE
+    }
+
+    private fun expandBottomSheet() {
+        dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let {
+            BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
+        }
     }
 
     private fun importFromClipboard() {

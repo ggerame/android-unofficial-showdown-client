@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
-import androidx.core.view.ViewCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -53,12 +52,11 @@ class SearchBattleDialog : BottomSheetDialogFragment(), AdapterView.OnItemClickL
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
+        dialog.resizeForIme()
         dialog.setOnShowListener {
             val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as FrameLayout
             val layoutParams = sheet.layoutParams ?: FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 0)
-            val verticalInsets = ViewCompat.getRootWindowInsets(sheet)?.stableInsets?.run { top + bottom } ?: 0
-            layoutParams.height = dialog.window?.decorView?.run { height - verticalInsets }
-                    ?: FrameLayout.LayoutParams.MATCH_PARENT
+            layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT
             sheet.layoutParams = layoutParams
         }
         return dialog

@@ -4,10 +4,17 @@
     <color name="primaryVariant">#000000</color>
     <color name="secondary">#67c8ff</color>
     <color name="onSecondary">#000000</color>
+    <color name="primaryContainer">#7A2D00</color>
+    <color name="onPrimaryContainer">#FFDCCB</color>
+    <color name="secondaryContainer">#004B70</color>
+    <color name="onSecondaryContainer">#CBE6FF</color>
     <color name="background">#121212</color>
     <color name="onBackground">#ffffff</color>
     <color name="surfaceBackground">#212121</color>
     <color name="onSurfaceBackground">#ffffff</color>
+    <color name="surfaceVariant">#52443E</color>
+    <color name="onSurfaceVariant">#D8C2B8</color>
+    <color name="outline">#A08D84</color>
 
     <color name="battle_overlay">#C6000000</color>
 </resources>

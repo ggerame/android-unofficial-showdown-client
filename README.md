@@ -205,6 +205,9 @@ strongly test your changes — ideally against a live battle — before opening 
 pull request. Bug reports and feature ideas via issues are appreciated.
 
 ## TODO
+- **Restore bug reporting** — recreate the retired Google Form under an active
+  maintainer account, update `URL_BUG_REPORT_GFORM`, then make the hidden
+  “Report a bug” card on the Home screen visible again.
 - **Route Glide through the app's OkHttp client** — battle sprites, backgrounds
   and `fx` graphics are currently fetched with Glide's default networking. Wiring
   Glide through the existing tuned OkHttp client (via the
@@ -222,6 +225,8 @@ pull request. Bug reports and feature ideas via issues are appreciated.
 - Anything else that can be integrated nicely.
 
 ## Credits
+- [MajeurAndroid](https://github.com/MajeurAndroid) — original author.
+- [ggerame](https://github.com/ggerame) — current maintainer of the Gen 9 fork.
 - [Zarel](https://github.com/Zarel) and contributors — for Pokémon Showdown.
 - [NamTThai](https://github.com/NamTThai) — for Java code translated from the
   web client.
@@ -236,7 +241,7 @@ Licensed under the **Apache License, Version 2.0** — see [LICENSE](LICENSE) an
 
 ```
 Copyright 2020 MajeurAndroid
-Copyright 2024-2026 Unofficial Showdown Client (Gen 9) fork contributors
+Copyright 2026 ggerame and contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

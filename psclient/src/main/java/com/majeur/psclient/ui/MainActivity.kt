@@ -1,19 +1,16 @@
 package com.majeur.psclient.ui
 
+import android.annotation.SuppressLint
+
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.MenuItem
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,6 +22,8 @@ import com.majeur.psclient.databinding.ActivityMainBinding
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.io.GlideHelper
 import com.majeur.psclient.service.ShowdownService
+import com.majeur.psclient.util.applySafeDrawingInsets
+import com.majeur.psclient.util.configureEdgeToEdge
 import timber.log.Timber
 
 
@@ -77,10 +76,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.d("(${hashCode()}) Lifecycle: onCreate")
         super.onCreate(savedInstanceState)
+        configureEdgeToEdge()
         if (!canUseLandscapeLayout) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        applyWindowInsets()
+        // BottomNavigationView already applies the navigation-bar inset on phones.
+        binding.root.applySafeDrawingInsets(includeBottom = useLandscapeLayout, includeIme = true)
 
         if (useLandscapeLayout) {
             binding.navigationView!!.setNavigationItemSelectedListener(this::onNavigationItemSelected)
@@ -99,43 +100,6 @@ class MainActivity : AppCompatActivity() {
 
         val uri = intent?.data ?: return
         handleUriNavigation(uri)
-    }
-
-    /**
-     * Starting with Android 15 (targetSdk 35) the system forces edge-to-edge, drawing our content
-     * behind the status bar, navigation bar and camera cutout. Without handling insets the top and
-     * bottom controls end up under the system bars / cutout and become untappable. We re-inset the
-     * root view so content always stays within the safe area, and keep the bar icons readable.
-     */
-    private fun applyWindowInsets() {
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                Configuration.UI_MODE_NIGHT_YES
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.let { controller ->
-                val lightBars = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                controller.setSystemBarsAppearance(if (isNight) 0 else lightBars, lightBars)
-            }
-        } else if (!isNight && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
-                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        }
-        binding.root.setOnApplyWindowInsetsListener { view, insets ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val bars = insets.getInsets(
-                        WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-                WindowInsets.CONSUMED
-            } else {
-                @Suppress("DEPRECATION")
-                view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop,
-                        insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
-                @Suppress("DEPRECATION")
-                insets.consumeSystemWindowInsets()
-            }
-        }
-        binding.root.requestApplyInsets()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -180,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         if (!useLandscapeLayout && selectedNavigationItemId != R.id.fragment_home) {
             setSelectedNavigationItem(R.id.fragment_home)

@@ -11,9 +11,13 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
+import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogPrivateChatBinding
 import com.majeur.psclient.util.TextTagSpan
 import com.majeur.psclient.util.Utils
+import com.majeur.psclient.util.applySafeDrawingInsets
+import com.majeur.psclient.util.configureEdgeToEdge
+import com.majeur.psclient.util.resizeForIme
 import com.majeur.psclient.util.toId
 
 
@@ -30,6 +34,8 @@ class PrivateChatDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         chatWith = requireArguments().getString(ARG_CHAT_WITH)!!
+        if (!resources.getBoolean(R.bool.canUseLandscapeLayout))
+            setStyle(STYLE_NO_TITLE, R.style.Theme_PSClient_FullScreenDialog)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -45,7 +51,8 @@ class PrivateChatDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {
-            title.text = "Private chat: $chatWith"
+            toolbar.title = "Private chat: $chatWith"
+            toolbar.setNavigationOnClickListener { dismiss() }
             chatLog.setText("", TextView.BufferType.SPANNABLE)
             messageInput.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -58,6 +65,21 @@ class PrivateChatDialog : DialogFragment() {
         }
         (activity as MainActivity).homeFragment.getPrivateMessages(chatWith)?.forEach {
             onNewMessage(it)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requireDialog().resizeForIme()
+        val fullScreen = !resources.getBoolean(R.bool.canUseLandscapeLayout)
+        val width = if (fullScreen) ViewGroup.LayoutParams.MATCH_PARENT
+        else resources.getDimensionPixelSize(R.dimen.dialog_max_width)
+        requireDialog().window?.apply {
+            setLayout(width, ViewGroup.LayoutParams.MATCH_PARENT)
+            if (fullScreen) {
+                configureEdgeToEdge(resources)
+                binding.root.applySafeDrawingInsets(includeIme = true)
+            }
         }
     }
 

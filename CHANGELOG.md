@@ -2,6 +2,29 @@
 
 All notable changes made are documented here.
 
+## [1.5.0] – Material UI refresh
+
+### Changed
+- Raised the minimum supported Android version to 6.0/API 23 and refreshed the
+  app with Material 3, preserving the existing orange and blue identity in
+  light and dark themes.
+- Rebuilt Home, Chat, Teams and the teambuilder around responsive widths,
+  compact cards, explicit Material toolbars and 48dp touch targets.
+- The reusable format picker is full-screen on phones and centred on tablets,
+  with one-section-at-a-time accordions and search by label, server ID or
+  section (including queries such as `Gen`, `OU` and `regf`).
+- The Pokémon editor now uses responsive two-column controls and real,
+  accessible stat rows instead of fixed-width dividers and canvas text.
+
+### Fixed
+- System bars, display cutouts, gesture navigation and the on-screen keyboard
+  no longer cover the builder, chat composer, lists, dialogs or battle controls
+  on edge-to-edge Android versions.
+- Long labels and large fonts no longer collide with divider lines or overflow
+  fixed-width team-builder and dialog layouts.
+- Updated Timber to 5.0.1, removing the obsolete third-party lint registry that
+  broke release lint analysis.
+
 ## [1.4.3] – Format-aware teambuilder
 
 ### Added

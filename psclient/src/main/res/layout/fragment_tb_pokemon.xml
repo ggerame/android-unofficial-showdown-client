@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -10,7 +10,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp">
 
         <ImageView
             android:id="@+id/sprite"
@@ -28,10 +29,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:hint="Species"
+            android:hint="@string/species"
+            android:minHeight="48dp"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            app:layout_constraintEnd_toStartOf="@+id/textView2"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/sprite"
             app:layout_constraintTop_toTopOf="@+id/sprite"/>
 
@@ -42,7 +44,8 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
-            android:hint="Nickname"
+            android:hint="@string/nickname"
+            android:minHeight="48dp"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:inputType="textShortMessage"
@@ -54,7 +57,7 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Level:"
+            android:text="@string/level"
             app:layout_constraintBottom_toBottomOf="@+id/levelInput"
             app:layout_constraintStart_toStartOf="@+id/nameInput"
             app:layout_constraintTop_toTopOf="@+id/levelInput"
@@ -63,9 +66,8 @@
         <EditText
             android:id="@+id/levelInput"
             android:layout_width="48dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:ems="10"
             android:gravity="center_horizontal"
             android:inputType="number"
             android:selectAllOnFocus="true"
@@ -73,46 +75,35 @@
             app:layout_constraintStart_toEndOf="@+id/textView"
             app:layout_constraintTop_toBottomOf="@+id/nameInput"/>
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Shiny:"
-            app:layout_constraintBottom_toBottomOf="@+id/shiny"
-            app:layout_constraintEnd_toStartOf="@+id/shiny"
-            app:layout_constraintTop_toTopOf="@+id/shiny"/>
-
         <CheckBox
             android:id="@+id/shiny"
-            android:layout_width="38dp"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            android:text="@string/shiny"
+            app:layout_constraintStart_toStartOf="@id/sprite"
+            app:layout_constraintTop_toBottomOf="@id/sprite"/>
 
         <TextView
             android:id="@+id/textView6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="Happiness:"
+            android:text="@string/happiness"
             app:layout_constraintBottom_toBottomOf="@+id/happinessInput"
-            app:layout_constraintEnd_toStartOf="@+id/happinessInput"
+            app:layout_constraintStart_toStartOf="@id/nameInput"
             app:layout_constraintTop_toTopOf="@+id/happinessInput"/>
 
         <EditText
             android:id="@+id/happinessInput"
             android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:ems="10"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
             android:gravity="center_horizontal"
             android:inputType="number"
             android:selectAllOnFocus="true"
             android:text="255"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nameInput"/>
+            app:layout_constraintStart_toEndOf="@id/textView6"
+            app:layout_constraintTop_toBottomOf="@+id/levelInput"/>
 
         <ImageView
             android:id="@+id/type1"
@@ -120,7 +111,7 @@
             android:layout_height="13dp"
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="@+id/sprite"
-            app:layout_constraintTop_toBottomOf="@+id/sprite"/>
+            app:layout_constraintTop_toBottomOf="@+id/shiny"/>
 
         <ImageView
             android:id="@+id/type2"
@@ -135,20 +126,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:minHeight="42dp"
+            android:minHeight="48dp"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
             app:layout_constraintStart_toStartOf="@+id/textView7"
             app:layout_constraintTop_toBottomOf="@+id/textView7"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/itemInput"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:background="?attr/editTextBackground"
-            android:textColor="?attr/editTextColor"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
             android:singleLine="true"
+            android:ellipsize="end"
+            android:textAllCaps="false"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/textView8"
             app:layout_constraintTop_toBottomOf="@+id/textView8"/>
@@ -166,7 +159,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="Ability:"
+            android:text="@string/ability"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/divider"/>
 
@@ -175,13 +168,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Item:"
+            android:text="@string/item"
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="@+id/textView7"/>
 
         <View
             android:id="@+id/divider"
-            android:layout_width="368dp"
+            android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -193,7 +186,7 @@
 
         <View
             android:id="@+id/divider2"
-            android:layout_width="368dp"
+            android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -201,7 +194,14 @@
             android:background="?android:attr/listDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/abilitySelector"/>
+            app:layout_constraintTop_toBottomOf="@+id/abilityItemBottom"/>
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/abilityItemBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="abilitySelector,itemInput" />
 
         <TextView
             android:id="@+id/textView9"
@@ -209,60 +209,72 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="Moves:"
+            android:text="@string/moves"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/divider2"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/move1Input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
-            android:background="?attr/editTextBackground"
-            android:textColor="?attr/editTextColor"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textAllCaps="false"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
             app:layout_constraintStart_toStartOf="@+id/textView9"
             app:layout_constraintTop_toBottomOf="@+id/textView9"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/move2Input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="8dp"
-            android:background="?attr/editTextBackground"
-            android:textColor="?attr/editTextColor"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textAllCaps="false"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/textView9"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/move4Input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:background="?attr/editTextBackground"
-            android:textColor="?attr/editTextColor"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textAllCaps="false"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/move2Input"/>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/move3Input"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="4dp"
-            android:background="?attr/editTextBackground"
-            android:textColor="?attr/editTextColor"
-            android:textAppearance="?android:attr/textAppearanceMediumInverse"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textAllCaps="false"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toStartOf="@+id/guideline"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/textView9"
@@ -281,7 +293,7 @@
 
         <View
             android:id="@+id/divider4"
-            android:layout_width="368dp"
+            android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -289,7 +301,14 @@
             android:background="?android:attr/listDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/move3Input"/>
+            app:layout_constraintTop_toBottomOf="@+id/movesBottom"/>
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/movesBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="move3Input,move4Input" />
 
         <com.majeur.psclient.widget.StatsTable
             android:id="@+id/statsTable"
@@ -306,18 +325,23 @@
 
         <Spinner
             android:id="@+id/natureSelector"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="@+id/statsTable"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/textView11"
             app:layout_constraintTop_toBottomOf="@+id/statsTable"/>
 
         <Spinner
             android:id="@+id/hpTypeSelector"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@+id/natureSelector"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/textView12"
             app:layout_constraintTop_toBottomOf="@+id/natureSelector"/>
 
         <TextView
@@ -325,9 +349,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="Nature:"
+            android:text="@string/nature"
             app:layout_constraintBottom_toBottomOf="@+id/natureSelector"
-            app:layout_constraintEnd_toStartOf="@+id/natureSelector"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/natureSelector"/>
 
         <TextView
@@ -335,9 +359,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="HP Type:"
+            android:text="@string/hp_type"
             app:layout_constraintBottom_toBottomOf="@+id/hpTypeSelector"
-            app:layout_constraintEnd_toStartOf="@+id/hpTypeSelector"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/hpTypeSelector"/>
 
         <LinearLayout
@@ -360,30 +384,31 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tera Type:" />
+                    android:text="@string/tera_type" />
 
                 <Spinner
                     android:id="@+id/teraTypeSelector"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/dynamaxFields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dynamax Level:" />
+                    android:text="@string/dynamax_level" />
 
                 <EditText
                     android:id="@+id/dynamaxLevelInput"
-                    android:layout_width="48dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="64dp"
+                    android:layout_height="48dp"
                     android:inputType="number"
                     android:maxLength="2"
                     android:selectAllOnFocus="true" />
@@ -392,18 +417,19 @@
                     android:id="@+id/gigantamaxInput"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gigantamax" />
+                    android:minHeight="48dp"
+                    android:text="@string/gigantamax" />
             </LinearLayout>
 
             <EditText
                 android:id="@+id/pokeballInput"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Poké Ball (optional)"
+                android:layout_height="48dp"
+                android:hint="@string/poke_ball_optional"
                 android:inputType="textShortMessage"
                 android:singleLine="true" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

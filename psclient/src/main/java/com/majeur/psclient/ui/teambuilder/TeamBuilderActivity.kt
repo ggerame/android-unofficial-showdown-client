@@ -17,6 +17,8 @@ import com.majeur.psclient.io.GlideHelper
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.Team
 import com.majeur.psclient.model.common.toId
+import com.majeur.psclient.util.applySafeDrawingInsets
+import com.majeur.psclient.util.configureEdgeToEdge
 
 class TeamBuilderActivity : AppCompatActivity() {
 
@@ -50,8 +52,11 @@ class TeamBuilderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureEdgeToEdge()
         binding = ActivityTeamBuilderBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applySafeDrawingInsets(includeIme = true)
+        setSupportActionBar(binding.toolbar)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         // TODO Retrieve cached formats if null

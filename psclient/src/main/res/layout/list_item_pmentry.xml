@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minWidth="296dp"
         android:padding="8dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -26,17 +25,17 @@
         <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_reject"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:visibility="gone"
-                android:text="Reject"
-                style="@style/Widget.MaterialComponents.Button.TextButton"/>
+                android:text="@string/reject"
+                style="@style/Widget.Material3.Button.TextButton"/>
 
         <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_challenge"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Challenge"
-                style="@style/Widget.MaterialComponents.Button.TextButton"/>
+                android:layout_height="48dp"
+                android:text="@string/challenge"
+                style="@style/Widget.Material3.Button.TextButton"/>
 
     </LinearLayout>
 

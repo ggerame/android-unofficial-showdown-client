@@ -5,10 +5,17 @@
     <color name="primaryVariant">#ab3000</color>
     <color name="secondary">#1698e4</color>
     <color name="onSecondary">#ffffff</color>
+    <color name="primaryContainer">#FFDCCB</color>
+    <color name="onPrimaryContainer">#321200</color>
+    <color name="secondaryContainer">#CBE6FF</color>
+    <color name="onSecondaryContainer">#001E30</color>
     <color name="background">#ffffff</color>
     <color name="onBackground">#333333</color>
     <color name="surfaceBackground">#ffffff</color>
     <color name="onSurfaceBackground">#000000</color>
+    <color name="surfaceVariant">#F4DED4</color>
+    <color name="onSurfaceVariant">#52443E</color>
+    <color name="outline">#85736B</color>
     <color name="error">#C62828</color>
 
     <color name="ic_launcher_background">#37474f</color>

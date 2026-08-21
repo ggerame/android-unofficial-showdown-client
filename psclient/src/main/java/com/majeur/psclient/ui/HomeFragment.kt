@@ -11,13 +11,8 @@ import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.widget.AdapterView
-import android.widget.AdapterView.OnItemSelectedListener
-import android.widget.AdapterView.VISIBLE
 import android.widget.ImageView
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -122,7 +117,8 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             text = "-".bold() concat "\nactive battles".small()
         }
         binding.username.apply {
-            text = "Connected as\n".small() concat "-".bold()
+            text = getString(R.string.sign_in).bold()
+            setOnClickListener(this@HomeFragment)
             setOnLongClickListener {
                 if (fullUsername.isNotEmpty())
                     android.widget.Toast.makeText(context, fullUsername, android.widget.Toast.LENGTH_LONG).show()
@@ -134,24 +130,21 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             setImageResource(R.drawable.ic_login)
             setOnClickListener(this@HomeFragment)
         }
-        binding.formatsSelector.apply {
-            adapter = object : CategoryAdapter(context) {
-                override fun isCategoryItem(position: Int) = getItem(position) is BattleFormat.Category
-                override fun getCategoryLabel(position: Int) = (getItem(position) as BattleFormat.Category).label
-                override fun getItemLabel(position: Int) = (getItem(position) as BattleFormat).label
-            }
-            onItemSelectedListener = object : OnItemSelectedListener {
-                override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-                    val adapter = adapterView.adapter as CategoryAdapter
-                    if (!adapter.isEnabled(position)) { // Skip category label
-                        binding.formatsSelector.setSelection(position + 1)
-                    } else {
-                        val format = adapter.getItem(position) as BattleFormat
-                        setCurrentBattleFormat(format, true)
-                    }
-                }
-
-                override fun onNothingSelected(adapterView: AdapterView<*>?) {}
+        childFragmentManager.setFragmentResultListener(
+                FormatPickerDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
+            val formatId = result.getString(FormatPickerDialogFragment.RESULT_FORMAT_ID)
+                    ?: return@setFragmentResultListener
+            battleFormats.orEmpty().asSequence().flatMap { it.formats.asSequence() }
+                    .firstOrNull { it.id == formatId }?.let(::setCurrentBattleFormat)
+        }
+        binding.formatsSelector.setOnClickListener {
+            val formats = battleFormats.orEmpty()
+            if (formats.isEmpty()) {
+                makeSnackbar("Connect to Pokémon Showdown to load the available formats")
+            } else if (childFragmentManager.findFragmentByTag(FormatPickerDialogFragment.TAG) == null) {
+                FormatPickerDialogFragment.newInstance(
+                        formats, currentBattleFormat?.id, searchableOnly = true)
+                        .show(childFragmentManager, FormatPickerDialogFragment.TAG)
             }
         }
         binding.teamsSelector.adapter = TeamsAdapter()
@@ -180,11 +173,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                             showSearchableFormatsOnly(false)
                             battleFormats?.forEach { category ->
                                 category.formats.firstOrNull { format.toId() == it.toId() }?.let {
-                                    setCurrentBattleFormat(it, false)
+                                    setCurrentBattleFormat(it)
                                 }
                             }
                             binding.formatsSelector.isEnabled = false
-                            view.post { (view as ScrollView).fullScroll(View.FOCUS_UP) }
+                            binding.root.post { binding.root.fullScroll(View.FOCUS_UP) }
                         }
                     }
                 }
@@ -223,7 +216,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     override fun onClick(view: View) {
         if (service?.isConnected != true) return
         when (view) {
-            binding.loginButton -> {
+            binding.loginButton, binding.username -> {
                 if (observer.isUserGuest) {
                     promptUserSignIn()
                 } else {
@@ -281,16 +274,17 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     if (input.isNotEmpty()) service?.sendGlobalCommand("cmd userdetails", input)
                 }
                 val dialog = MaterialAlertDialogBuilder(requireActivity()).run {
+                    setTitle(R.string.find_user)
                     setPositiveButton("Find") { _, _ -> searchForUser() }
                     setNegativeButton("Cancel", null)
                     setView(dialogBinding.root)
                     create()
                 }.apply {
-                    window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+                    resizeForIme(showKeyboard = true)
                     show()
                 }
                 dialogBinding.input.apply {
-                    hint = "Type a username"
+                    dialogBinding.inputContainer.hint = "Username"
                     imeOptions = EditorInfo.IME_ACTION_SEARCH
                     setOnEditorActionListener { _, actionId, _ ->
                         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -343,14 +337,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
     }
 
-    private fun setCurrentBattleFormat(battleFormat: BattleFormat, fromUser: Boolean) {
+    private fun setCurrentBattleFormat(battleFormat: BattleFormat) {
         currentBattleFormat = battleFormat
-        if (!fromUser) {
-            val adapter = binding.formatsSelector.adapter as CategoryAdapter
-            for (position in 0 until adapter.count) {
-                if (adapter.getItem(position) == battleFormat) binding.formatsSelector.setSelection(position)
-            }
-        }
+        binding.formatsSelector.text = battleFormat.label
         updateTeamSpinner()
     }
 
@@ -530,7 +519,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 setBattleButtonUIState("Challenge\n$user!", showCancel = true, tintCard = true)
                 showSearchableFormatsOnly(false)
                 mainActivity.showHomeFragment()
-                requireView().post { (requireView() as ScrollView).fullScroll(View.FOCUS_UP) }
+                binding.root.post { binding.root.fullScroll(View.FOCUS_UP) }
             }
         }
     }
@@ -565,15 +554,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
 
     private fun showSearchableFormatsOnly(yes: Boolean) {
         if (battleFormats == null) return
-        val adapter = binding.formatsSelector.adapter as CategoryAdapter
-        adapter.clearItems()
-        for (category in battleFormats!!) {
-            val formats = if (yes) category.searchableBattleFormats else category.formats
-            if (formats.isEmpty()) continue
-            adapter.addItem(category)
-            adapter.addItems(formats)
-        }
-        binding.formatsSelector.setSelection(1)
+        battleFormats!!.asSequence().flatMap { category ->
+            (if (yes) category.searchableBattleFormats else category.formats).asSequence()
+        }.firstOrNull()?.let(::setCurrentBattleFormat)
     }
 
     private fun notifyNewMessageReceived() {
@@ -586,7 +569,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             binding.news.apply {
                 text = latestNews.title.bold() concat " - " concat latestNews.content
                 isSelected = true
-                visibility = VISIBLE
+                visibility = View.VISIBLE
                 animate().alpha(1f).translationY(0f)
             }
         }
@@ -625,10 +608,14 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onUserChanged(userName: String, isGuest: Boolean, avatarId: String) {
-        fullUsername = userName
+        fullUsername = if (isGuest) "" else userName
         binding.username.apply {
-            text = "Connected as\n".small()
-            append(userName.truncate(10).bold())
+            if (isGuest) {
+                text = getString(R.string.sign_in).bold()
+            } else {
+                text = "Connected as ".small()
+                append(userName.truncate(10).bold())
+            }
         }
         binding.loginButton.isEnabled = true
         if (isGuest) {

@@ -10,6 +10,7 @@ import androidx.fragment.app.DialogFragment
 import com.majeur.psclient.databinding.DialogEditStatBinding
 import com.majeur.psclient.util.RangeNumberTextWatcher
 import com.majeur.psclient.util.SimpleTextWatcher
+import com.majeur.psclient.util.resizeForIme
 
 
 class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
@@ -45,6 +46,11 @@ class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requireDialog().resizeForIme()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

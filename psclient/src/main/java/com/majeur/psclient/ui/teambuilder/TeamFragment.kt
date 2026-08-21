@@ -25,10 +25,9 @@ import com.majeur.psclient.model.common.TeamDraftValidator
 import com.majeur.psclient.model.common.toId
 import com.majeur.psclient.model.pokemon.TeamPokemon
 import com.majeur.psclient.ui.BaseFragment
+import com.majeur.psclient.ui.FormatPickerDialogFragment
 import com.majeur.psclient.util.*
-import com.majeur.psclient.util.recyclerview.DividerItemDecoration
 import com.majeur.psclient.util.recyclerview.ItemTouchHelperCallbacks
-import com.majeur.psclient.widget.CategoryAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.*
@@ -44,6 +43,7 @@ class TeamFragment : Fragment() {
     // See TeamBuilderActivity field declaration comment
     private val team get() = (requireActivity() as TeamBuilderActivity).team
     private var lastRemovedPokemon: TeamPokemon? = null
+    private var selectedFormat: BattleFormat = BattleFormat.FORMAT_OTHER
 
     private var _binding: FragmentTbTeamBinding? = null
     private val binding get() = _binding!!
@@ -87,7 +87,7 @@ class TeamFragment : Fragment() {
             return
         }
 
-        val battleFormat = binding.header.formatsSelector.selectedItem as BattleFormat? ?: BattleFormat.FORMAT_OTHER
+        val battleFormat = selectedFormat
         team.apply {
             label = name
             pokemons = team.pokemons.filter { it.species.isNotBlank() }
@@ -134,9 +134,6 @@ class TeamFragment : Fragment() {
         binding.list.apply {
             this.adapter = adapter
             checkFabVisibility()
-            val dividerItemDecoration = DividerItemDecoration(context)
-            dividerItemDecoration.startOffset = dp(8f + 82f + 16f)
-            addItemDecoration(dividerItemDecoration)
             ItemTouchHelper(object : ItemTouchHelperCallbacks(context, allowReordering = true, allowDeletion = true) {
 
                 override fun onMoveItem(from: Int, to: Int) = adapter.moveItem(from, to)
@@ -178,58 +175,34 @@ class TeamFragment : Fragment() {
         binding.header.teamNameInput.apply {
             setText(if (team.label.isBlank()) "Unnamed team" else team.label)
         }
-        binding.header.formatsSelector.apply {
-            var confirmedFormatId = team.format
-            val spinnerAdapter = object : CategoryAdapter(context) {
-                override fun isCategoryItem(position: Int): Boolean {
-                    return getItem(position) is BattleFormat.Category
-                }
-
-                override fun getCategoryLabel(position: Int): String {
-                    return (getItem(position) as BattleFormat.Category).label
-                }
-
-                override fun getItemLabel(position: Int): String {
-                    return (getItem(position) as BattleFormat).label
-                }
-            }.also { it.addItem(BattleFormat.FORMAT_OTHER) }
-            setAdapter(spinnerAdapter)
-            @Suppress("UNCHECKED_CAST", "DEPRECATION")
-            val battleFormats = requireArguments().getSerializable(ARG_FORMATS) as List<BattleFormat.Category>?
-            var indexInAdapter = 0
-            battleFormats?.forEach { category ->
-                val formats = category.formats.filter { it.isTeamNeeded }
-                if (formats.isNotEmpty()) {
-                    spinnerAdapter.addItem(category)
-                    indexInAdapter++
-                    spinnerAdapter.addItems(formats)
-                    formats.forEach {
-                        indexInAdapter++
-                        if (it.toId() == team.format?.toId()) setSelection(indexInAdapter, false)
+        val activity = requireActivity() as TeamBuilderActivity
+        selectedFormat = activity.formats.asSequence().flatMap { it.formats.asSequence() }
+                .firstOrNull { it.id == team.format } ?: BattleFormat.FORMAT_OTHER
+        binding.header.formatInput.setText(selectedFormat.label)
+        parentFragmentManager.setFragmentResultListener(
+                FormatPickerDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
+            val formatId = result.getString(FormatPickerDialogFragment.RESULT_FORMAT_ID)
+                    ?: return@setFragmentResultListener
+            val candidate = activity.formats.asSequence().flatMap { it.formats.asSequence() }
+                    .firstOrNull { it.id == formatId } ?: BattleFormat.FORMAT_OTHER
+            if (candidate.id == selectedFormat.id) return@setFragmentResultListener
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Change team format?")
+                    .setMessage("Existing sets will be preserved, but incompatible fields will make this team a draft.")
+                    .setPositiveButton("Change") { _, _ ->
+                        selectedFormat = candidate
+                        team.format = candidate.id
+                        binding.header.formatInput.setText(candidate.label)
                     }
-                }
-            }
-            onItemSelectedListener = object : SimpleOnItemSelectedListener() {
-                override fun onItemSelected(adapterView: android.widget.AdapterView<*>, view: View?, i: Int, l: Long) {
-                    val selected = adapterView.adapter.getItem(i) as? BattleFormat ?: return
-                    if (confirmedFormatId == null || selected.id == confirmedFormatId) return
-                    MaterialAlertDialogBuilder(requireContext())
-                            .setTitle("Change team format?")
-                            .setMessage("Existing sets will be preserved, but incompatible fields will make this team a draft.")
-                            .setPositiveButton("Change") { _, _ ->
-                                confirmedFormatId = selected.id
-                                team.format = selected.id
-                            }
-                            .setNegativeButton("Cancel") { _, _ ->
-                                val previous = spinnerAdapter.findItemIndex {
-                                    (it as? BattleFormat)?.id == confirmedFormatId
-                                }
-                                if (previous >= 0) setSelection(previous, false)
-                            }
-                            .show()
-                }
-            }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
         }
+        val openFormatPicker = View.OnClickListener {
+            FormatPickerDialogFragment.newInstance(activity.formats, selectedFormat.id, includeOther = true)
+                    .show(parentFragmentManager, FormatPickerDialogFragment.TAG)
+        }
+        binding.header.formatInput.setOnClickListener(openFormatPicker)
+        binding.header.formatInputLayout.setEndIconOnClickListener { openFormatPicker.onClick(it) }
     }
 
     val onListItemClickListener = View.OnClickListener { view ->

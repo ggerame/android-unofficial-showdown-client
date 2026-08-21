@@ -4,9 +4,9 @@
 
     <item
         android:id="@+id/action_done"
-        android:title="Done"
         android:icon="@drawable/ic_check"
-        app:showAsAction="always"
-        app:iconTint="@android:color/white"/>
+        android:title="@string/save_team"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="always|withText" />
 
 </menu>

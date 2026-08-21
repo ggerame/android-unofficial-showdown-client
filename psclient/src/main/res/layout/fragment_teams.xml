@@ -1,60 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/title"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:actionBarSize"
-        android:elevation="4dp"
-        android:background="?attr/colorSurface"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:text="Teams"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/team_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/title"
-        android:clipToPadding="false"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/team_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="152dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-    <!-- <TextView
-        android:id="@+id/empty_hint_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:textColor="?attr/colorSecondary"
-        android:textSize="16sp"
-        android:text="Tap the add button to create\nor import a team"/> -->
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/importFab"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_alignParentEnd="true"
-            android:layout_above="@id/buildFab"
-            android:src="@drawable/ic_import_export"
-            app:tint="?attr/colorSecondary"
-            app:backgroundTint="?attr/colorSurface"
-            app:backgroundTintMode="src_in"
-            app:borderWidth="0dp"/>
+            android:layout_gravity="bottom|end"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="end"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/buildFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:src="@drawable/ic_build"/>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/importFab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/import_team"
+                android:src="@drawable/ic_import_export"
+                app:backgroundTint="?attr/colorSurfaceContainerHigh"
+                app:borderWidth="0dp"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+                app:tint="?attr/colorSecondary"
+                app:useCompatPadding="true" />
 
-</RelativeLayout>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/buildFab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/build_team"
+                android:src="@drawable/ic_build"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+                app:useCompatPadding="true" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

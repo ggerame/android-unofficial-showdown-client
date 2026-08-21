@@ -15,7 +15,6 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
@@ -245,20 +244,21 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
             binding.extraActions.sendButton -> {
                 val dialogBinding = DialogSimpleInputBinding.inflate(layoutInflater)
-                dialogBinding.input.hint = "Type your message"
+                dialogBinding.inputContainer.hint = getString(R.string.message_hint)
                 val dialog = MaterialAlertDialogBuilder(requireActivity()).run {
-                    setPositiveButton("Send") { _, _ -> sendChatMessage(dialogBinding.input.text) }
+                    setTitle(R.string.send_battle_message)
+                    setPositiveButton("Send") { _, _ -> sendChatMessage(dialogBinding.input.text?.toString().orEmpty()) }
                     setNegativeButton("Cancel", null)
                     setNeutralButton("\"gg\"") { _, _ -> sendChatMessage("gg") }
                     setView(dialogBinding.root)
                     create()
                 }.apply {
-                    window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+                    resizeForIme(showKeyboard = true)
                     show()
                 }
                 dialogBinding.input.setOnEditorActionListener { _, actionId, _ ->
                     if (actionId == EditorInfo.IME_ACTION_SEND) {
-                        sendChatMessage(dialogBinding.input.text)
+                        sendChatMessage(dialogBinding.input.text?.toString().orEmpty())
                         dialog.dismiss()
                         return@setOnEditorActionListener true
                     }

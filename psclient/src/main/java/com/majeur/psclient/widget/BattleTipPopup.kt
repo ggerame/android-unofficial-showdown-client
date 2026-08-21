@@ -2,7 +2,6 @@ package com.majeur.psclient.widget
 
 import android.content.Context
 import android.graphics.Rect
-import android.os.Build
 import android.util.AttributeSet
 import android.view.*
 import android.view.View.MeasureSpec
@@ -10,6 +9,8 @@ import android.view.View.OnTouchListener
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.PopupBattleTipsBinding
 import com.majeur.psclient.util.dp
@@ -45,11 +46,9 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     private val longPressTimeout
         get() = ViewConfiguration.getLongPressTimeout().toLong()
     private val topWindowInset
-        get() = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> currentAnchorView!!.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).top
-            Build.VERSION.SDK_INT > Build.VERSION_CODES.M -> @Suppress("DEPRECATION") currentAnchorView!!.rootWindowInsets.stableInsetTop
-            else -> 0
-        }
+        get() = ViewCompat.getRootWindowInsets(currentAnchorView!!)
+                ?.getInsets(WindowInsetsCompat.Type.systemBars() or
+                        WindowInsetsCompat.Type.displayCutout())?.top ?: 0
 
     init {
         setBackgroundDrawable(null)
@@ -83,7 +82,7 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
         val anchorCenterX = (currentAnchorView as? TipPopupContentProvider)?.getTipPopupAnchorX() ?: (currentAnchorView!!.width / 2)
         val x = tempArr[0] + anchorCenterX - tempRect.width() / 2
         val windowInsetTop = topWindowInset
-        val y = max(windowInsetTop, windowInsetTop + tempArr[1] + downY - tempRect.height() - thumbOffset)
+        val y = max(windowInsetTop, tempArr[1] + downY - tempRect.height() - thumbOffset)
         showAtLocation(currentAnchorView, Gravity.NO_GRAVITY, x, y)
     }
 

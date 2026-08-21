@@ -326,7 +326,6 @@ class PokemonFragment : Fragment() {
             pokeballInput.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
             textView6.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
             happinessInput.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
-            textView2.visibility = if (profile.hasShiny) View.VISIBLE else View.GONE
             shiny.visibility = if (profile.hasShiny) View.VISIBLE else View.GONE
         }
         toggleInputViewsEnabled(false)

@@ -15,6 +15,7 @@ import com.majeur.psclient.databinding.DialogSignInBinding
 import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.service.ShowdownService.AttemptSignInCallback
 import com.majeur.psclient.util.SimpleTextWatcher
+import com.majeur.psclient.util.resizeForIme
 
 class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallback {
 
@@ -44,9 +45,16 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
         binding.apply {
             username.addTextChangedListener(object : SimpleTextWatcher() {
                 override fun afterTextChanged(editable: Editable) {
-                    if (editable.matches(NAME_REGEX))
+                    val invalid = NAME_REGEX.containsMatchIn(editable)
+                    if (invalid)
                         usernameContainer.error = "| , ; are not valid characters in names"
                     else usernameContainer.isErrorEnabled = false
+                    if (!requirePassword) button.isEnabled = editable.isNotBlank() && !invalid
+                }
+            })
+            password.addTextChangedListener(object : SimpleTextWatcher() {
+                override fun afterTextChanged(editable: Editable) {
+                    if (requirePassword) button.isEnabled = editable.isNotBlank()
                 }
             })
             username.requestFocus()
@@ -54,7 +62,13 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
             username.setOnEditorActionListener(mEnterPressListener)
             password.setOnEditorActionListener(mEnterPressListener)
             button.setOnClickListener(this@SignInDialog)
+            cancelButton.setOnClickListener { dismiss() }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requireDialog().resizeForIme(showKeyboard = true)
     }
 
     override fun onDestroy() {
@@ -63,19 +77,21 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
     }
 
     override fun onClick(view: View) {
+        if (!binding.button.isEnabled) return
+        binding.cancelButton.isEnabled = false
         if (requirePassword) {
-            if (binding.password.text.isNotEmpty()) {
+            if (!binding.password.text.isNullOrEmpty()) {
                 binding.password.isEnabled = false
-                binding.button.text = "Loading..."
+                binding.button.text = getString(com.majeur.psclient.R.string.loading)
                 binding.button.isEnabled = false
                 isCancelable = false
                 service?.attemptSignIn(binding.username.text.toString(),
                         binding.password.text.toString(), this@SignInDialog)
             }
         } else {
-            if (binding.username.text.isNotEmpty()) {
+            if (!binding.username.text.isNullOrEmpty()) {
                 binding.username.isEnabled = false
-                binding.button.text = "Loading..."
+                binding.button.text = getString(com.majeur.psclient.R.string.loading)
                 binding.button.isEnabled = false
                 isCancelable = false
                 service!!.attemptSignIn(binding.username.text.toString(), this@SignInDialog)
@@ -96,10 +112,14 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
         isCancelable = true
         requirePassword = true
         binding.apply {
+            title.setText(com.majeur.psclient.R.string.password_required)
+            description.setText(com.majeur.psclient.R.string.password_required_description)
             passwordContainer.visibility = View.VISIBLE
             password.isEnabled = true
-            button.text = "Sign in"
-            button.isEnabled = true
+            password.requestFocus()
+            button.setText(com.majeur.psclient.R.string.sign_in)
+            button.isEnabled = !password.text.isNullOrBlank()
+            cancelButton.isEnabled = true
             usernameContainer.isErrorEnabled = false // If any issue happened before
         }
     }
@@ -110,13 +130,15 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
         if (requirePassword) {
             binding.password.isEnabled = true
             binding.passwordContainer.error = reason
-            binding.button.text = "Sign in"
-            binding.button.isEnabled = true
+            binding.button.setText(com.majeur.psclient.R.string.sign_in)
+            binding.button.isEnabled = !binding.password.text.isNullOrBlank()
+            binding.cancelButton.isEnabled = true
         } else {
             binding.usernameContainer.error = reason
-            binding.usernameContainer.isEnabled = true
-            binding.button.text = "Sign in"
-            binding.button.isEnabled = true
+            binding.username.isEnabled = true
+            binding.button.setText(com.majeur.psclient.R.string.continue_label)
+            binding.button.isEnabled = !binding.username.text.isNullOrBlank()
+            binding.cancelButton.isEnabled = true
         }
     }
 

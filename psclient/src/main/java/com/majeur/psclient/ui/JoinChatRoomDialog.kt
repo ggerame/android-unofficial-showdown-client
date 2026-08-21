@@ -5,10 +5,12 @@ import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.ListAdapter
 import android.widget.Toast
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.majeur.psclient.databinding.DialogJoinRoomBinding
 import com.majeur.psclient.databinding.ListFooterOtherRoomBinding
@@ -40,6 +42,11 @@ class JoinChatRoomDialog : BottomSheetDialogFragment() {
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        requireDialog().resizeForIme()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.list.apply {
@@ -64,6 +71,17 @@ class JoinChatRoomDialog : BottomSheetDialogFragment() {
                 footerBinding.button.isEnabled = editable.isNotEmpty()
             }
         })
+        footerBinding.roomNameInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_GO && footerBinding.button.isEnabled) {
+                footerBinding.button.callOnClick()
+                true
+            } else false
+        }
+        footerBinding.roomNameInput.setOnFocusChangeListener { _, focused ->
+            if (focused) dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let {
+                BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
+            }
+        }
         binding.list.addFooterView(footerBinding.root)
     }
 

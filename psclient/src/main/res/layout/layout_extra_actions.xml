@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/extra_actions"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -10,39 +11,43 @@
 
     <ImageButton
         android:id="@+id/flip_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/flip_viewpoint"
         android:visibility="gone"
-        android:paddingHorizontal="2dp"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_flip_view"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
     <ImageButton
         android:id="@+id/send_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/send_battle_message"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_create_message"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
     <ImageButton
         android:id="@+id/forfeit_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/forfeit_battle"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_forfeit"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
     <ImageButton
         android:id="@+id/timer_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="2dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/toggle_battle_timer"
+        android:padding="12dp"
         android:background="?selectableItemBackgroundBorderless"
         android:src="@drawable/ic_timer"
-        android:tint="?attr/colorOnSurface"/>
+        app:tint="?attr/colorOnSurface"/>
 
 </LinearLayout>

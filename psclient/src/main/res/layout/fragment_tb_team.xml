@@ -6,7 +6,9 @@
         tools:context=".ui.teambuilder.TeamFragment"
         android:name="com.majeur.psclient.ui.teambuilder.TeamPokemonFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
     <include
             layout="@layout/header_team_fragment"
@@ -20,16 +22,20 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
+            android:contentDescription="@string/add_pokemon"
             app:srcCompat="@drawable/ic_new"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+            app:useCompatPadding="true"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@+id/header"
-            app:layout_constraintTop_toBottomOf="@+id/header"
+            app:layout_constraintBottom_toBottomOf="parent"
             android:elevation="6dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:clipToPadding="false"
+            android:paddingBottom="88dp"
             app:layoutManager="LinearLayoutManager"
             tools:listitem="@layout/list_item_pokemon"
             app:layout_constraintTop_toBottomOf="@id/header"

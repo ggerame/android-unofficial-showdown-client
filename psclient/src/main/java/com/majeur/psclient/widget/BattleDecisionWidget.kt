@@ -39,8 +39,8 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
-    : FrameLayout(context!!, attrs, defStyleAttr), View.OnClickListener {
+class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+    : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
 
     var onRevealListener: ((Boolean) -> Unit)? = null
 
@@ -78,7 +78,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context?, attrs: A
         visibility = View.GONE
         setWillNotDraw(false)
         paint = Paint().apply {
-            color = ContextCompat.getColor(context!!, R.color.divider)
+            color = ContextCompat.getColor(context, R.color.divider)
             strokeWidth = dp(1f).toFloat()
         }
         alphaAnimator = ObjectAnimator().apply {

@@ -16,9 +16,12 @@ class FormatSelectorTest {
         assertEquals("gen9monotype", filterFormatCategories(categories, " Monotype ").single().second.single().id)
         assertEquals("gen9ou", filterFormatCategories(categories, "gen9ou").single().second.single().id)
         assertEquals("gen9ou", filterFormatCategories(categories, "OU").single().second.single().id)
+        assertEquals("gen9ou", filterFormatCategories(categories, "ou").single().second.single().id)
+        assertEquals("gen9ou", filterFormatCategories(categories, "GEN9OU").single().second.single().id)
         assertEquals(3, filterFormatCategories(categories, "Gen").sumOf { it.second.size })
         assertEquals("gen9vgc2026regf", filterFormatCategories(categories, "regf").single().second.single().id)
         assertEquals(1, filterFormatCategories(categories, "doubles").single().second.size)
         assertTrue(filterFormatCategories(categories, "missing").isEmpty())
+        assertEquals(categories, filterFormatCategories(categories, "   "))
     }
 }

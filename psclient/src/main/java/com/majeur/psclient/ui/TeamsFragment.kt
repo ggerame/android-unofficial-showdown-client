@@ -11,12 +11,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.core.widget.doAfterTextChanged
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.majeur.psclient.databinding.DialogFormatSelectorBinding
+import com.majeur.psclient.R
 import com.majeur.psclient.databinding.FragmentTeamsBinding
 import com.majeur.psclient.databinding.ListCategoryTeamBinding
 import com.majeur.psclient.databinding.ListItemTeamBinding
@@ -32,7 +30,6 @@ import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.model.common.toId
 import com.majeur.psclient.ui.teambuilder.TeamBuilderActivity
 import com.majeur.psclient.util.recyclerview.DividerItemDecoration
-import com.majeur.psclient.util.recyclerview.ItemTouchHelperCallbacks
 import com.majeur.psclient.util.recyclerview.OnItemClickListener
 import com.majeur.psclient.util.smogon.SmogonTeamBuilder
 import com.majeur.psclient.util.toId
@@ -40,24 +37,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.Serializable
 import java.util.*
-
-internal fun filterFormatCategories(
-        categories: List<Pair<BattleFormat.Category, List<BattleFormat>>>,
-        rawQuery: String
-): List<Pair<BattleFormat.Category, List<BattleFormat>>> {
-    val query = rawQuery.trim()
-    if (query.isEmpty()) return categories
-    return categories.mapNotNull { (category, formats) ->
-        val sectionIndex = category.label.indexOf(query, ignoreCase = true)
-        val sectionMatches = sectionIndex >= 0 &&
-                (sectionIndex == 0 || !category.label[sectionIndex - 1].isLetterOrDigit())
-        val matches = if (sectionMatches) formats else formats.filter {
-            it.label.contains(query, ignoreCase = true) || it.id.contains(query, ignoreCase = true)
-        }
-        if (matches.isEmpty()) null else category to matches
-    }
-}
-
 
 class TeamsFragment : BaseFragment(), OnItemClickListener {
 
@@ -140,16 +119,6 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
                     }
                 }
             })
-            ItemTouchHelper(object : ItemTouchHelperCallbacks(context, allowDeletion = true) {
-                override fun onRemoveItem(position: Int) {
-                    val team = listAdapter.getItem(position) as Team
-                    removeTeam(team)
-                    Snackbar.make(binding.root, "${team.label} removed", Snackbar.LENGTH_LONG)
-                            .setAction("Undo") {
-                                addOrUpdateTeam(team)
-                            }.show()
-                }
-            }).attachToRecyclerView(this)
         }
         binding.buildFab.setOnClickListener {
             chooseFormat()
@@ -263,79 +232,23 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
     }
 
     private fun chooseFormat() {
-        val categories = battleFormats.mapNotNull { category ->
-            val formats = category.formats.filter {
-                it.isTeamNeeded && (it.isSearchShow || it.isChallengeShow || it.isTournamentShow)
-            }
-            if (formats.isEmpty()) null else category to formats
-        }
-        if (categories.isEmpty()) {
+        if (battleFormats.none { category -> category.formats.any { it.isTeamNeeded } }) {
             makeSnackbar("Connect to Pokémon Showdown to load the available formats")
             return
         }
-        val expanded = mutableSetOf(categories.first().first)
-        var query = ""
-        val adapter = object : com.majeur.psclient.widget.CategoryAdapter(requireContext()) {
-            override fun isCategoryItem(position: Int) = getItem(position) is BattleFormat.Category
-            override fun isCategoryEnabled(position: Int) = true
-            override fun getCategoryLabel(position: Int): String {
-                val category = getItem(position) as BattleFormat.Category
-                val isExpanded = query.isNotBlank() || category in expanded
-                return "${if (isExpanded) "▾" else "▸"}  ${category.label}"
+        childFragmentManager.setFragmentResultListener(
+                FormatPickerDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
+            val formatId = result.getString(FormatPickerDialogFragment.RESULT_FORMAT_ID)
+                    ?: return@setFragmentResultListener
+            val intent = Intent(context, TeamBuilderActivity::class.java).apply {
+                putExtra(TeamBuilderActivity.INTENT_EXTRA_FORMATS, battleFormats as Serializable)
+                putExtra(TeamBuilderActivity.INTENT_EXTRA_FORMAT_ID, formatId)
             }
-            override fun getItemLabel(position: Int) = (getItem(position) as BattleFormat).label
+            @Suppress("DEPRECATION")
+            startActivityForResult(intent, TeamBuilderActivity.INTENT_REQUEST_CODE)
         }
-
-        fun refreshRows() {
-            val rows = mutableListOf<Any>()
-            filterFormatCategories(categories, query).forEach { (category, formats) ->
-                rows.add(category)
-                if (query.isNotBlank() || category in expanded) rows.addAll(formats)
-            }
-            adapter.replaceItems(rows)
-        }
-
-        val selector = DialogFormatSelectorBinding.inflate(layoutInflater)
-        selector.formatsList.adapter = adapter
-        selector.formatsList.emptyView = selector.emptyFormats
-        selector.formatSearch.doAfterTextChanged { text ->
-            query = text?.toString().orEmpty().trim()
-            refreshRows()
-            selector.formatsList.setSelection(0)
-        }
-
-        refreshRows()
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Choose a format")
-                .setView(selector.root)
-                .setNegativeButton(android.R.string.cancel, null)
-                .create()
-        selector.formatsList.setOnItemClickListener { _, _, index, _ ->
-            when (val selected = adapter.getItem(index)) {
-                is BattleFormat.Category -> {
-                    if (query.isNotBlank()) return@setOnItemClickListener
-                    if (!expanded.remove(selected)) {
-                        expanded.clear()
-                        expanded += selected
-                    }
-                    refreshRows()
-                }
-                is BattleFormat -> {
-                    val intent = Intent(context, TeamBuilderActivity::class.java).apply {
-                        putExtra(TeamBuilderActivity.INTENT_EXTRA_FORMATS, battleFormats as Serializable)
-                        putExtra(TeamBuilderActivity.INTENT_EXTRA_FORMAT_ID, selected.id)
-                    }
-                    @Suppress("DEPRECATION")
-                    startActivityForResult(intent, TeamBuilderActivity.INTENT_REQUEST_CODE)
-                    dialog.dismiss()
-                }
-            }
-        }
-        dialog.setOnShowListener {
-            dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            selector.formatSearch.clearFocus()
-        }
-        dialog.show()
+        FormatPickerDialogFragment.newInstance(battleFormats)
+                .show(childFragmentManager, FormatPickerDialogFragment.TAG)
     }
 
     @Deprecated("Deprecated in Java")
@@ -432,6 +345,31 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
         persistUserTeams()
     }
 
+    private fun removeTeamWithUndo(team: Team) {
+        removeTeam(team)
+        Snackbar.make(binding.root, "${team.label} removed", Snackbar.LENGTH_LONG)
+                .setAction("Undo") { addOrUpdateTeam(team) }
+                .show()
+    }
+
+    private fun confirmDeleteTeam(team: Team) {
+        val deleteRemote = team.remoteTeamId != null && team.remoteOwnerId == currentAccountId
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.delete_team_question, team.label))
+                .setMessage(if (deleteRemote) R.string.delete_synced_team_message
+                        else R.string.delete_local_team_message)
+                .setPositiveButton(R.string.delete_team) { _, _ ->
+                    if (deleteRemote) {
+                        team.remoteTeamId?.let { service?.deleteRemoteTeam(it) }
+                        removeTeam(team)
+                    } else {
+                        removeTeamWithUndo(team)
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+    }
+
     private fun resolveFormatName(formatId: String): String {
         battleFormats?.let {
             return BattleFormat.resolveName(it, formatId)
@@ -457,6 +395,7 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
     private fun showTeamActions(team: Team) {
         val actions = mutableListOf<Pair<String, () -> Unit>>()
         actions += "Copy export" to { exportTeamToClipboard(team) }
+        actions += getString(R.string.delete_team) to { confirmDeleteTeam(team) }
         if (currentAccountId != null && !team.isRemoteStub)
             actions += (if (team.remoteTeamId == null) "Save to account (private)" else "Upload changes") to { uploadTeam(team) }
         if (team.remoteTeamId != null && team.remoteOwnerId == currentAccountId) {
@@ -533,6 +472,7 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
 
             init {
                 binding.copyButton.setOnClickListener(this)
+                binding.deleteButton.setOnClickListener(this)
                 binding.root.setOnClickListener(this)
                 binding.root.setOnLongClickListener(this)
             }
@@ -540,6 +480,8 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
             override fun onClick(v: View?) {
                 if (v == binding.copyButton) {
                     exportTeamToClipboard(getItem(adapterPosition) as Team)
+                } else if (v == binding.deleteButton) {
+                    confirmDeleteTeam(getItem(adapterPosition) as Team)
                 } else {
                     itemClickListener.onItemClick(itemView, this, adapterPosition)
                 }

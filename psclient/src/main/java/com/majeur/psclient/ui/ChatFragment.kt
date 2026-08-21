@@ -72,6 +72,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
             if (observer.roomJoined) service?.sendRoomCommand(observedRoomId, "leave")
             else service?.sendGlobalCommand("cmd", "rooms")
         }
+        binding.emptyState.setOnClickListener { binding.joinButton.performClick() }
         binding.usersCount.setOnClickListener { v: View ->
             val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, observer.users)
             AlertDialog.Builder(requireActivity())
@@ -97,6 +98,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
     private fun setUiState(roomJoined: Boolean) {
         if (roomJoined) {
             binding.apply {
+                emptyState.visibility = View.GONE
                 messageInput.isEnabled = true
                 messageInput.requestFocus()
                 sendButton.isEnabled = true
@@ -107,20 +109,18 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
             }
         } else {
             binding.apply {
-                roomTitle.text = "—"
+                roomTitle.setText(R.string.chat)
                 usersCount.text = "-\nusers"
-                messageInput.text.clear()
+                messageInput.text?.clear()
                 messageInput.clearFocus()
                 messageInput.isEnabled = false
                 sendButton.isEnabled = false
                 sendButton.drawable.alpha = 128
                 joinButton.setImageResource(R.drawable.ic_enter)
                 joinButton.requestFocus() // Remove focus from message input widget
-                chatLog.animate().alpha(0f).withEndAction {
-                    chatLog.text = "\n\n\n\n\n\n\n\n\n\nTap the join button to join a room"
-                    chatLog.gravity = Gravity.CENTER_HORIZONTAL
-                    chatLog.animate().alpha(1f).withEndAction(null).start()
-                }.start()
+                chatLog.text = ""
+                chatLog.gravity = Gravity.START
+                emptyState.visibility = View.VISIBLE
             }
             inputMethodManager.hideSoftInputFromWindow(binding.messageInput.windowToken, 0)
         }
@@ -130,7 +130,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
         val message = binding.messageInput.text.toString()
         if (message.isEmpty()) return
         service?.sendRoomMessage(observedRoomId, message)
-        binding.messageInput.text.clear()
+        binding.messageInput.text?.clear()
     }
 
     override fun onServiceBound(service: ShowdownService) {
@@ -199,6 +199,6 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
     }
 
     override fun onUpdateUsers(users: List<String>) {
-        binding.usersCount.text = "${users.size} users"
+        binding.usersCount.text = "${users.size}\nusers"
     }
 }

@@ -1,67 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="12dp"
-        android:minWidth="324dp"
-        android:minHeight="324dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:minHeight="324dp"
+    android:orientation="vertical">
 
-    <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:layout_marginStart="10dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"/>
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:navigationContentDescription="@android:string/cancel"
+        app:navigationIcon="@drawable/ic_back"
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ScrollView
-            android:id="@+id/chat_log_container"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+        android:id="@+id/chat_log_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
 
         <TextView
-                android:id="@+id/chat_log"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/colorOnBackground"
-                android:textSize="16sp"
-                android:lineSpacingExtra="2dp"
-                android:paddingHorizontal="12dp"/>
-
+            android:id="@+id/chat_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="2dp"
+            android:padding="12dp"
+            android:textColor="?attr/colorOnBackground"
+            android:textSize="16sp" />
     </ScrollView>
 
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:elevation="4dp"
-            android:paddingStart="12dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="?attr/colorSurface">
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/colorSurfaceContainer"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp">
 
         <EditText
-                android:id="@+id/message_input"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="textShortMessage"
-                android:imeOptions="actionSend"
-                android:maxLines="1"
-                android:hint="Message..."/>
+            android:id="@+id/message_input"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:hint="@string/message_hint"
+            android:imeOptions="actionSend"
+            android:inputType="textShortMessage"
+            android:maxLines="1" />
 
         <ImageButton
-                android:id="@+id/send_button"
-                android:layout_width="52dp"
-                android:layout_height="match_parent"
-                android:background="?attr/selectableItemBackground"
-                android:src="@drawable/ic_send"
-                android:scaleType="fitXY"
-                android:padding="4dp"
-                android:tint="?attr/colorSecondary"/>
-
+            android:id="@+id/send_button"
+            android:layout_width="52dp"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/send_message"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_send"
+            app:tint="?attr/colorSecondary" />
     </LinearLayout>
-
 </LinearLayout>

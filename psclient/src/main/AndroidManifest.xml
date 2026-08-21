@@ -15,7 +15,7 @@
 
         <activity
             android:name=".ui.MainActivity"
-            android:windowSoftInputMode="adjustPan|stateUnchanged"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"
             android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
@@ -38,7 +38,7 @@
         <activity
             android:name=".ui.teambuilder.TeamBuilderActivity"
             android:screenOrientation="userPortrait"
-            android:windowSoftInputMode="adjustPan"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.PSClient.TeamBuilderActivityTheme"
             android:exported="false"/>
 

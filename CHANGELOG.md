@@ -2,6 +2,12 @@
 
 All notable changes made are documented here.
 
+## [1.5.1] – Full-width news banner
+
+### Changed
+- The optional Home news banner now spans the full screen width while keeping
+  its text aligned with the responsive page content.
+
 ## [1.5.0] – Material UI refresh
 
 ### Changed

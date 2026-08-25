@@ -194,12 +194,12 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             }
         }
 
-        binding.news.apply {
+        binding.newsBanner.apply {
             alpha = 0f
             translationY = -dp(42f).toFloat()
             visibility = View.GONE
             setOnClickListener {
-                if (!text.isNullOrEmpty() && childFragmentManager.findFragmentByTag(NewsDialog.FRAGMENT_TAG) == null)
+                if (!binding.news.text.isNullOrEmpty() && childFragmentManager.findFragmentByTag(NewsDialog.FRAGMENT_TAG) == null)
                     NewsDialog().show(childFragmentManager, NewsDialog.FRAGMENT_TAG)
             }
         }
@@ -566,9 +566,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     fun showNewsBanner() {
         fragmentScope.launch {
             val latestNews = service?.retrieveLatestNews()?.getJSONObject(0)?.let { NewsDialog.News(it) } ?: return@launch
-            binding.news.apply {
-                text = latestNews.title.bold() concat " - " concat latestNews.content
-                isSelected = true
+            binding.news.text = latestNews.title.bold() concat " - " concat latestNews.content
+            binding.news.isSelected = true
+            binding.newsBanner.apply {
                 visibility = View.VISIBLE
                 animate().alpha(1f).translationY(0f)
             }
@@ -576,10 +576,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     fun hideNewsBanner() {
-        binding.news.apply {
+        binding.newsBanner.apply {
             animate().alpha(0f).translationY(-height.toFloat()).withEndAction {
-                text = null
-                isSelected = false
+                binding.news.text = null
+                binding.news.isSelected = false
                 visibility = View.GONE
             }.start()
         }

@@ -42,8 +42,8 @@ class ReplayManager(private val showdownService: ShowdownService) {
 
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                val rawResponse = response.body()?.string()
-                if (rawResponse?.isEmpty() != false) {
+                val rawResponse = response.body.string()
+                if (rawResponse.isEmpty()) {
                     Timber.e("Replay download request responded with an empty body.")
                     uiHandler.post(this@ReplayManager::notifyReplayDownloadFailure)
                     isWaitingForReplayData.set(false)
@@ -157,4 +157,3 @@ class ReplayManager(private val showdownService: ShowdownService) {
         private const val MSG_POPUP_REPLAY_DL_FAIL = "|popup|An error occurred when trying to retrieve the replay"
     }
 }
-

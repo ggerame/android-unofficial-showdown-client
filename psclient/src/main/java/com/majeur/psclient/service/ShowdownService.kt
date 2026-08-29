@@ -14,6 +14,8 @@ import com.majeur.psclient.model.common.RemoteTeamSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -199,10 +201,11 @@ class ShowdownService : Service() {
         okHttpClient.newCall(Request.Builder().url(url).addHeader("cookie", cookie).post(body).build())
                 .enqueue(object : Callback {
                     override fun onResponse(call: Call, response: Response) {
-                        val raw = response.body()?.string()
+                        val raw = response.body.string()
+                        val responseCode = response.code
                         uiHandler.post {
-                            if (response.isSuccessful && !raw.isNullOrBlank()) callback(raw, null)
-                            else callback(null, "The Showdown team server returned ${response.code()}")
+                            if (response.isSuccessful && raw.isNotBlank()) callback(raw, null)
+                            else callback(null, "The Showdown team server returned $responseCode")
                         }
                     }
 
@@ -257,9 +260,7 @@ class ShowdownService : Service() {
     fun sendRoomMessage(roomId: String?, message: String) = sendMessage("${roomId ?: ""}|$message")
 
     private fun sendMessage(message: String) {
-        val sensitive = message.startsWith("|/utm ") || message.startsWith("|/teams save") ||
-                message.startsWith("|/teams update")
-        val loggedMessage = if (sensitive) "<redacted team command>" else message
+        val loggedMessage = redactSensitiveMessage(message)
         if (isConnected) {
             Timber.tag("WebSocket[SEND]").i(loggedMessage)
             webSocket?.send(message)
@@ -299,17 +300,17 @@ class ShowdownService : Service() {
 
     private val webSocketListener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            Timber.tag("WebSocket[OPEN]").i("Host: ${response.request().url().host()}")
+            Timber.tag("WebSocket[OPEN]").i("Host: ${response.request.url.host}")
             isConnected = true
             uiHandler.post {
                 dispatchMessage(ServerMessage("lobby", "|connected|"))
             }
         }
 
-        override fun onMessage(webSocket: WebSocket, data: String) {
-            Timber.tag("WebSocket[RECEIVE]").i(data)
+        override fun onMessage(webSocket: WebSocket, text: String) {
+            Timber.tag("WebSocket[RECEIVE]").i(text)
             uiHandler.post {
-                processServerData(data)
+                processServerData(text)
             }
         }
 
@@ -346,8 +347,8 @@ class ShowdownService : Service() {
             okHttpClient.newCall(request).enqueue(object : Callback {
                 @Throws(IOException::class)
                 override fun onResponse(call: Call, response: Response) {
-                    val rawResponse = response.body()?.string()
-                    if (rawResponse?.isEmpty() != false) {
+                    val rawResponse = response.body.string()
+                    if (rawResponse.isEmpty()) {
                         Timber.e("Assertion request responded with an empty body.")
                         tryUsernameSignIn()
                         return
@@ -396,8 +397,8 @@ class ShowdownService : Service() {
         okHttpClient.newCall(request).enqueue(object : Callback {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                var rawResponse = response.body()?.string()
-                if (rawResponse?.isNotBlank() != true) {
+                var rawResponse = response.body.string()
+                if (rawResponse.isBlank()) {
                     uiHandler.post { callback.onError("Something is interfering with our connection to the login server. Most likely, your internet provider needs you to re-log-in, or your internet provider is blocking Pokémon Showdown.") }
                     return
                 }
@@ -445,16 +446,16 @@ class ShowdownService : Service() {
                 .addQueryParameter("pass", password)
                 .addQueryParameter("challstr", getSharedData<String>("challenge"))
                 .build()
-        val mediaType = MediaType.parse("application/x-www-form-urlencoded;")
+        val mediaType = "application/x-www-form-urlencoded".toMediaType()
         val request = Request.Builder()
                 .url(actionServerUrl.build())
-                .post(RequestBody.create(mediaType, dummyUrl.query()!!))
+                .post(dummyUrl.query!!.toRequestBody(mediaType))
                 .build()
         okHttpClient.newCall(request).enqueue(object : Callback {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                var rawResponse = response.body()?.string()
-                if (rawResponse?.isNotEmpty() != true) {
+                val rawResponse = response.body.string()
+                if (rawResponse.isEmpty()) {
                     uiHandler.post { callback.onError("Something is interfering with our connection to the login server. Most likely, your internet provider needs you to re-log-in, or your internet provider is blocking Pokémon Showdown.") }
                     return
                 }
@@ -562,11 +563,11 @@ class ShowdownService : Service() {
                 .url(url)
                 .build()
         return@withContext try {
-            okHttpClient.newCall(request).execute()
+            okHttpClient.newCall(request).execute().use { it.body.string() }
         } catch (e: IOException) {
             Timber.e(e)
             null
-        }?.body()?.string()
+        }
     }
 
     fun putSharedData(key: String, data: Any?) {
@@ -588,4 +589,11 @@ class ShowdownService : Service() {
         fun onError(reason: String)
         fun onAuthenticationRequired()
     }
+}
+
+internal fun redactSensitiveMessage(message: String): String = when {
+    message.startsWith("|/trn ") -> "<redacted authentication command>"
+    message.startsWith("|/utm ") || message.startsWith("|/teams save") ||
+            message.startsWith("|/teams update") -> "<redacted team command>"
+    else -> message
 }

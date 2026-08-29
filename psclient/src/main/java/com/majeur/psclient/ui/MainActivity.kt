@@ -1,7 +1,5 @@
 package com.majeur.psclient.ui
 
-import android.annotation.SuppressLint
-
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,6 +10,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.MenuItem
 import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -42,6 +41,24 @@ class MainActivity : AppCompatActivity() {
     var service: ShowdownService? = null
         private set
     private var canUnbindService = false
+
+    private val backPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (!useLandscapeLayout && selectedNavigationItemId != R.id.fragment_home) {
+                setSelectedNavigationItem(R.id.fragment_home)
+            } else {
+                MaterialAlertDialogBuilder(this@MainActivity)
+                        .setTitle("Are you sure you want to quit ?")
+                        .setMessage("Connection to Showdown server will be closed.")
+                        .setPositiveButton("Yes") { _, _ ->
+                            finish()
+                            stopService(showdownServiceIntent)
+                        }
+                        .setNegativeButton("No", null)
+                        .show()
+            }
+        }
+    }
 
     private lateinit var binding: ActivityMainBinding
 
@@ -80,6 +97,7 @@ class MainActivity : AppCompatActivity() {
         if (!canUseLandscapeLayout) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        onBackPressedDispatcher.addCallback(this, backPressedCallback)
         // BottomNavigationView already applies the navigation-bar inset on phones.
         binding.root.applySafeDrawingInsets(includeBottom = useLandscapeLayout, includeIme = true)
 
@@ -141,23 +159,6 @@ class MainActivity : AppCompatActivity() {
                 if (fragment.id == fragmentId) show(fragment) else hide(fragment)
             }
             if (now) commitNowAllowingStateLoss() else commitAllowingStateLoss()
-        }
-    }
-
-    @SuppressLint("MissingSuperCall")
-    override fun onBackPressed() {
-        if (!useLandscapeLayout && selectedNavigationItemId != R.id.fragment_home) {
-            setSelectedNavigationItem(R.id.fragment_home)
-        } else {
-            MaterialAlertDialogBuilder(this)
-                    .setTitle("Are you sure you want to quit ?")
-                    .setMessage("Connection to Showdown server will be closed.")
-                    .setPositiveButton("Yes") { _, _ ->
-                        finish()
-                        stopService(showdownServiceIntent)
-                    }
-                    .setNegativeButton("No", null)
-                    .show()
         }
     }
 

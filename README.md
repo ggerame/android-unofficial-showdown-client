@@ -68,9 +68,9 @@ desktop computer.
 
 ## Building
 **Requirements**
-- JDK **17** (required by Android Gradle Plugin 8.7.3 / Gradle 8.9)
-- Android SDK with `compileSdk` **35** (min SDK 21)
-- A device or emulator running Android 5.0+ (API 21+)
+- JDK **17** (required by Android Gradle Plugin 8.13.2 / Gradle 8.13)
+- Android SDK with `compileSdk` **36** (min SDK 23)
+- A device or emulator running Android 6.0+ (API 23+)
 
 The Gradle wrapper pins the correct Gradle version, so you only need the JDK and
 the Android SDK installed.
@@ -88,6 +88,13 @@ the Android SDK installed.
 
 The generated APK is written to
 `psclient/build/outputs/apk/debug/psclient-debug.apk`.
+
+> [!WARNING]
+> APKs attached to GitHub releases are currently debug-signed convenience
+> builds. They are not intended for app stores, and updating from one release
+> to another is not guaranteed. A permanent release key and Android Developer
+> Console registration should only be configured if this fork is distributed
+> independently rather than merged upstream.
 
 > Pokémon sprites, battle backgrounds, field-effect graphics and battle music are
 > fetched at runtime from `play.pokemonshowdown.com`, so an internet connection is

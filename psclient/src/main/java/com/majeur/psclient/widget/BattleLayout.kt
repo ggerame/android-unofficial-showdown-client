@@ -396,7 +396,8 @@ class BattleLayout @JvmOverloads constructor(
             // bar — this guarantees the bars never overlap whatever order the anchors are declared in.
             val nearStatus = nearStatusViews[i]
             val nearStagger = if (count > 1) staggerLevel(nearPositions, i) * nearStatus.measuredHeight else 0
-            layoutChild(nearStatus, cX, point.y - statusBarOffset - nearStagger, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(nearStatus, cX, point.y - statusBarOffset - nearStagger - nearStatus.tagOffset,
+                    Gravity.CENTER_HORIZONTAL, true)
             layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
             val j = count - i - 1
             point[(farPositions[j].x * width).toInt()] = (farPositions[j].y * height).toInt()
@@ -407,7 +408,8 @@ class BattleLayout @JvmOverloads constructor(
             // sprites (which are nudged down a little, see REL_BATTLE_P2_POS) instead of over them.
             val farStatus = farStatusViews[j]
             val farStagger = if (count > 1) staggerLevel(farPositions, j) * farStatus.measuredHeight else 0
-            layoutChild(farStatus, cX, point.y - statusBarOffset - farStagger, Gravity.CENTER_HORIZONTAL, true)
+            layoutChild(farStatus, cX, point.y - statusBarOffset - farStagger - farStatus.tagOffset,
+                    Gravity.CENTER_HORIZONTAL, true)
             layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
         }
         val nearSideView = if (flipped) p2SideView else p1SideView

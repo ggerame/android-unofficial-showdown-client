@@ -8,6 +8,10 @@ All notable changes made are documented here.
 - The optional Home news banner now spans the full screen width while keeping
   its text aligned with the responsive page content.
 
+### Fixed
+- Battle status badges and stat modifiers now grow upward above the Pokémon's
+  name and HP bar instead of covering its sprite when several are active.
+
 ## [1.5.0] – Material UI refresh
 
 ### Changed

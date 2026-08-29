@@ -97,8 +97,9 @@ class SideView(context: Context?) : View(context) {
         for ((key, count) in sides) {
             val countString = if (count > 1) (if (isGravityRight) "" else " ") + "x" + count + (if (isGravityRight) " " else "") else ""
             val text = if (isGravityRight) countString + key else key + countString
+            val color = sideColor(key)
             paint.apply {
-                color = sideColor(key)
+                this.color = color
                 textSize = tagTextSize.toFloat()
                 getTextBounds(text, 0, text.length, textBounds)
                 setShadowLayer(shadowRadius.toFloat(), 0f, shadowDy, Colors.BLACK)
@@ -115,7 +116,7 @@ class SideView(context: Context?) : View(context) {
                     isGravityRight)
             drawingRect.union(tempRect)
             paint.apply {
-                color = Colors.WHITE
+                this.color = Colors.contrastTextColor(color)
                 clearShadowLayer()
             }
             canvas?.drawText(text,

@@ -372,7 +372,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
             pokemon.condition?.let { condition ->
                 append("HP: ".small())
-                append("%.1f%% ".format(condition.health * 100).bold().color(healthColor(condition.health)))
+                append("%.1f%%".format(condition.health * 100).bold().tag(healthColor(condition.health)))
+                append(" ")
                 if (pokemon.trainer && observer.isUserPlaying) append("(${condition.hp}/${condition.maxHp}) ".small())
                 condition.status?.let { append(it.toUpperCase().small().tag(statusColor(it))) }
                 append("\n")
@@ -519,8 +520,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                                      descView: TextView, placeHolderTop: ImageView, placeHolderBottom: ImageView) {
         titleView.text = pokemon.name
         descView.apply {
-            text = "HP: ".small() concat String.format("%.1f%% ", pokemon.condition.health * 100).bold().color(healthColor(pokemon.condition.health)) concat
-                    "(" + pokemon.condition.hp + "/" + pokemon.condition.maxHp + ")"
+            text = "HP: ".small() concat String.format("%.1f%%", pokemon.condition.health * 100).bold()
+                    .tag(healthColor(pokemon.condition.health)) concat
+                    " (" + pokemon.condition.hp + "/" + pokemon.condition.maxHp + ") "
             if (pokemon.condition.status != null)
                 append(pokemon.condition.status!!.toUpperCase().small().tag(statusColor(pokemon.condition.status)))
 
@@ -573,9 +575,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     }
 
     private fun effectivenessLabel(multiplier: Double): CharSequence? = when {
-        multiplier == 0.0 -> "(0×)".small().bold().color(Colors.GRAY)
-        multiplier > 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().color(Colors.GREEN)
-        multiplier < 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().color(Colors.RED)
+        multiplier == 0.0 -> "(0×)".small().bold().tag(Colors.GRAY)
+        multiplier > 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().tag(Colors.GREEN)
+        multiplier < 1.0 -> "(${formatMultiplier(multiplier)}×)".small().bold().tag(Colors.RED)
         else -> null
     }
 
@@ -598,7 +600,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             multiplier < 1.0 -> "Not very effective"
             else -> "Neutral"
         }
-        return "Effectiveness: ${formatMultiplier(multiplier)}× ($descriptor)".small().color(color)
+        return "Effectiveness: ".small() concat
+                "${formatMultiplier(multiplier)}× ($descriptor)".small().tag(color)
     }
 
     private fun notifyNewMessageReceived() {
@@ -881,7 +884,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             false
         } catch (e: IllegalStateException) {
             val msg = "A bug has occurred, please try to rejoin the battle. Click this message to leave it without forfeiting."
-            onPrintText(msg.color(Colors.RED).clickable { service?.sendRoomCommand(observedRoomId, "leave") })
+            onPrintText(msg.bold().clickable { service?.sendRoomCommand(observedRoomId, "leave") })
             true
         }
     }

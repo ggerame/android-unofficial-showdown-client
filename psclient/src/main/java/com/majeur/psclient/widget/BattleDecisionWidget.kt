@@ -89,7 +89,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
         repeat(4) {
             AppCompatButton(context).apply {
                 isAllCaps = false
-                setTextColor(Color.WHITE)
+                setTextColor(Colors.contrastTextColor(DEFAULT_TINT))
                 maxLines = 2
                 setPadding(dp(4f), dp(6f), dp(4f), dp(6f))
                 TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(this, 8, 14, 1, TypedValue.COMPLEX_UNIT_SP)
@@ -414,15 +414,12 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
                 val move = moves[i]
                 btn.apply {
                     text = moveText(move)
-                    background.setTint(DEFAULT_TINT)
                     visibility = View.VISIBLE
                     setTag(R.id.battle_data_tag, move)
                 }
                 battleTipPopup.addTippedView(btn)
-                setMoveButtonEnabled(btn, !move.disabled)
+                styleMoveButton(btn, !move.disabled, move.details?.color ?: DEFAULT_TINT)
                 if (move.canZMove) canZMove = true
-                if (move.details != null)
-                    btn.background.setTint(move.details!!.color)
             } else btn.apply {
                 text = null
                 visibility = View.GONE
@@ -498,15 +495,15 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
                 if (move.canZMove) {
                     button.text = move.zName
                     move.zflag = true
-                    setMoveButtonEnabled(button, true)
+                    styleMoveButton(button, true, move.details?.color ?: DEFAULT_TINT)
                 } else {
                     button.text = "—"
-                    setMoveButtonEnabled(button, false)
+                    styleMoveButton(button, false, move.details?.color ?: DEFAULT_TINT)
                 }
             } else {
                 button.text = moveText(move)
                 move.zflag = false
-                setMoveButtonEnabled(button, !move.disabled)
+                styleMoveButton(button, !move.disabled, move.details?.color ?: DEFAULT_TINT)
             }
         }
     }
@@ -518,28 +515,24 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
             if (toggle) {
                 if (move.maxMoveId != null) {
                     button.text = move.maxDetails?.name ?: move.maxMoveId!!
-                    if (move.maxDetails != null) button.background.setTint(move.maxDetails!!.color)
-                    else button.background.setTint(DEFAULT_TINT)
                     move.maxflag = true
-                    setMoveButtonEnabled(button, true)
+                    styleMoveButton(button, true, move.maxDetails?.color ?: DEFAULT_TINT)
                 } else {
                     button.text = "—"
-                    setMoveButtonEnabled(button, false)
+                    styleMoveButton(button, false, move.details?.color ?: DEFAULT_TINT)
                 }
             } else {
                 button.text = moveText(move)
-                if (move.details != null)
-                    button.background.setTint(move.details!!.color)
-                else button.background.setTint(DEFAULT_TINT)
-                setMoveButtonEnabled(button, !move.disabled)
                 move.maxflag = false
+                styleMoveButton(button, !move.disabled, move.details?.color ?: DEFAULT_TINT)
             }
         }
     }
 
-    private fun setMoveButtonEnabled(button: Button, enabled: Boolean) = button.apply {
+    private fun styleMoveButton(button: Button, enabled: Boolean, color: Int) = button.apply {
         isEnabled = enabled
-        setTextColor(if (enabled) Color.WHITE else Color.GRAY)
+        background.setTint(color)
+        setTextColor(Colors.contrastTextColor(color))
     }
 
     private fun moveText(move: Move): CharSequence {
@@ -566,9 +559,9 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
         if (details.category.toId() == "status") return null
         val m = Type.effectiveness(type, types)
         return when {
-            m == 0.0 -> "0×".small().bold().color(Colors.GRAY)
-            m > 1.0 -> "${formatMultiplier(m)}×".small().bold().color(Colors.GREEN)
-            m < 1.0 -> "${formatMultiplier(m)}×".small().bold().color(Colors.RED)
+            m == 0.0 -> "0×".small().bold()
+            m > 1.0 -> "${formatMultiplier(m)}×".small().bold()
+            m < 1.0 -> "${formatMultiplier(m)}×".small().bold()
             else -> null
         }
     }
@@ -590,7 +583,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
     fun notifyDetailsUpdated() = moveButtons.forEach { btn ->
         val move = btn.getTag(R.id.battle_data_tag) as Move?
         if (move != null && !move.maxflag && move.details != null) {
-            btn.background.setTint(move.details!!.color)
+            styleMoveButton(btn, btn.isEnabled, move.details!!.color)
             if (!move.zflag) btn.text = moveText(move)
         }
     }
@@ -599,7 +592,7 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
         val move = btn.getTag(R.id.battle_data_tag) as Move?
         if (move != null && move.maxflag && move.maxDetails != null) {
             btn.text = move.maxDetails!!.name
-            btn.background.setTint(move.maxDetails!!.color)
+            styleMoveButton(btn, btn.isEnabled, move.maxDetails!!.color)
         }
     }
 

@@ -237,39 +237,40 @@ class StatusView(context: Context?) : View(context) {
         var cY = (top + lineHeight / 2f).roundToInt()
 
         teraType?.let { tera ->
-            drawTag(canvas, left, cY, teraText, Colors.WHITE, Colors.typeColor(tera.toId()), tempRect2)
+            val color = Colors.typeColor(tera.toId())
+            drawTag(canvas, left, cY, teraText, Colors.contrastTextColor(color), color, tempRect2)
             if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
             left += tempRect2.width() + horizontalSpacing
         }
         if (status.isNotBlank()) {
-            drawTag(canvas, left, cY, status.toUpperCase(), Colors.WHITE, statusColor(status.toId()), tempRect2)
+            val color = statusColor(status.toId())
+            drawTag(canvas, left, cY, status.toUpperCase(), Colors.contrastTextColor(color), color, tempRect2)
             if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
             left += tempRect2.width() + horizontalSpacing
         }
         for (vStatus in volatileStatus.values) {
             if (vStatus.label == null) continue
             tempRect3.set(tempRect2)
-            drawTag(null, left, cY, vStatus.label, vStatus.color, Colors.WHITE, tempRect3)
+            drawTag(null, left, cY, vStatus.label, Colors.contrastTextColor(vStatus.color), vStatus.color, tempRect3)
             if (tempRect3.right > maxTagLineWidth + paddingLeft) { // Our tag will not fit, break line
                 left = minLeft
                 cY += lineHeight + verticalSpacing
             }
-            drawTag(canvas, left, cY, vStatus.label, vStatus.color, Colors.WHITE, tempRect2)
+            drawTag(canvas, left, cY, vStatus.label, Colors.contrastTextColor(vStatus.color), vStatus.color, tempRect2)
             if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
             left += tempRect2.width() + horizontalSpacing
         }
         for (entry in statsModifiers.entries) {
             if (entry.value == 1f) continue
             val text = DECIMAL_FORMAT.format(entry.value) + entry.key.replaceFirstChar { it.uppercaseChar() }
+            val color = if (entry.value < 1f) Colors.STAT_UNBOOST else Colors.STAT_BOOST
             tempRect3.set(tempRect2)
-            drawTag(null, left, cY, text, if (entry.value < 1f) Colors.STAT_UNBOOST else Colors.STAT_BOOST,
-                    Colors.WHITE, tempRect3)
+            drawTag(null, left, cY, text, Colors.contrastTextColor(color), color, tempRect3)
             if (tempRect3.right > maxTagLineWidth + paddingLeft) { // Our tag will not fit, break line
                 left = minLeft
                 cY += lineHeight + verticalSpacing
             }
-            drawTag(canvas, left, cY, text, if (entry.value < 1f) Colors.STAT_UNBOOST else Colors.STAT_BOOST,
-                    Colors.WHITE, tempRect2)
+            drawTag(canvas, left, cY, text, Colors.contrastTextColor(color), color, tempRect2)
             if (drawingRect.isEmpty) drawingRect.set(tempRect2) else drawingRect.union(tempRect2)
             left += tempRect2.width() + horizontalSpacing
         }

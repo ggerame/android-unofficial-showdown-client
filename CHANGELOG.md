@@ -11,6 +11,9 @@ All notable changes made are documented here.
 ### Fixed
 - Battle status badges and stat modifiers now grow upward above the Pokémon's
   name and HP bar instead of covering its sprite when several are active.
+- Coloured battle labels, move buttons, status toasts and popup badges now use
+  an automatically contrasting black or white foreground instead of losing
+  readability on light type colours such as Electric, Ice and Steel.
 
 ## [1.5.0] – Material UI refresh
 

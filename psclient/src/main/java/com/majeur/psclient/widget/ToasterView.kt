@@ -2,7 +2,6 @@ package com.majeur.psclient.widget
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.view.Gravity
@@ -10,6 +9,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.collection.ArraySet
+import com.majeur.psclient.model.common.Colors
 import com.majeur.psclient.util.baselineForTop
 import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.sp
@@ -107,14 +107,14 @@ class ToasterView(context: Context) : FrameLayout(context) {
             super.onDraw(canvas)
             paint.apply {
                 color = toastColor
-                setShadowLayer(shadowRadius.toFloat(), 0f, shadowDy, Color.BLACK)
+                setShadowLayer(shadowRadius.toFloat(), 0f, shadowDy, Colors.BLACK)
             }
            canvas.drawRoundRect(shadowRadius.toFloat(), 0f,
                    width - shadowRadius.toFloat(),
                    height - shadowRadius.toFloat(),
                     cornerRadius.toFloat(), cornerRadius.toFloat(), paint)
             paint.apply {
-                color = Color.WHITE
+                color = Colors.contrastTextColor(toastColor)
                 clearShadowLayer()
             }
             canvas.drawText(toastText, textBounds.startForLeft(shadowRadius + cornerRadius).toFloat(),

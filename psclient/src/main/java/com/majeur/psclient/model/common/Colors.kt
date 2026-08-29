@@ -1,6 +1,7 @@
 package com.majeur.psclient.model.common
 
 import android.graphics.Color
+import androidx.core.graphics.ColorUtils
 
 object Colors {
 
@@ -42,6 +43,10 @@ object Colors {
     const val TYPE_DARK = 0xFF705746.toInt()
     const val TYPE_STEEL = 0xFFB7B7CE.toInt()
     const val TYPE_FAIRY = 0xFFD685AD.toInt()
+
+    /** Black or white, whichever has the higher WCAG contrast against [backgroundColor]. */
+    internal fun contrastTextColor(backgroundColor: Int) =
+            if (ColorUtils.calculateLuminance(backgroundColor) > 0.179) BLACK else WHITE
 
     @JvmStatic
     fun typeColor(type: String?) = when (type) {

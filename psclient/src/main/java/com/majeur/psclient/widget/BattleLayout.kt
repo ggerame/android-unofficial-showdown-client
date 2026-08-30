@@ -29,6 +29,12 @@ import com.majeur.psclient.util.toId
 import timber.log.Timber
 import kotlin.math.roundToInt
 
+internal fun containmentOffset(start: Int, end: Int, containerSize: Int) = when {
+    start < 0 -> -start
+    end > containerSize -> containerSize - end
+    else -> 0
+}
+
 class BattleLayout @JvmOverloads constructor(
         context: Context?,
         attrs: AttributeSet? = null,
@@ -48,7 +54,7 @@ class BattleLayout @JvmOverloads constructor(
             invalidate()
         }
 
-    private val statusBarOffset = dp(18f)
+    private val spriteStatusGap = dp(6f)
     private var p1PreviewTeamSize = 6
     private var p2PreviewTeamSize = 6
     private val imageViewCache = mutableListOf<ImageView>()
@@ -340,10 +346,8 @@ class BattleLayout @JvmOverloads constructor(
             y = yIn - h
         }
         if (fitInParent) {
-            if (x < 0) x = 0
-            if (y < 0) y = 0
-            if (x + w > width) x = width - w
-            if (y + h > height) y = height - h
+            x += containmentOffset(x, x + w, width)
+            y += containmentOffset(y, y + h, height)
         }
         out?.set(x, y)
         child.layout(x, y, x + w, y + h)
@@ -382,42 +386,56 @@ class BattleLayout @JvmOverloads constructor(
         val farImageViews = if (flipped) p1ImageViews else p2ImageViews
         val farStatusViews = if (flipped) p1StatusViews else p2StatusViews
         val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
-        val point = Point()
         val nearPositions = REL_BATTLE_P1_POS[count - 1]
         val farPositions = REL_BATTLE_P2_POS[count - 1]
-        for (i in 0 until count) {
-            point.set((nearPositions[i].x * width).toInt(), (nearPositions[i].y * height).toInt())
-            var cX = point.x
-            var cY = point.y
-            layoutChild(nearImageViews[i], cX, cY, Gravity.CENTER, false, point)
-            // With several Pokémon per side the fixed-width HP bars can't fit side by side, so we
-            // stack them upward into the field. The stagger level is keyed off each sprite's actual
-            // vertical position (not its slot index) so the higher Pokémon always gets the higher
-            // bar — this guarantees the bars never overlap whatever order the anchors are declared in.
-            val nearStatus = nearStatusViews[i]
-            val nearStagger = if (count > 1) staggerLevel(nearPositions, i) * nearStatus.measuredHeight else 0
-            layoutChild(nearStatus, cX, point.y - statusBarOffset - nearStagger - nearStatus.tagOffset,
-                    Gravity.CENTER_HORIZONTAL, true)
-            layoutChild(nearToasterViews[i], cX, cY, Gravity.CENTER, false)
-            val j = count - i - 1
-            point[(farPositions[j].x * width).toInt()] = (farPositions[j].y * height).toInt()
-            cX = point.x
-            cY = point.y
-            layoutChild(farImageViews[j], cX, cY, Gravity.CENTER, false, point)
-            // Same upward stack for the foe side, so the bars sit in the open space above the foe
-            // sprites (which are nudged down a little, see REL_BATTLE_P2_POS) instead of over them.
-            val farStatus = farStatusViews[j]
-            val farStagger = if (count > 1) staggerLevel(farPositions, j) * farStatus.measuredHeight else 0
-            layoutChild(farStatus, cX, point.y - statusBarOffset - farStagger - farStatus.tagOffset,
-                    Gravity.CENTER_HORIZONTAL, true)
-            layoutChild(farToasterViews[j], cX, cY, Gravity.CENTER, false)
-        }
+        layoutBattleSide(count, width, height, nearPositions,
+                nearImageViews, nearStatusViews, nearToasterViews)
+        layoutBattleSide(count, width, height, farPositions,
+                farImageViews, farStatusViews, farToasterViews)
         val nearSideView = if (flipped) p2SideView else p1SideView
         val farSideView = if (flipped) p1SideView else p2SideView
         nearSideView.gravity = Gravity.LEFT
         farSideView.gravity = Gravity.END
         layoutChild(nearSideView, 0, 4 * height / 5, Gravity.CENTER_VERTICAL, true)
         layoutChild(farSideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
+    }
+
+    private fun layoutBattleSide(count: Int, width: Int, height: Int,
+                                 positions: Array<PointF>, imageViews: SparseArray<ImageView>,
+                                 statusViews: SparseArray<StatusView>, toasterViews: SparseArray<ToasterView>) {
+        val centerXs = IntArray(count)
+        val centerYs = IntArray(count)
+        val statusBottoms = IntArray(count)
+        var groupTop = height
+        var groupBottom = 0
+
+        for (i in 0 until count) {
+            val image = imageViews[i]
+            val status = statusViews[i]
+            val toaster = toasterViews[i]
+            val cX = (positions[i].x * width).toInt()
+            val cY = (positions[i].y * height).toInt()
+            val imageTop = cY - image.measuredHeight / 2
+            val imageBottom = imageTop + image.measuredHeight
+            val stagger = if (count > 1) staggerLevel(positions, i) * status.measuredHeight else 0
+            val statusBottom = imageTop - spriteStatusGap - stagger
+            val toasterTop = cY - toaster.measuredHeight / 2
+
+            centerXs[i] = cX
+            centerYs[i] = cY
+            statusBottoms[i] = statusBottom
+            groupTop = minOf(groupTop, statusBottom - status.measuredHeight, imageTop, toasterTop)
+            groupBottom = maxOf(groupBottom, statusBottom, imageBottom,
+                    toasterTop + toaster.measuredHeight)
+        }
+
+        val yOffset = containmentOffset(groupTop, groupBottom, height)
+        for (i in 0 until count) {
+            layoutChild(imageViews[i], centerXs[i], centerYs[i] + yOffset, Gravity.CENTER, false)
+            layoutChild(statusViews[i], centerXs[i], statusBottoms[i] + yOffset,
+                    Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM, true)
+            layoutChild(toasterViews[i], centerXs[i], centerYs[i] + yOffset, Gravity.CENTER, false)
+        }
     }
 
     // How many bar-heights to push this sprite's HP bar upward: equal to the number of sprites on

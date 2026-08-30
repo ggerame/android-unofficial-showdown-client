@@ -2,6 +2,12 @@
 
 All notable changes made are documented here.
 
+## [1.5.2] – Battle status spacing
+
+### Fixed
+- Battle status panels now keep a stable gap from their Pokémon sprites and
+  shift with their side to stay inside the visible battlefield.
+
 ## [1.5.1] – Full-width news banner
 
 ### Changed

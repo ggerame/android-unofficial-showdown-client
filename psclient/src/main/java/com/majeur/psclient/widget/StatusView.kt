@@ -65,11 +65,6 @@ class StatusView(context: Context?) : View(context) {
 
     private val maxTagLineWidth get() = healthBarWidth + healthBarStrokeWidth
 
-    // Distance added above the name/HP block by status tags. BattleLayout subtracts this from the
-    // view's top so tags grow upward without moving the name and HP bar onto the sprite.
-    internal var tagOffset = 0
-        private set
-
     init {
         setPadding(shadowRadius.toInt(), (shadowRadius - shadowDy).roundToInt(), shadowRadius.toInt(),
                 (shadowRadius + shadowDy).roundToInt())
@@ -162,7 +157,6 @@ class StatusView(context: Context?) : View(context) {
     }
 
     private fun drawContent(canvas: Canvas?, drawingRect: Rect) {
-        tagOffset = 0
         if (label.isBlank()) return  // Nothing to draw
 
         drawTags(canvas, paddingLeft, paddingTop, tempRect.apply { setEmpty() })
@@ -170,7 +164,6 @@ class StatusView(context: Context?) : View(context) {
             drawingRect.set(tempRect)
             tempRect.bottom + verticalSpacing / 2
         }
-        tagOffset = labelTop - paddingTop
 
         drawLabelText(canvas, paddingLeft, labelTop, tempRect.apply { setEmpty() })
         if (drawingRect.isEmpty) drawingRect.set(tempRect) else drawingRect.union(tempRect)

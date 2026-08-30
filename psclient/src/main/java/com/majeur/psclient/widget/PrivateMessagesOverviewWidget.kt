@@ -94,8 +94,9 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
 
     private fun updateViewForEntry(entry: Entry) {
         val view = children.first { it.tag == entry } as ViewGroup
+        view.findViewById<TextView>(R.id.username).text = entry.with
         val label = view.findViewById<TextView>(R.id.label)
-        label.text = entry.with.bold()
+        label.text = ""
         val button = view.findViewById<MaterialButton>(R.id.button_challenge)
         val rejectButton = view.findViewById<MaterialButton>(R.id.button_reject)
         button.text = "Challenge" // Default behaviour: challenging a user we are private chatting with
@@ -109,12 +110,13 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
                 button.text = "Accept"
                 button.isEnabled = true
                 rejectButton.visibility = View.VISIBLE
-                label.append(" wants to battle!".color(colorSecondary).small() concat
+                label.append("Wants to battle!".color(colorSecondary).small() concat
                         "\n" concat resolveFormat(entry.challengeFormat!!).small())
             }
         }
         if (entry.pmCount > 0) { // If we have pms show this in view
-            label.append("\n" concat "${entry.pmCount} message(s)".small().italic())
+            if (label.length() > 0) label.append("\n")
+            label.append("${entry.pmCount} message(s)".small().italic())
         }
     }
 

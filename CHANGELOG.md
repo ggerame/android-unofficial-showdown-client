@@ -14,6 +14,10 @@ All notable changes made are documented here.
 - Sign-in now tracks whether the current name is temporary or belongs to an
   authenticated account, while preserving the existing Choose name flow.
 
+### Fixed
+- Private-message and challenge cards now keep the username visible above
+  their message count, battle format and action buttons.
+
 ## [1.5.2] – Home backgrounds and battle spacing
 
 ### Added

@@ -108,6 +108,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         inactiveBattleOverlayDrawable = InactiveBattleOverlayDrawable(resources)
         binding.apply {
             battleLayout.hazardBitmapLoader = { file, callback -> glideHelper.loadFieldFxBitmap(file, callback) }
+            val messageMargins = battleMessage.layoutParams as ViewGroup.MarginLayoutParams
+            battleLayout.nearOverlayInset = battleMessage.lineHeight * battleMessage.maxLines +
+                    battleMessage.compoundPaddingTop + battleMessage.compoundPaddingBottom +
+                    messageMargins.bottomMargin + this@BattleFragment.dp(6f)
             battleLog.movementMethod = LinkMovementMethod()
             battleLog.setText("", TextView.BufferType.EDITABLE) // Setting the editable buffer type
             overlayImage.setImageDrawable(inactiveBattleOverlayDrawable)

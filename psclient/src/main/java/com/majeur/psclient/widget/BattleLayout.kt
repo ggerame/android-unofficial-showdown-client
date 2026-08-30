@@ -55,6 +55,13 @@ class BattleLayout @JvmOverloads constructor(
         }
 
     private val spriteStatusGap = dp(6f)
+    internal var nearOverlayInset = 0
+        set(value) {
+            val inset = value.coerceAtLeast(0)
+            if (field == inset) return
+            field = inset
+            requestLayout()
+        }
     private var p1PreviewTeamSize = 6
     private var p2PreviewTeamSize = 6
     private val imageViewCache = mutableListOf<ImageView>()
@@ -388,9 +395,9 @@ class BattleLayout @JvmOverloads constructor(
         val farToasterViews = if (flipped) p1ToasterViews else p2ToasterViews
         val nearPositions = REL_BATTLE_P1_POS[count - 1]
         val farPositions = REL_BATTLE_P2_POS[count - 1]
-        layoutBattleSide(count, width, height, nearPositions,
+        layoutBattleSide(count, width, height, (height - nearOverlayInset).coerceAtLeast(0), nearPositions,
                 nearImageViews, nearStatusViews, nearToasterViews)
-        layoutBattleSide(count, width, height, farPositions,
+        layoutBattleSide(count, width, height, height, farPositions,
                 farImageViews, farStatusViews, farToasterViews)
         val nearSideView = if (flipped) p2SideView else p1SideView
         val farSideView = if (flipped) p1SideView else p2SideView
@@ -400,7 +407,7 @@ class BattleLayout @JvmOverloads constructor(
         layoutChild(farSideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
     }
 
-    private fun layoutBattleSide(count: Int, width: Int, height: Int,
+    private fun layoutBattleSide(count: Int, width: Int, height: Int, visibleBottom: Int,
                                  positions: Array<PointF>, imageViews: SparseArray<ImageView>,
                                  statusViews: SparseArray<StatusView>, toasterViews: SparseArray<ToasterView>) {
         val centerXs = IntArray(count)
@@ -429,7 +436,7 @@ class BattleLayout @JvmOverloads constructor(
                     toasterTop + toaster.measuredHeight)
         }
 
-        val yOffset = containmentOffset(groupTop, groupBottom, height)
+        val yOffset = containmentOffset(groupTop, groupBottom, visibleBottom)
         for (i in 0 until count) {
             layoutChild(imageViews[i], centerXs[i], centerYs[i] + yOffset, Gravity.CENTER, false)
             layoutChild(statusViews[i], centerXs[i], statusBottoms[i] + yOffset,

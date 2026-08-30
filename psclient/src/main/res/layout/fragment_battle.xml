@@ -61,6 +61,8 @@
         android:elevation="4dp"
         android:background="@drawable/bg_battle_message"
         android:textColor="@android:color/white"
+        android:maxLines="2"
+        android:ellipsize="end"
         android:alpha="0"/>
 
     <com.majeur.psclient.widget.BattleDecisionWidget

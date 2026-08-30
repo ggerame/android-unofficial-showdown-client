@@ -7,6 +7,8 @@ All notable changes made are documented here.
 ### Fixed
 - Battle status panels now keep a stable gap from their Pokémon sprites and
   shift with their side to stay inside the visible battlefield.
+- Battle action messages now reserve a stable two-line safe area above the
+  player's panel instead of covering the near-side Pokémon.
 
 ## [1.5.1] – Full-width news banner
 

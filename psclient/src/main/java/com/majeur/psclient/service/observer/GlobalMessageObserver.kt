@@ -89,6 +89,7 @@ class GlobalMessageObserver(service: ShowdownService)
         var avatar = msg.nextArg
         avatar = "000$avatar".substring(avatar.length)
         isUserGuest = isGuest
+        if (isGuest) service.markCurrentUserAsGuest()
         onUserChanged(username, isGuest, avatar)
 
         // Update server counts (active battle and active users)

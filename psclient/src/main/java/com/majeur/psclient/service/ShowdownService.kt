@@ -11,6 +11,7 @@ import com.majeur.psclient.service.observer.ChatRoomMessageObserver
 import com.majeur.psclient.service.observer.GlobalMessageObserver
 import com.majeur.psclient.model.common.TeamValidationResult
 import com.majeur.psclient.model.common.RemoteTeamSummary
+import com.majeur.psclient.util.toId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -52,6 +53,12 @@ class ShowdownService : Service() {
     private val sharedData = mutableMapOf<String, Any?>()
     private var webSocket: WebSocket? = null
     private var _connected = AtomicBoolean(false)
+    private val registrationInProgress = AtomicBoolean(false)
+    @Volatile
+    var isCurrentUserRegistered: Boolean? = null
+        private set
+    @Volatile
+    private var pendingRegistrationOfferUsername: String? = null
     private var validationCallback: ((TeamValidationResult) -> Unit)? = null
     private var teamCommandCallback: ((Boolean, String) -> Unit)? = null
     private val validationTimeout = Runnable {
@@ -127,11 +134,30 @@ class ShowdownService : Service() {
     }
 
     fun disconnectFromServer() {
+        clearCurrentAccountState()
         if (!isConnected) return
         Timber.d("Attempting to close WS connection.")
         webSocket?.close(WS_CLOSE_NORMAL, "Normal closure")
         sharedData.clear()
         finishValidation(TeamValidationResult(false, "Disconnected before team validation completed"))
+    }
+
+    fun offerRegistrationFor(username: String) {
+        pendingRegistrationOfferUsername = username.toId()
+                .takeIf { it.isNotEmpty() && isCurrentUserRegistered == false }
+    }
+
+    fun consumeRegistrationOffer(username: String): Boolean {
+        val offeredUsername = pendingRegistrationOfferUsername ?: return false
+        pendingRegistrationOfferUsername = null
+        return isCurrentUserRegistered == false && offeredUsername == username.toId()
+    }
+
+    internal fun markCurrentUserAsGuest() = clearCurrentAccountState()
+
+    private fun clearCurrentAccountState() {
+        isCurrentUserRegistered = null
+        pendingRegistrationOfferUsername = null
     }
 
     fun sendTrnMessage(userName: String, assertion: String) {
@@ -321,6 +347,7 @@ class ShowdownService : Service() {
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             Timber.tag("WebSocket[ERR]").w(t)
             isConnected = false
+            clearCurrentAccountState()
             this@ShowdownService.webSocket = null
             uiHandler.post {
                 dispatchMessage(ServerMessage("lobby", "|networkerror|"))
@@ -330,6 +357,7 @@ class ShowdownService : Service() {
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             Timber.tag("WebSocket[CLOSED]").i(reason)
             isConnected = false
+            clearCurrentAccountState()
             this@ShowdownService.webSocket = null
         }
     }
@@ -355,10 +383,11 @@ class ShowdownService : Service() {
                     }
                     try {
                         val resultJson = JSONObject(rawResponse.removePrefix("]"))
-                        if (resultJson.optBoolean("loggedin"))
+                        if (resultJson.optBoolean("loggedin")) {
+                            isCurrentUserRegistered = true
                             sendTrnMessage(resultJson.getString("username"),
                                     resultJson.getString("assertion"))
-                        else
+                        } else
                             tryUsernameSignIn()
                     } catch (e: JSONException) {
                         Timber.e(e, "Error while parsing assertion json.")
@@ -380,7 +409,7 @@ class ShowdownService : Service() {
         val username = getSharedPreferences("user", Context.MODE_PRIVATE)
                 .getString("username", null) ?: return
         attemptSignIn(username, object : AttemptSignInCallback {
-            override fun onSuccess() {}
+            override fun onSuccess(isRegistered: Boolean) {}
             override fun onAuthenticationRequired() {}
             override fun onError(reason: String) {}
         })
@@ -425,9 +454,10 @@ class ShowdownService : Service() {
                         uiHandler.post { callback.onError(errorReason) }
                     }
                     else -> {
+                        isCurrentUserRegistered = false
                         sendTrnMessage(username, rawResponse)
                         storeAuthCookieIfAny(response.headers("Set-Cookie"))
-                        uiHandler.post { callback.onSuccess() }
+                        uiHandler.post { callback.onSuccess(false) }
                     }
                 }
             }
@@ -463,9 +493,10 @@ class ShowdownService : Service() {
                     val json = JSONObject(rawResponse.removePrefix("]"))
                     if (json.optJSONObject("curuser")?.optBoolean("loggedin") == true) {
                         // success!
+                        isCurrentUserRegistered = true
                         storeAuthCookieIfAny(response.headers("Set-Cookie"))
                         sendTrnMessage(username, json.getString("assertion"))
-                        uiHandler.post { callback.onSuccess() }
+                        uiHandler.post { callback.onSuccess(true) }
                         return
                     }
                 } catch (e: JSONException) {
@@ -481,6 +512,88 @@ class ShowdownService : Service() {
         })
     }
 
+    fun attemptRegistration(
+            username: String,
+            password: String,
+            captcha: String,
+            callback: AttemptRegistrationCallback
+    ) {
+        val challenge = getSharedData<String>("challenge")
+        val currentUsername = globalMessageObserver.myUsername
+        val sessionError = when {
+            !isConnected -> "You are no longer connected to Pokémon Showdown."
+            challenge.isNullOrBlank() -> "The login challenge is no longer available."
+            isCurrentUserRegistered != false -> "This name is no longer available for registration."
+            currentUsername == null || currentUsername.toId() != username.toId() ->
+                "Your current name has changed. Reopen registration and try again."
+            !registrationInProgress.compareAndSet(false, true) -> "Registration is already in progress."
+            else -> null
+        }
+        if (sessionError != null) {
+            uiHandler.post { callback.onError(sessionError) }
+            return
+        }
+
+        val body = FormBody.Builder()
+                .add("act", "register")
+                .add("username", username)
+                .add("password", password)
+                .add("cpassword", password)
+                .add("captcha", captcha)
+                .add("challstr", challenge!!)
+                .build()
+        val request = Request.Builder()
+                .url(showdownActionServerUrl)
+                .post(body)
+                .build()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                val rawResponse = response.body.string()
+                try {
+                    val json = JSONObject(rawResponse.removePrefix("]"))
+                    val actionError = json.optString("actionerror")
+                    val currentUser = json.optJSONObject("curuser")
+                    val assertion = json.optString("assertion")
+                    if (actionError.isNotBlank()) {
+                        finishRegistration(callback, actionError)
+                    } else if (currentUser?.optBoolean("loggedin") == true && assertion.isNotBlank()) {
+                        val registeredUsername = currentUser.optString("username", username)
+                        storeAuthCookieIfAny(response.headers("Set-Cookie"))
+                        val sessionStillMatches = isConnected &&
+                                getSharedData<String>("challenge") == challenge &&
+                                isCurrentUserRegistered == false &&
+                                globalMessageObserver.myUsername?.toId() == username.toId()
+                        if (sessionStillMatches) {
+                            isCurrentUserRegistered = true
+                            pendingRegistrationOfferUsername = null
+                            sendTrnMessage(registeredUsername, assertion)
+                        }
+                        registrationInProgress.set(false)
+                        uiHandler.post { callback.onSuccess() }
+                    } else {
+                        finishRegistration(callback, "The login server could not register this name.")
+                    }
+                } catch (e: JSONException) {
+                    Timber.e(e, "Error while parsing registration result json.")
+                    finishRegistration(callback, "The login server returned an invalid response.")
+                } catch (e: IOException) {
+                    Timber.e(e, "Could not read registration result.")
+                    finishRegistration(callback, "An error occurred with your internet connection.")
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                Timber.e(e, "Registration call failed.")
+                finishRegistration(callback, "An error occurred with your internet connection.")
+            }
+        })
+    }
+
+    private fun finishRegistration(callback: AttemptRegistrationCallback, error: String) {
+        registrationInProgress.set(false)
+        uiHandler.post { callback.onError(error) }
+    }
+
     private val actionServerUrl: HttpUrl.Builder
         get() = HttpUrl.Builder()
                 .scheme("https")
@@ -489,6 +602,14 @@ class ShowdownService : Service() {
 
     private val actionServerUrlWithChallenge: HttpUrl.Builder
         get() = actionServerUrl.addQueryParameter("challstr", getSharedData<String>("challenge"))
+
+    private val showdownActionServerUrl: HttpUrl
+        get() = HttpUrl.Builder()
+                .scheme("https")
+                .host("play.pokemonshowdown.com")
+                .addPathSegment("~~showdown")
+                .addPathSegment("action.php")
+                .build()
 
 
     private fun storeAuthCookieIfAny(cookies: List<String>) {
@@ -504,7 +625,10 @@ class ShowdownService : Service() {
                 String(Base64.decode(it, Base64.DEFAULT))
             }
 
-    fun forgetUserLoginInfos() = getSharedPreferences("user", Context.MODE_PRIVATE).edit().clear().apply()
+    fun forgetUserLoginInfos() {
+        clearCurrentAccountState()
+        getSharedPreferences("user", Context.MODE_PRIVATE).edit().clear().apply()
+    }
 
     suspend fun retrieveReplayList(username: String, format: String, page: Int = 0): JSONArray? {
         val url = HttpUrl.Builder().run {
@@ -585,9 +709,14 @@ class ShowdownService : Service() {
     }
 
     interface AttemptSignInCallback {
-        fun onSuccess()
+        fun onSuccess(isRegistered: Boolean)
         fun onError(reason: String)
         fun onAuthenticationRequired()
+    }
+
+    interface AttemptRegistrationCallback {
+        fun onSuccess()
+        fun onError(reason: String)
     }
 }
 

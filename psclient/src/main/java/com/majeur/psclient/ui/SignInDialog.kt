@@ -21,6 +21,7 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
 
     private var service: ShowdownService? = null
     private var requirePassword = false
+    private var attemptedUsername: String? = null
 
     private var _binding: DialogSignInBinding? = null
     private val binding get() = _binding!!
@@ -79,6 +80,7 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
     override fun onClick(view: View) {
         if (!binding.button.isEnabled) return
         binding.cancelButton.isEnabled = false
+        attemptedUsername = binding.username.text.toString()
         if (requirePassword) {
             if (!binding.password.text.isNullOrEmpty()) {
                 binding.password.isEnabled = false
@@ -99,7 +101,8 @@ class SignInDialog : DialogFragment(), View.OnClickListener, AttemptSignInCallba
         }
     }
 
-    override fun onSuccess() {
+    override fun onSuccess(isRegistered: Boolean) {
+        if (!isRegistered) attemptedUsername?.let { service?.offerRegistrationFor(it) }
         if (_binding == null) return
         isCancelable = true
         binding.usernameContainer.isErrorEnabled = false

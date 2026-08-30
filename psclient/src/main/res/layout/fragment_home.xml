@@ -83,25 +83,25 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <ImageButton
-                            android:id="@+id/login_button"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/sign_in_or_out"
-                            android:padding="12dp"
-                            app:tint="?attr/colorOnSurface" />
-
-                        <TextView
-                            android:id="@+id/username"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/account_button"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
                             android:layout_weight="1"
                             android:ellipsize="end"
-                            android:maxLines="1"
+                            android:enabled="false"
+                            android:gravity="start|center_vertical"
+                            android:maxLines="2"
+                            android:minHeight="56dp"
+                            android:text="@string/sign_in"
+                            android:textAllCaps="false"
                             android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                            android:textColor="?attr/colorOnSurface" />
+                            android:textColor="?attr/colorOnSurface"
+                            app:icon="@drawable/ic_account"
+                            app:iconGravity="textStart"
+                            app:iconPadding="12dp"
+                            app:iconTint="?attr/colorOnSurface" />
 
                         <ImageButton
                             android:id="@+id/background_button"

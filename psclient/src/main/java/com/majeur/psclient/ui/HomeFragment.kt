@@ -166,19 +166,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         binding.battlesCount.apply {
             text = "-".bold() concat "\nactive battles".small()
         }
-        binding.username.apply {
+        binding.accountButton.apply {
             text = getString(R.string.sign_in).bold()
             setOnClickListener(this@HomeFragment)
+            contentDescription = getString(R.string.sign_in_title)
             setOnLongClickListener {
                 if (fullUsername.isNotEmpty())
                     android.widget.Toast.makeText(context, fullUsername, android.widget.Toast.LENGTH_LONG).show()
                 true
             }
-        }
-        binding.loginButton.apply {
-            isEnabled = false
-            setImageResource(R.drawable.ic_login)
-            setOnClickListener(this@HomeFragment)
         }
         binding.backgroundButton.setOnClickListener { showBackgroundPicker() }
         childFragmentManager.setFragmentResultListener(
@@ -187,6 +183,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     ?: return@setFragmentResultListener
             battleFormats.orEmpty().asSequence().flatMap { it.formats.asSequence() }
                     .firstOrNull { it.id == formatId }?.let(::setCurrentBattleFormat)
+        }
+        childFragmentManager.setFragmentResultListener(
+                RegisterAccountDialog.RESULT_KEY, viewLifecycleOwner) { _, _ ->
+            makeSnackbar(getString(R.string.registration_success))
         }
         binding.formatsSelector.setOnClickListener {
             val formats = battleFormats.orEmpty()
@@ -267,13 +267,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     override fun onClick(view: View) {
         if (service?.isConnected != true) return
         when (view) {
-            binding.loginButton, binding.username -> {
-                if (observer.isUserGuest) {
-                    promptUserSignIn()
-                } else {
-                    service?.sendGlobalCommand("logout")
-                    service?.forgetUserLoginInfos()
-                }
+            binding.accountButton -> when {
+                observer.isUserGuest -> promptUserSignIn()
+                else -> showAccountActions()
             }
             binding.searchButton -> {
                 if (observer.isUserGuest) {
@@ -372,6 +368,33 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private fun promptUserSignIn() {
         if (childFragmentManager.findFragmentByTag(SignInDialog.FRAGMENT_TAG) == null)
             SignInDialog().show(childFragmentManager, SignInDialog.FRAGMENT_TAG)
+    }
+
+    private fun showAccountActions() {
+        val canRegister = service?.isCurrentUserRegistered == false
+        val actions = if (canRegister)
+            arrayOf(getString(R.string.register_this_name), getString(R.string.log_out))
+        else
+            arrayOf(getString(R.string.log_out))
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(fullUsername)
+                .setItems(actions) { _, which ->
+                    if (canRegister && which == 0) showRegistrationDialog(fullUsername) else logOut()
+                }
+                .show()
+    }
+
+    private fun showRegistrationDialog(username: String) {
+        if (username.isNotBlank() &&
+                childFragmentManager.findFragmentByTag(RegisterAccountDialog.TAG) == null) {
+            RegisterAccountDialog.newInstance(username)
+                    .show(childFragmentManager, RegisterAccountDialog.TAG)
+        }
+    }
+
+    private fun logOut() {
+        service?.sendGlobalCommand("logout")
+        service?.forgetUserLoginInfos()
     }
 
     private fun openUrl(url: String, useChrome: Boolean) {
@@ -659,21 +682,31 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onUserChanged(userName: String, isGuest: Boolean, avatarId: String) {
+        val previousUsername = fullUsername
         fullUsername = if (isGuest) "" else userName
-        binding.username.apply {
+        binding.accountButton.apply {
             if (isGuest) {
                 text = getString(R.string.sign_in).bold()
+                contentDescription = getString(R.string.sign_in_title)
             } else {
-                text = "Connected as ".small()
-                append(userName.truncate(10).bold())
+                val isTemporary = service?.isCurrentUserRegistered == false
+                text = getString(if (isTemporary) R.string.temporary_name else R.string.connected_as).small()
+                append("\n")
+                append(userName.bold())
+                contentDescription = getString(
+                        if (isTemporary) R.string.temporary_account_actions
+                        else R.string.registered_account_actions,
+                        userName)
             }
+            isEnabled = true
         }
-        binding.loginButton.isEnabled = true
-        if (isGuest) {
-            binding.loginButton.setImageResource(R.drawable.ic_login)
-        } else {
-            binding.loginButton.setImageResource(R.drawable.ic_logout)
-            makeSnackbar("Connected as $userName")
+        if (!isGuest) {
+            when {
+                service?.consumeRegistrationOffer(userName) == true -> makeSnackbar(
+                        getString(R.string.register_name_prompt),
+                        action = getString(R.string.register) to { showRegistrationDialog(userName) })
+                previousUsername.toId() != userName.toId() -> makeSnackbar("Connected as $userName")
+            }
         }
         val signInDialog = childFragmentManager.findFragmentByTag(SignInDialog.FRAGMENT_TAG) as SignInDialog?
         signInDialog?.dismissAllowingStateLoss()

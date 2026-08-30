@@ -2,6 +2,18 @@
 
 All notable changes made are documented here.
 
+## [1.5.3] – In-app account registration
+
+### Added
+- Available Showdown names can now be registered directly in the app with a
+  password and the official Pokémon anti-spam check.
+- Temporary names offer registration after sign-in and from the account menu
+  until the name is protected.
+
+### Changed
+- Sign-in now tracks whether the current name is temporary or belongs to an
+  authenticated account, while preserving the existing Choose name flow.
+
 ## [1.5.2] – Home backgrounds and battle spacing
 
 ### Added

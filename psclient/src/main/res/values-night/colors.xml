@@ -17,4 +17,6 @@
     <color name="outline">#A08D84</color>
 
     <color name="battle_overlay">#C6000000</color>
+    <color name="home_neutral_background">#1A1110</color>
+    <color name="home_background_scrim">#C6000000</color>
 </resources>

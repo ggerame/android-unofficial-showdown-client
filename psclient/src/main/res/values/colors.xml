@@ -23,4 +23,6 @@
     <color name="divider">#BDBDBD</color>
     <color name="battle_overlay">#c6f5f5f5</color>
     <color name="battle_message_bg">#e537474f</color>
+    <color name="home_neutral_background">#FFF8F5</color>
+    <color name="home_background_scrim">#00000000</color>
 </resources>

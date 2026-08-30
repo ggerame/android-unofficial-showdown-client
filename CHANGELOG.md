@@ -2,9 +2,29 @@
 
 All notable changes made are documented here.
 
-## [1.5.2] – Battle status spacing
+## [1.5.2] – Home backgrounds and battle spacing
+
+### Added
+- The Home background picker can now use random artwork, select Horizon, Ocean,
+  Shaymin or Charizards directly, or switch to an adaptive Material neutral
+  surface, with the choice remembered across app restarts.
+
+### Changed
+- All four official Showdown backgrounds are bundled for immediate offline use.
+  Random artwork changes once per app launch without repeating the previous
+  random result, while retaining the dark-theme dimming.
+- Home cards now use the available height more evenly on tall phones and
+  tablets while remaining scrollable on compact screens.
 
 ### Fixed
+- Startup no longer crashes when Android temporarily blocks the connection
+  service from being kept alive while the app is backgrounded.
+- Home no longer flashes Charizards while another randomly selected artwork is
+  loading.
+- Fixed an intermittent startup crash when Home restored battle state before
+  the battle screen received its service connection.
+- Home backgrounds now reach the bottom navigation without exposing a neutral
+  strip below the artwork.
 - Battle status panels now keep a stable gap from their Pokémon sprites and
   shift with their side to stay inside the visible battlefield.
 - Battle action messages now reserve a stable two-line safe area above the

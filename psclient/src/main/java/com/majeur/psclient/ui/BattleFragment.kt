@@ -79,8 +79,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             observer.observedRoomId = observedRoomId
         }
 
-    val battleRunning get() = observer.battleRunning
-    val isReplay get() = observer.isReplay
+    val battleRunning get() = service?.battleMessageObserver?.battleRunning == true
+    val isReplay get() = service?.battleMessageObserver?.isReplay == true
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

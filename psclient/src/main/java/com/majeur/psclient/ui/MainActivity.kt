@@ -112,9 +112,13 @@ class MainActivity : AppCompatActivity() {
         setSelectedNavigationItem(selectedId)
 
         showdownServiceIntent = Intent(this, ShowdownService::class.java)
-        startService(showdownServiceIntent)
         canUnbindService = bindService(showdownServiceIntent, serviceConnection,
                 Context.BIND_AUTO_CREATE)
+        try {
+            startService(showdownServiceIntent)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "Unable to keep ShowdownService alive while app is backgrounded")
+        }
 
         val uri = intent?.data ?: return
         handleUriNavigation(uri)

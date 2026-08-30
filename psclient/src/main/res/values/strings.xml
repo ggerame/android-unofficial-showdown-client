@@ -39,6 +39,14 @@
     <string name="team">Team</string>
     <string name="battle">Battle!</string>
     <string name="toggle_sound">Toggle battle sound</string>
+    <string name="change_home_background">Change Home background</string>
+    <string name="background">Background</string>
+    <string name="background_random">Random artwork</string>
+    <string name="background_horizon">Horizon</string>
+    <string name="background_ocean">Ocean</string>
+    <string name="background_shaymin">Shaymin</string>
+    <string name="background_charizards">Charizards</string>
+    <string name="background_neutral">Material neutral</string>
     <string name="current_battles">You are currently in:</string>
     <string name="find_user">Find a user</string>
     <string name="watch_battle">Watch a battle</string>

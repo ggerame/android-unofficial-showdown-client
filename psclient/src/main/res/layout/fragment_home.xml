@@ -3,14 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
+    android:background="@color/home_neutral_background"
     android:fillViewport="true"
-    android:paddingBottom="16dp"
     android:scrollbars="none">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/home_background"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="@null"
+            android:foreground="@color/home_background_scrim"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/news_banner"
@@ -43,12 +55,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center_horizontal"
             android:orientation="vertical"
             app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/news_banner"
+            app:layout_constraintVertical_bias="0.45"
             app:layout_constraintWidth_max="600dp">
 
             <com.google.android.material.card.MaterialCardView
@@ -87,6 +102,16 @@
                             android:maxLines="1"
                             android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                             android:textColor="?attr/colorOnSurface" />
+
+                        <ImageButton
+                            android:id="@+id/background_button"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/change_home_background"
+                            android:padding="12dp"
+                            android:src="@drawable/ic_wallpaper"
+                            app:tint="?attr/colorOnSurface" />
                     </LinearLayout>
 
                     <LinearLayout

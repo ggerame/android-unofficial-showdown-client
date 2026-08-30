@@ -90,6 +90,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
 
     override fun onDestroyView() {
         super.onDestroyView()
+        mainActivity.glideHelper.clear(binding.homeBackground)
         _binding = null
         service?.globalMessageObserver?.uiCallbacks = null
     }
@@ -106,9 +107,58 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         snackbar.show()
     }
 
+    private fun resolveHomeBackground(background: HomeBackground): HomeBackground {
+        if (background != HomeBackground.RANDOM) return background
+        return randomHomeBackground ?: chooseHomeArtwork(
+                Preferences.getLastRandomHomeBackground(requireContext())).also {
+            randomHomeBackground = it
+            Preferences.setLastRandomHomeBackground(requireContext(), it)
+        }
+    }
+
+    private fun applyHomeBackground(background: HomeBackground) = binding.homeBackground.apply {
+        val drawable = when (resolveHomeBackground(background)) {
+            HomeBackground.HORIZON -> R.drawable.client_bg_horizon
+            HomeBackground.OCEAN -> R.drawable.client_bg_ocean
+            HomeBackground.SHAYMIN -> R.drawable.client_bg_shaymin
+            HomeBackground.CHARIZARDS -> R.drawable.client_bg
+            else -> null
+        }
+        visibility = if (drawable != null) View.VISIBLE else View.GONE
+        if (drawable != null) {
+            mainActivity.glideHelper.loadHomeBackground(drawable, this)
+        } else {
+            mainActivity.glideHelper.clear(this)
+            setImageDrawable(null)
+        }
+    }
+
+    private fun showBackgroundPicker() {
+        val context = requireContext()
+        val backgrounds = HomeBackground.entries.toTypedArray()
+        val choices = arrayOf(
+                getString(R.string.background_random),
+                getString(R.string.background_horizon),
+                getString(R.string.background_ocean),
+                getString(R.string.background_shaymin),
+                getString(R.string.background_charizards),
+                getString(R.string.background_neutral))
+        MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.background)
+                .setSingleChoiceItems(choices,
+                        backgrounds.indexOf(Preferences.getHomeBackground(context))) { dialog, which ->
+                    val background = backgrounds[which]
+                    Preferences.setHomeBackground(context, background)
+                    applyHomeBackground(background)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.root.background = BackgroundBitmapDrawable(resources, R.drawable.client_bg)
+        applyHomeBackground(Preferences.getHomeBackground(requireContext()))
         binding.usersCount.apply {
             text = "-".bold()
             append("\nusers online".small())
@@ -130,6 +180,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             setImageResource(R.drawable.ic_login)
             setOnClickListener(this@HomeFragment)
         }
+        binding.backgroundButton.setOnClickListener { showBackgroundPicker() }
         childFragmentManager.setFragmentResultListener(
                 FormatPickerDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
             val formatId = result.getString(FormatPickerDialogFragment.RESULT_FORMAT_ID)
@@ -933,5 +984,6 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         private const val URL_BUG_REPORT_GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSfvaHpKtRhN-naHtmaIongBRzjU0rmPXu770tvjseWUNky48Q/viewform?usp=send_form"
         private const val URL_SMOGON_THREAD = "https://www.smogon.com/forums/threads/02-23-alpha06-unofficial-showdown-android-client.3654298/"
         private val USERNAME_REGEX = "[{}:\",|\\[\\]]".toRegex()
+        private var randomHomeBackground: HomeBackground? = null
     }
 }

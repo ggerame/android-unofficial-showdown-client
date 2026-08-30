@@ -9,6 +9,7 @@ import android.view.ViewPropertyAnimator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
+import androidx.annotation.DrawableRes
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
@@ -83,6 +84,14 @@ class GlideHelper(context: Context) {
 
     private val glide = Glide.with(context)
     private val resources = context.resources
+
+    fun loadHomeBackground(@DrawableRes background: Int, imageView: ImageView) {
+        glide.load(background)
+                .apply(RequestOptions().centerCrop())
+                .into(imageView)
+    }
+
+    fun clear(imageView: ImageView) = glide.clear(imageView)
 
     fun loadBattleBackground(roomId: String?, imageView: ImageView) {
         val uri = Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")

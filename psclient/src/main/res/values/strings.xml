@@ -4,6 +4,7 @@
     <string name="search_formats">Search formats</string>
     <string name="no_formats_found">No formats found</string>
     <string name="format_section_other">Other</string>
+    <string name="format_section_all">All formats</string>
     <string name="team_name">Team name</string>
     <string name="format">Format</string>
     <string name="add_pokemon">Add Pokémon</string>
@@ -51,7 +52,44 @@
     <string name="watch_battle">Watch a battle</string>
     <string name="search_replays">Search replays</string>
     <string name="search">Search</string>
+    <string name="searching">Searching…</string>
+    <string name="all_formats">All formats</string>
+    <string name="no_formats_available">Connect to Pokémon Showdown to load the format catalog.</string>
     <string name="username_prefix">Username prefix</string>
+    <string name="minimum_elo">Minimum Elo</string>
+    <string name="no_minimum_elo">No minimum Elo</string>
+    <string name="battle_search_loading">Loading active battles…</string>
+    <string name="battle_search_empty">No active battles match these filters.</string>
+    <string name="battle_search_error">Couldn’t load active battles. Check the connection and retry.</string>
+    <plurals name="battle_results_count">
+        <item quantity="one">%d active battle</item>
+        <item quantity="other">%d active battles</item>
+    </plurals>
+    <string name="replay_usernames">Username(s)</string>
+    <string name="replay_usernames_help">One username, or two separated by a comma</string>
+    <string name="replay_too_many_users">Enter no more than two usernames</string>
+    <string name="replay_search_loading">Loading replays…</string>
+    <string name="replay_search_empty">No public replays match these filters.</string>
+    <string name="replay_search_error">Couldn’t load replays. Check the connection and retry.</string>
+    <plurals name="replay_results_count">
+        <item quantity="one">%d replay</item>
+        <item quantity="other">%d replays</item>
+    </plurals>
+    <string name="more">More</string>
+    <string name="loading_more">Loading…</string>
+    <string name="rating_label">Rating %1$s</string>
+    <plurals name="minutes_ago">
+        <item quantity="one">%d minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    <plurals name="hours_ago">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <plurals name="days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
     <string name="news">News</string>
     <string name="report_bug">Report a bug</string>
     <string name="species">Species</string>

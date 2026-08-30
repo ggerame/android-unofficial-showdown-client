@@ -24,6 +24,22 @@ import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal fun buildReplaySearchUrl(usernames: List<String>, format: String, page: Int): HttpUrl {
+    require(page >= 1) { "Replay pages are 1-based" }
+    val users = usernames.filter(String::isNotBlank)
+    require(users.size <= 2) { "At most two replay usernames are supported" }
+    return HttpUrl.Builder().run {
+        scheme("https")
+        host("replay.pokemonshowdown.com")
+        addPathSegment("search.json")
+        users.getOrNull(0)?.let { addQueryParameter("user", it) }
+        users.getOrNull(1)?.let { addQueryParameter("user2", it) }
+        if (format.isNotBlank()) addQueryParameter("format", format)
+        addQueryParameter("page", page.toString())
+        build()
+    }
+}
+
 class ShowdownService : Service() {
 
     companion object {
@@ -630,16 +646,8 @@ class ShowdownService : Service() {
         getSharedPreferences("user", Context.MODE_PRIVATE).edit().clear().apply()
     }
 
-    suspend fun retrieveReplayList(username: String, format: String, page: Int = 0): JSONArray? {
-        val url = HttpUrl.Builder().run {
-            scheme("https")
-            host("replay.pokemonshowdown.com")
-            addPathSegment("search.json")
-            if (username.isNotBlank()) addQueryParameter("user", username)
-            if (format.isNotBlank()) addQueryParameter("format", format)
-            if (page > 0) addQueryParameter("page", page.toString())
-            build()
-        }
+    suspend fun retrieveReplayList(usernames: List<String>, format: String, page: Int = 1): JSONArray? {
+        val url = buildReplaySearchUrl(usernames, format, page)
         val rawJson = rawCall(url) ?: ""
         return try {
             JSONArray(rawJson)

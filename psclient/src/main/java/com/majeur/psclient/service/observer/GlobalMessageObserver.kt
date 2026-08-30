@@ -149,26 +149,8 @@ class GlobalMessageObserver(service: ShowdownService)
         }
     }
 
-    private fun processRoomListQueryResponse(response: String) {
-        try {
-            val battleRooms = mutableListOf<BattleRoomInfo>()
-            val jsonObject = JSONObject(response).getJSONObject("rooms")
-            val iterator = jsonObject.keys()
-            while (iterator.hasNext()) {
-                val roomId = iterator.next()
-                val roomJson = jsonObject.getJSONObject(roomId)
-                val roomPlayers = roomJson.optJSONArray("players")
-                val rp1 = roomPlayers?.optString(0)?.ifEmpty { null } ?: roomJson.optString("p1", "Player 1")
-                val rp2 = roomPlayers?.optString(1)?.ifEmpty { null } ?: roomJson.optString("p2", "Player 2")
-                val roomInfo = BattleRoomInfo(roomId, rp1, rp2, roomJson.optInt("minElo", 0))
-                battleRooms.add(roomInfo)
-            }
-            onAvailableBattleRoomsChanged(battleRooms)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-            onAvailableBattleRoomsChanged(emptyList())
-        }
-    }
+    private fun processRoomListQueryResponse(response: String) =
+            onAvailableBattleRoomsChanged(parseBattleRoomList(response))
 
     private fun processSaveReplayQueryResponse(response: String) {
         try {
@@ -339,7 +321,7 @@ class GlobalMessageObserver(service: ShowdownService)
     fun onUserDetails(id: String, name: String, online: Boolean, group: String, rooms: List<String>, battles: List<String>) = uiCallbacks?.onUserDetails(id, name, online, group, rooms, battles)
     fun onShowPopup(message: String) = uiCallbacks?.onShowPopup(message)
     fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>) = uiCallbacks?.onAvailableRoomsChanged(officialRooms, chatRooms)
-    fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>) = uiCallbacks?.onAvailableBattleRoomsChanged(battleRooms)
+    fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?) = uiCallbacks?.onAvailableBattleRoomsChanged(battleRooms)
     fun onNewPrivateMessage(with: String, message: String) = uiCallbacks?.onNewPrivateMessage(with, message)
     fun onChallengesChange(to: String?, format: String?, from: Map<String, String>) = uiCallbacks?.onChallengesChange(to, format, from)
     fun onRoomInit(roomId: String, type: String) = uiCallbacks?.onRoomInit(roomId, type)
@@ -356,7 +338,7 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onUserDetails(id: String, name: String, online: Boolean, group: String, rooms: List<String>, battles: List<String>)
         fun onShowPopup(message: String)
         fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>)
-        fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>)
+        fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?)
         fun onNewPrivateMessage(with: String, message: String)
         fun onChallengesChange(to: String?, format: String?, from: Map<String, String>)
         fun onRoomInit(roomId: String, type: String)
@@ -364,3 +346,23 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onNetworkError()
     }
 }
+
+internal fun parseBattleRoomList(response: String): List<BattleRoomInfo>? = runCatching {
+    parseBattleRooms(JSONObject(response).getJSONObject("rooms"))
+}.onFailure { Timber.e(it, "Malformed room list response") }.getOrNull()
+
+internal fun parseBattleRooms(rooms: JSONObject): List<BattleRoomInfo> =
+    rooms.keys().asSequence().map { roomId ->
+        val room = rooms.getJSONObject(roomId)
+        val players = room.optJSONArray("players")
+        val p1 = players?.optString(0)?.takeIf(String::isNotBlank)
+                ?: room.optString("p1").takeIf(String::isNotBlank) ?: "Player 1"
+        val p2 = players?.optString(1)?.takeIf(String::isNotBlank)
+                ?: room.optString("p2").takeIf(String::isNotBlank) ?: "Player 2"
+        val rating = when (val value = room.opt("minElo")) {
+            is Number -> value.toInt().takeIf { it > 0 }?.toString()
+            is String -> value.trim().takeIf { it.isNotEmpty() && it != "0" }
+            else -> null
+        }
+        BattleRoomInfo(roomId, p1, p2, rating)
+    }.toList()

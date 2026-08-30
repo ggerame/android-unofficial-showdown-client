@@ -44,7 +44,7 @@ class BattleFormat(
         private const val MASK_LEVEL_50 = 0x10
 
         @JvmStatic val FORMAT_OTHER = BattleFormat("[Other]", -1, "other")
-        val FORMAT_ALL = BattleFormat("(All formats)", -1, "all")
+        val FORMAT_ALL = BattleFormat("All formats", -1, "all")
 
         fun compare(formats: List<Category>?, f1: String, f2: String): Int {
             if (f1 == f2) return 0

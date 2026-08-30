@@ -2,6 +2,24 @@
 
 All notable changes made are documented here.
 
+## [1.5.4] – Replay and active battle search
+
+### Changed
+- Replay and active-battle search now use responsive Material dialogs and the
+  same searchable live format catalog as Home and the teambuilder.
+- Active battles load automatically and can be filtered by format, minimum Elo
+  and username prefix, with result counts and explicit loading, empty, timeout
+  and error states.
+- Replay search initially shows the 50 most recent public replays and supports
+  one or two usernames together with a format filter.
+
+### Fixed
+- Replay pagination now follows the official 1-based contract, treats result 51
+  as the “More” sentinel, starts appends at page 2 and removes duplicate IDs.
+- Battle tournament labels, replay ratings, API-formatted format names, player
+  fallbacks and malformed responses are now handled without disguising errors
+  as empty result sets.
+
 ## [1.5.3] – In-app account registration
 
 ### Added

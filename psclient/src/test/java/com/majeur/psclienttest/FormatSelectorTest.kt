@@ -1,7 +1,10 @@
 package com.majeur.psclienttest
 
 import com.majeur.psclient.model.common.BattleFormatParser
+import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.ui.filterFormatCategories
+import com.majeur.psclient.ui.FormatPickerMode
+import com.majeur.psclient.ui.formatsForMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,5 +26,18 @@ class FormatSelectorTest {
         assertEquals(1, filterFormatCategories(categories, "doubles").single().second.size)
         assertTrue(filterFormatCategories(categories, "missing").isEmpty())
         assertEquals(categories, filterFormatCategories(categories, "   "))
+    }
+
+    @Test fun appliesTeamSearchAndAllModes() {
+        val categories = BattleFormatParser.parse(listOf(
+                "Formats", "Team only,0", "Search and team,2", "Search preset,3"))
+
+        assertEquals(listOf("teamonly", "searchandteam"),
+                formatsForMode(categories, FormatPickerMode.TEAM).single().second.map { it.id })
+        assertEquals(listOf("searchandteam", "searchpreset"),
+                formatsForMode(categories, FormatPickerMode.SEARCH).single().second.map { it.id })
+        assertEquals(listOf("teamonly", "searchandteam", "searchpreset"),
+                formatsForMode(categories, FormatPickerMode.ALL).single().second.map { it.id })
+        assertEquals("All formats", BattleFormat.FORMAT_ALL.label)
     }
 }

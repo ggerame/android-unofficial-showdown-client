@@ -36,6 +36,22 @@ internal fun filterFormatCategories(
     }
 }
 
+enum class FormatPickerMode { TEAM, SEARCH, ALL }
+
+internal fun formatsForMode(
+        categories: List<BattleFormat.Category>,
+        mode: FormatPickerMode
+): List<Pair<BattleFormat.Category, List<BattleFormat>>> = categories.mapNotNull { category ->
+    val formats = category.formats.filter {
+        when (mode) {
+            FormatPickerMode.TEAM -> it.isTeamNeeded
+            FormatPickerMode.SEARCH -> it.isSearchShow
+            FormatPickerMode.ALL -> true
+        }
+    }
+    if (formats.isEmpty()) null else category to formats
+}
+
 class FormatPickerDialogFragment : DialogFragment() {
 
     private lateinit var binding: DialogFormatSelectorBinding
@@ -60,13 +76,15 @@ class FormatPickerDialogFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val source = arguments?.getSerializable(ARG_CATEGORIES) as? List<BattleFormat.Category> ?: emptyList()
-        val searchableOnly = requireArguments().getBoolean(ARG_SEARCHABLE_ONLY)
-        categories = source.mapNotNull { category ->
-            val formats = category.formats.filter {
-                if (searchableOnly) it.isSearchShow else it.isTeamNeeded
+        val mode = arguments?.getString(ARG_MODE)?.let(FormatPickerMode::valueOf)
+                ?: FormatPickerMode.TEAM
+        categories = formatsForMode(source, mode).toMutableList().apply {
+            if (requireArguments().getBoolean(ARG_INCLUDE_ALL)) {
+                val all = BattleFormat.Category(getString(R.string.format_section_all)).apply {
+                    formats += BattleFormat.FORMAT_ALL
+                }
+                add(0, all to all.formats)
             }
-            if (formats.isEmpty()) null else category to formats
-        }.toMutableList().apply {
             if (requireArguments().getBoolean(ARG_INCLUDE_OTHER)) {
                 val other = BattleFormat.Category(getString(R.string.format_section_other)).apply {
                     formats += BattleFormat.FORMAT_OTHER
@@ -164,18 +182,21 @@ class FormatPickerDialogFragment : DialogFragment() {
         private const val ARG_CATEGORIES = "categories"
         private const val ARG_SELECTED_ID = "selected-id"
         private const val ARG_INCLUDE_OTHER = "include-other"
-        private const val ARG_SEARCHABLE_ONLY = "searchable-only"
+        private const val ARG_INCLUDE_ALL = "include-all"
+        private const val ARG_MODE = "mode"
         private const val STATE_QUERY = "query"
         private const val STATE_EXPANDED = "expanded"
 
         fun newInstance(categories: List<BattleFormat.Category>, selectedId: String? = null,
-                        includeOther: Boolean = false, searchableOnly: Boolean = false) =
+                        includeOther: Boolean = false, mode: FormatPickerMode = FormatPickerMode.TEAM,
+                        includeAll: Boolean = false) =
                 FormatPickerDialogFragment().apply {
             arguments = bundleOf(
                     ARG_CATEGORIES to ArrayList(categories) as Serializable,
                     ARG_SELECTED_ID to selectedId,
                     ARG_INCLUDE_OTHER to includeOther,
-                    ARG_SEARCHABLE_ONLY to searchableOnly)
+                    ARG_INCLUDE_ALL to includeAll,
+                    ARG_MODE to mode.name)
         }
     }
 }

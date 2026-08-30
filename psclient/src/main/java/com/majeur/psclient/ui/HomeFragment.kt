@@ -194,7 +194,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 makeSnackbar("Connect to Pokémon Showdown to load the available formats")
             } else if (childFragmentManager.findFragmentByTag(FormatPickerDialogFragment.TAG) == null) {
                 FormatPickerDialogFragment.newInstance(
-                        formats, currentBattleFormat?.id, searchableOnly = true)
+                        formats, currentBattleFormat?.id, mode = FormatPickerMode.SEARCH)
                         .show(childFragmentManager, FormatPickerDialogFragment.TAG)
             }
         }
@@ -730,6 +730,8 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         teamsFragment.onBattleFormatsChanged()
         val dialog = childFragmentManager.findFragmentByTag(SearchBattleDialog.FRAGMENT_TAG) as SearchBattleDialog?
         dialog?.onBattleFormatsChanged()
+        val replayDialog = childFragmentManager.findFragmentByTag(SearchReplayDialog.FRAGMENT_TAG) as SearchReplayDialog?
+        replayDialog?.onBattleFormatsChanged()
     }
 
     override fun onSearchBattlesChanged(searching: List<String>, games: Map<String, String>) {
@@ -861,7 +863,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         chatFragment.onAvailableRoomsChanged(officialRooms, chatRooms)
     }
 
-    override fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>) {
+    override fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?) {
         val dialog = childFragmentManager.findFragmentByTag(SearchBattleDialog.FRAGMENT_TAG) as SearchBattleDialog?
         dialog?.onSearchBattleResponse(battleRooms)
     }

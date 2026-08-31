@@ -9,45 +9,64 @@
     android:elevation="4dp"
     android:background="@drawable/bg_battle_extra_actions">
 
-    <ImageButton
-        android:id="@+id/flip_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:contentDescription="@string/flip_viewpoint"
-        android:visibility="gone"
-        android:padding="12dp"
-        android:background="?selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_flip_view"
-        app:tint="?attr/colorOnSurface"/>
+    <LinearLayout
+        android:id="@+id/action_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/flip_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/flip_viewpoint"
+            android:visibility="gone"
+            android:padding="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_flip_view"
+            app:tint="?attr/colorOnSurface"/>
+
+        <ImageButton
+            android:id="@+id/send_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/send_battle_message"
+            android:padding="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_create_message"
+            app:tint="?attr/colorOnSurface"/>
+
+        <ImageButton
+            android:id="@+id/forfeit_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/forfeit_battle"
+            android:padding="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_forfeit"
+            app:tint="?attr/colorOnSurface"/>
+
+        <ImageButton
+            android:id="@+id/timer_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/toggle_battle_timer"
+            android:padding="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_timer"
+            app:tint="?attr/colorOnSurface"/>
+
+    </LinearLayout>
 
     <ImageButton
-        android:id="@+id/send_button"
+        android:id="@+id/collapse_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:contentDescription="@string/send_battle_message"
+        android:contentDescription="@string/hide_battle_actions"
         android:padding="12dp"
+        android:rotation="180"
         android:background="?selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_create_message"
-        app:tint="?attr/colorOnSurface"/>
-
-    <ImageButton
-        android:id="@+id/forfeit_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:contentDescription="@string/forfeit_battle"
-        android:padding="12dp"
-        android:background="?selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_forfeit"
-        app:tint="?attr/colorOnSurface"/>
-
-    <ImageButton
-        android:id="@+id/timer_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:contentDescription="@string/toggle_battle_timer"
-        android:padding="12dp"
-        android:background="?selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_timer"
+        android:src="@drawable/ic_back"
         app:tint="?attr/colorOnSurface"/>
 
 </LinearLayout>

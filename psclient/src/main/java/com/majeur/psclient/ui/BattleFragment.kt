@@ -67,6 +67,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private var soundEnabled = false
     private var wasPlayingBattleMusicWhenPaused = false
     private var battleViewFlipped = false
+    private var extraActionsCollapsed = false
 
     private var _binding: FragmentBattleBinding? = null
     private val binding get() = _binding!!
@@ -81,6 +82,11 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     val battleRunning get() = service?.battleMessageObserver?.battleRunning == true
     val isReplay get() = service?.battleMessageObserver?.isReplay == true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        extraActionsCollapsed = savedInstanceState?.getBoolean(STATE_EXTRA_ACTIONS_COLLAPSED) ?: false
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -133,6 +139,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             extraActions.forfeitButton.setOnClickListener(this@BattleFragment)
             extraActions.sendButton.setOnClickListener(this@BattleFragment)
             extraActions.flipButton.setOnClickListener(this@BattleFragment)
+            extraActions.collapseButton.setOnClickListener {
+                setExtraActionsCollapsed(!extraActionsCollapsed)
+            }
+            setExtraActionsCollapsed(extraActionsCollapsed, animate = false)
             undoButton.setOnClickListener(this@BattleFragment)
             rematchButton.setOnClickListener(this@BattleFragment)
             uploadReplayButton.setOnClickListener(this@BattleFragment)
@@ -140,6 +150,60 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             replayActions.replayBackButton.setOnClickListener(this@BattleFragment)
             replayActions.replayPlayButton.setOnClickListener(this@BattleFragment)
             replayActions.replayForwardButton.setOnClickListener(this@BattleFragment)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(STATE_EXTRA_ACTIONS_COLLAPSED, extraActionsCollapsed)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun setExtraActionsCollapsed(collapsed: Boolean, animate: Boolean = true) {
+        extraActionsCollapsed = collapsed
+        binding.extraActions.apply {
+            collapseButton.contentDescription = getString(if (collapsed)
+                R.string.show_battle_actions else R.string.hide_battle_actions)
+            collapseButton.animate().cancel()
+            collapseButton.animate()
+                    .rotation(if (collapsed) 0f else 180f)
+                    .setDuration(if (animate) EXTRA_ACTIONS_ANIMATION_DURATION else 0L)
+                    .start()
+
+            actionButtons.animate().cancel()
+            if (!animate) {
+                actionButtons.visibility = if (collapsed) GONE else VISIBLE
+                actionButtons.alpha = if (collapsed) 0f else 1f
+                actionButtons.translationX = 0f
+                return
+            }
+
+            if (collapsed) {
+                actionButtons.animate()
+                        .alpha(0f)
+                        .translationX(actionButtons.width.toFloat())
+                        .setDuration(EXTRA_ACTIONS_ANIMATION_DURATION)
+                        .withEndAction {
+                            if (extraActionsCollapsed) {
+                                actionButtons.visibility = GONE
+                                actionButtons.translationX = 0f
+                            }
+                        }
+                        .start()
+            } else {
+                actionButtons.visibility = VISIBLE
+                actionButtons.alpha = 0f
+                actionButtons.post {
+                    if (!extraActionsCollapsed && _binding != null) {
+                        actionButtons.translationX = actionButtons.width.toFloat()
+                        actionButtons.animate()
+                                .alpha(1f)
+                                .translationX(0f)
+                                .setDuration(EXTRA_ACTIONS_ANIMATION_DURATION)
+                                .withEndAction(null)
+                                .start()
+                    }
+                }
+            }
         }
     }
 
@@ -1054,6 +1118,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         lastDecisionRequest = null
         onTimerEnabled(false)
         resetBattleViewFlip()
+        setExtraActionsCollapsed(false, animate = false)
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismissNow()
@@ -1105,6 +1170,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         clearBattleFieldUi(animate = false)
         onTimerEnabled(false)
         resetBattleViewFlip()
+        setExtraActionsCollapsed(false, animate = false)
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismiss()
@@ -1122,5 +1188,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
         }
         audioManager.stopBattleMusic()
+    }
+
+    companion object {
+        private const val EXTRA_ACTIONS_ANIMATION_DURATION = 300L
+        private const val STATE_EXTRA_ACTIONS_COLLAPSED = "extra-actions-collapsed"
     }
 }

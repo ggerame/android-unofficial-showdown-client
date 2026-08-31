@@ -2,7 +2,12 @@
 
 All notable changes made are documented here.
 
-## [1.5.4] – Replay and active battle search
+## [1.5.4] – Battle polish, search and messaging
+
+### Added
+- The main battle action strip can now collapse to a single accessible button,
+  uncovering the battle log without changing the available player, spectator
+  or replay actions.
 
 ### Changed
 - Replay and active-battle search now use responsive Material dialogs and the
@@ -12,6 +17,9 @@ All notable changes made are documented here.
   and error states.
 - Replay search initially shows the 50 most recent public replays and supports
   one or two usernames together with a format filter.
+- The near-side Pokémon now uses a subtler perspective scale, the battlefield is
+  slightly shorter, and team-roster icons are larger for a more balanced and
+  space-efficient battle screen.
 
 ### Fixed
 - Replay pagination now follows the official 1-based contract, treats result 51

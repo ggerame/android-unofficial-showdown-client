@@ -19,6 +19,12 @@ All notable changes made are documented here.
 - Battle tournament labels, replay ratings, API-formatted format names, player
   fallbacks and malformed responses are now handled without disguising errors
   as empty result sets.
+- Failed private messages and other server errors now appear above the active
+  chat or on Home without closing the chat, creating an empty conversation
+  card or increasing its message count.
+- Battle challenge labels now grow to show long usernames without clipping.
+- Failed challenges now preserve the server's error and restore the Battle
+  controls instead of remaining in a pending state.
 
 ## [1.5.3] – In-app account registration
 

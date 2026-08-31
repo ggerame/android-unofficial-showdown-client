@@ -27,6 +27,7 @@ class GlobalMessageObserver(service: ShowdownService)
         private set
 
     private var requestServerCountsOnly = false
+    private var pendingPrivateMessageTo: String? = null
     private val privateMessages = mutableMapOf<String, MutableList<String>>()
 
     override fun onUiCallbacksAttached() {
@@ -220,9 +221,10 @@ class GlobalMessageObserver(service: ShowdownService)
 
     private fun handlePm(msg: ServerMessage) {
         val from = msg.nextArg.substring(1)
-        val to = msg.nextArg.substring(1)
+        val rawTo = msg.nextArg
+        val isSystemMessage = rawTo == "~"
+        val to = rawTo.substring(1)
         val myUsername = service.getSharedData<String>("myusername")?.drop(1)
-        val with = if (myUsername == from) to else from
         var content = msg.nextArgSafe
 
         // Modern PS delivers battle challenges as PMs containing a "/challenge"
@@ -235,6 +237,20 @@ class GlobalMessageObserver(service: ShowdownService)
         // "/log" and "/nonotify" PMs are system notifications that only duplicate
         // the challenge/battle state; don't show them as chat messages.
         if (content != null && (content.startsWith("/log") || content.startsWith("/nonotify"))) return
+
+        val isError = content?.startsWith("/error") == true
+        val with = resolvePrivateMessagePeer(
+                from, to, myUsername, pendingPrivateMessageTo, isSystemMessage, isError)
+        val sentByMe = myUsername != null && from.toId() == myUsername.toId()
+        if (sentByMe && (!isSystemMessage || with != null)) pendingPrivateMessageTo = null
+        if (isError) {
+            onPrivateMessageError(with, content.orEmpty().removePrefix("/error").trim())
+            return
+        }
+        if (with == null) {
+            Timber.w("Ignoring private message without a resolvable user")
+            return
+        }
 
         if (content != null && (content.startsWith("/raw") || content.startsWith("/html") || content.startsWith("/uhtml")))
             content = "Html messages not supported in pm."
@@ -312,6 +328,10 @@ class GlobalMessageObserver(service: ShowdownService)
         return privateMessages[with]
     }
 
+    internal fun onPrivateMessageSent(to: String) {
+        pendingPrivateMessageTo = to
+    }
+
     fun onConnectedToServer() = uiCallbacks?.onConnectedToServer()
     fun onUserChanged(userName: String, isGuest: Boolean, avatarId: String) = uiCallbacks?.onUserChanged(userName, isGuest, avatarId)
     fun onUpdateCounts(userCount: Int, battleCount: Int) = uiCallbacks?.onUpdateCounts(userCount, battleCount)
@@ -323,6 +343,7 @@ class GlobalMessageObserver(service: ShowdownService)
     fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>) = uiCallbacks?.onAvailableRoomsChanged(officialRooms, chatRooms)
     fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?) = uiCallbacks?.onAvailableBattleRoomsChanged(battleRooms)
     fun onNewPrivateMessage(with: String, message: String) = uiCallbacks?.onNewPrivateMessage(with, message)
+    fun onPrivateMessageError(with: String?, message: String) = uiCallbacks?.onPrivateMessageError(with, message)
     fun onChallengesChange(to: String?, format: String?, from: Map<String, String>) = uiCallbacks?.onChallengesChange(to, format, from)
     fun onRoomInit(roomId: String, type: String) = uiCallbacks?.onRoomInit(roomId, type)
     fun onRoomDeinit(roomId: String) = uiCallbacks?.onRoomDeinit(roomId)
@@ -340,11 +361,26 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>)
         fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?)
         fun onNewPrivateMessage(with: String, message: String)
+        fun onPrivateMessageError(with: String?, message: String)
         fun onChallengesChange(to: String?, format: String?, from: Map<String, String>)
         fun onRoomInit(roomId: String, type: String)
         fun onRoomDeinit(roomId: String)
         fun onNetworkError()
     }
+}
+
+internal fun resolvePrivateMessagePeer(
+        from: String,
+        to: String,
+        myUsername: String?,
+        pendingTarget: String?,
+        isSystemMessage: Boolean = false,
+        isError: Boolean = false
+): String? {
+    if (isSystemMessage) return pendingTarget.takeIf { isError }
+    val sentByMe = myUsername != null && from.toId() == myUsername.toId()
+    val peer = if (sentByMe) to.ifBlank { pendingTarget ?: "" } else from
+    return peer.takeIf(String::isNotBlank)
 }
 
 internal fun parseBattleRoomList(response: String): List<BattleRoomInfo>? = runCatching {

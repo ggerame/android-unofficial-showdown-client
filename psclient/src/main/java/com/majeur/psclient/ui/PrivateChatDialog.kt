@@ -3,8 +3,6 @@ package com.majeur.psclient.ui
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogPrivateChatBinding
+import com.google.android.material.snackbar.Snackbar
 import com.majeur.psclient.util.TextTagSpan
 import com.majeur.psclient.util.Utils
 import com.majeur.psclient.util.applySafeDrawingInsets
@@ -24,6 +23,7 @@ import com.majeur.psclient.util.toId
 class PrivateChatDialog : DialogFragment() {
 
     private val usernameColorCache = mutableMapOf<String, Int>()
+    private var errorSnackbar: Snackbar? = null
 
     lateinit var chatWith: String
         private set
@@ -44,6 +44,8 @@ class PrivateChatDialog : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        errorSnackbar?.dismiss()
+        errorSnackbar = null
         super.onDestroyView()
         _binding = null
     }
@@ -86,9 +88,7 @@ class PrivateChatDialog : DialogFragment() {
     fun onNewMessage(message: String) {
         val sepIndex = message.indexOf(':')
         if (message.substring(sepIndex + 2).startsWith("/error")) {
-            val spannable: Spannable = SpannableString(message.substring(sepIndex + 9))
-            spannable.setSpan(ForegroundColorSpan(0xFF8B0000.toInt()), 0, spannable.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            printMessage(spannable)
+            onError(message.substring(sepIndex + 9))
             return
         }
         val username = message.substring(0, sepIndex)
@@ -97,6 +97,17 @@ class PrivateChatDialog : DialogFragment() {
         spannable.setSpan(TextTagSpan(Utils.getTagColor(textColor), textColor), 0, sepIndex + 1,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         printMessage(spannable)
+    }
+
+    fun onError(message: String) {
+        errorSnackbar?.dismiss()
+        errorSnackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
+                .setAnchorView(binding.messageInput)
+                .setAction("Ok") {}
+                .also { snackbar ->
+                    snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines = 5
+                    snackbar.show()
+                }
     }
 
     private fun printMessage(message: CharSequence) {

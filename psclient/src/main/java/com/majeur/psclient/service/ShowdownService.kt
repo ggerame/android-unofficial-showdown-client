@@ -183,7 +183,10 @@ class ShowdownService : Service() {
         sendGlobalCommand("trn", userName, "0", assertion)
     }
 
-    fun sendPrivateMessage(to: String, content: String) = sendGlobalCommand("pm", to, content)
+    fun sendPrivateMessage(to: String, content: String) {
+        globalMessageObserver.onPrivateMessageSent(to)
+        sendGlobalCommand("pm", to, content)
+    }
 
     fun sendGlobalCommand(command: String, vararg args: Any) =
             sendRoomMessage(null, "/$command ${args.joinToString(",")}")

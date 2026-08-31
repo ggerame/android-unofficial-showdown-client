@@ -55,6 +55,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private var isSearchingBattle = false
     private var isChallengingSomeone = false
     private var waitingForChallenge = false
+    private var challengeCommandPending = false
     private var challengeTo: String? = null
     private var isAcceptingChallenge = false
     private var isAcceptingFrom: String? = null
@@ -299,10 +300,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     if (waitingForChallenge) {
                         service?.sendGlobalCommand("cancelchallenge", challengeTo!!.toId())
                     } else {
-                        isChallengingSomeone = false
-                        challengeTo = null
-                        setBattleButtonUIState("Battle !")
-                        showSearchableFormatsOnly(true)
+                        resetOutgoingChallenge()
                     }
                 }
                 isAcceptingChallenge -> {
@@ -488,6 +486,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private fun startValidatedBattle() {
         when {
             isChallengingSomeone -> {
+                challengeCommandPending = true
                 service?.sendGlobalCommand("challenge", challengeTo!!.toId(), currentBattleFormat!!.id)
                 setBattleButtonUIState("Challenging\n$challengeTo...", enabled = false, showCancel = true, tintCard = true)
             }
@@ -589,6 +588,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             else -> {
                 isChallengingSomeone = true
                 waitingForChallenge = false
+                challengeCommandPending = false
                 challengeTo = user
                 setBattleButtonUIState("Challenge\n$user!", showCancel = true, tintCard = true)
                 showSearchableFormatsOnly(false)
@@ -596,6 +596,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 binding.root.post { binding.root.fullScroll(View.FOCUS_UP) }
             }
         }
+    }
+
+    private fun resetOutgoingChallenge() {
+        isChallengingSomeone = false
+        waitingForChallenge = false
+        challengeCommandPending = false
+        challengeTo = null
+        setBattleButtonUIState("Battle !")
+        showSearchableFormatsOnly(true)
     }
 
     private fun setBattleButtonUIState(label: String, enabled: Boolean = true, showCancel: Boolean = false, tintCard: Boolean = false) {
@@ -820,32 +829,34 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         dialog.findViewById<TextView>(android.R.id.message)?.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    override fun onShowPopup(message: String) {
-        // A popup arriving while we're challenging someone means the challenge failed. The server
-        // answers "User X not found" for an offline user too, which is misleading (the name may be
-        // perfectly valid), so clarify it while we still know who we were challenging.
-        val displayMessage = if (isChallengingSomeone && message.contains("not found", ignoreCase = true))
-            "Couldn't challenge ${challengeTo ?: "that user"}: they appear to be offline. You can only" +
-                    " challenge users who are currently online."
-        else message
+    private fun visiblePrivateChatDialog() =
+            (parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) as PrivateChatDialog?)
+                    ?.takeIf { it.isVisible }
 
-        if (displayMessage.length > 120 || displayMessage.count { it == '\n' } > 4) { // If there is a lot of text, rather show a dialog
+    private fun showServerError(message: String) {
+        if (message.length > 120 || message.count { it == '\n' } > 4) { // If there is a lot of text, rather show a dialog
             AlertDialog.Builder(requireContext()).apply {
-                setMessage(displayMessage)
+                setMessage(message)
                 setPositiveButton("Ok") { _, _ -> }
                 show()
             }
             activeSnackbar?.dismiss()
         } else {
-            makeSnackbar(displayMessage, indefinite = true, maxLines = 5, action = "Ok" to {})
+            val dialog = visiblePrivateChatDialog()
+            if (dialog != null) {
+                activeSnackbar?.dismiss()
+                dialog.onError(message)
+            } else {
+                makeSnackbar(message, indefinite = true, maxLines = 5, action = "Ok" to {})
+            }
         }
+    }
 
-        if (isChallengingSomeone) { // Resetting pending challenges
-            isChallengingSomeone = false
-            waitingForChallenge = isChallengingSomeone
-            challengeTo = null
-            setBattleButtonUIState("Battle !")
-            showSearchableFormatsOnly(true)
+    override fun onShowPopup(message: String) {
+        showServerError(message)
+
+        if (isChallengingSomeone && !waitingForChallenge) {
+            resetOutgoingChallenge()
         } else if (isAcceptingChallenge) {
             isAcceptingChallenge = false
             isAcceptingFrom = null
@@ -853,10 +864,6 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             showSearchableFormatsOnly(true)
             binding.formatsSelector.isEnabled = true
         }
-
-        // Closing pm dialog to see this popup
-        val dialog = parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) as PrivateChatDialog?
-        if (dialog != null && dialog.isVisible) dialog.dismiss()
     }
 
     override fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>) {
@@ -873,6 +880,16 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         if (!binding.pmsOverview.isEmpty) binding.pmsContainer.visibility = View.VISIBLE
         val dialog = parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) as PrivateChatDialog?
         if (dialog?.chatWith?.toId() == with.toId()) dialog.onNewMessage(message) else notifyNewMessageReceived()
+    }
+
+    override fun onPrivateMessageError(with: String?, message: String) {
+        if (with == null && challengeCommandPending) {
+            onShowPopup(message)
+            return
+        }
+        val sameChat = with != null && visiblePrivateChatDialog()?.chatWith?.toId() == with.toId()
+        val prefix = if (with == null || sameChat) "" else "Could not message $with: "
+        showServerError(prefix + message)
     }
 
     override fun onChallengesChange(to: String?, format: String?, from: Map<String, String>) {
@@ -898,20 +915,18 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         if (isChallengingSomeone) {
             if (to != null) {
+                challengeCommandPending = false
                 waitingForChallenge = true
                 setBattleButtonUIState("Waiting for\n$to...", enabled = false, showCancel = true, tintCard = true)
             } else {
-                isChallengingSomeone = false
-                waitingForChallenge = isChallengingSomeone
-                challengeTo = null
-                setBattleButtonUIState("Battle !")
-                showSearchableFormatsOnly(true)
+                resetOutgoingChallenge()
             }
         } else {
             if (to != null) { // We are challenging someone but we discover that by the server
                 challengeTo = to
                 isChallengingSomeone = true
                 waitingForChallenge = true
+                challengeCommandPending = false
                 setBattleButtonUIState("Waiting for\n$to...", enabled = false, showCancel = true, tintCard = true)
             }
         }

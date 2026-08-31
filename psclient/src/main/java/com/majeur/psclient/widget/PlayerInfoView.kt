@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 @SuppressLint("RtlHardcoded")
 class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : AppCompatTextView(context, attrs, defStyleAttr), TipPopupContentProvider {
 
-    private val dexIconSize = sp(24f)
+    private val dexIconSize = sp(28f)
     private val spannableBuilder: SpannableStringBuilder
     private val pokeballDrawable: Drawable
     private val emptyPokeballDrawable: Drawable

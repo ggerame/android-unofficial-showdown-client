@@ -691,7 +691,7 @@ class BattleLayout @JvmOverloads constructor(
         const val MODE_BATTLE_DOUBLE = 2
         const val MODE_BATTLE_TRIPLE = 3
 
-        private const val ASPECT_RATIO = 16f / 11f
+        private const val ASPECT_RATIO = 16f / 10.5f
         // Reference width used to scale web fx sprite sizes/offsets to the battle field.
         private const val HAZARD_SCALE_REF = 480f
         // Ground anchors (fractions of field size) where each side's hazards are clustered.

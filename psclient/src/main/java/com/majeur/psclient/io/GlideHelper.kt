@@ -155,7 +155,7 @@ class GlideHelper(context: Context) {
                 override fun onApplyResourceSize(w: Int, h: Int) {
                 val battleLayout = imageView.parent as BattleLayout
                 var scale = battleLayout.width * MAGIC_SCALE
-                if (pokemon.trainer != battleLayout.flipped) scale *= 1.5f
+                if (pokemon.trainer != battleLayout.flipped) scale *= 1.25f
                 getView().layoutParams.apply {
                     width = (w * scale).roundToInt()
                     height = (h * scale).roundToInt()

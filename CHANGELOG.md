@@ -2,6 +2,31 @@
 
 All notable changes made are documented here.
 
+## [1.6.0] – Battle decision redesign
+
+### Added
+- Battle choices now identify the Pokémon and current step, with dedicated
+  move, switch, team-order and target prompts.
+- Team Preview shows the selected order and lets the latest pick be removed
+  before submission.
+
+### Changed
+- Moves use a readable two-column type-coloured grid with PP, type and matchup
+  effectiveness, plus a full-width control for Mega Evolution, Z-Moves,
+  Dynamax and Terastallization.
+- Switch choices now show each Pokémon's icon, HP, status and availability in
+  compact two-column cards.
+- Double and triple target choices mirror the two sides of the battlefield and
+  follow the normal or flipped viewpoint without changing server target IDs.
+- The decision panel uses Material components, 48dp touch targets, accessible
+  state descriptions and overflow scrolling on compact screens.
+- Player names are vertically aligned with their team icons and shorten with
+  an ellipsis when needed without hiding roster slots.
+
+### Fixed
+- Hidden Power now uses its actual elemental variant for the move colour,
+  type label, effectiveness and popup details instead of the Normal base entry.
+
 ## [1.5.4] – Battle polish, search and messaging
 
 ### Added

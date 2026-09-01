@@ -58,6 +58,11 @@ class BattleDecision {
 
     fun leadChoicesCount() = choices.count { it.action.isEmpty() }
 
+    internal fun leadChoicePosition(which: Int): Int? = choices
+            .indexOfFirst { it.action.isEmpty() && it.index == which }
+            .takeIf { it >= 0 }
+            ?.plus(1)
+
     fun switchChoicesCount() = choices.count { it.action == ACTION_SWITCH }
 
     /* 1 based index */

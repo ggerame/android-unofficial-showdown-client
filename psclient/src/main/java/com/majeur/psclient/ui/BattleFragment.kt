@@ -368,6 +368,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private fun setBattleViewFlipped(flipped: Boolean) {
         battleViewFlipped = flipped
         binding.battleLayout.flipped = flipped
+        binding.battleDecisionWidget.setBattleViewFlipped(flipped)
         // Back/front sprite art and on-field scale depend on the side, so reload the on-field
         // sprites so they face the right way. This covers both in-battle sprites (tagged with a
         // BattlingPokemon) and team-preview sprites (tagged with a plain BasePokemon).
@@ -394,6 +395,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         battleViewFlipped = false
         _binding?.apply {
             battleLayout.flipped = false
+            battleDecisionWidget.setBattleViewFlipped(false)
             trainerInfo.translationY = 0f
             foeInfo.translationY = 0f
             extraActions.flipButton.drawable.setTint(
@@ -974,7 +976,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             val moves = request.getMoves(which)
             if (hideMoves || moves == null || moves.isEmpty()) continue
             fragmentScope.launch {
-                assetLoader.movesDetails(*moves.map { it.id }.toTypedArray()).forEachIndexed { index, details ->
+                assetLoader.movesDetails(*moves.map { it.detailsId }.toTypedArray()).forEachIndexed { index, details ->
                     moves[index].details = details
                 }
                 binding.battleDecisionWidget.notifyDetailsUpdated()

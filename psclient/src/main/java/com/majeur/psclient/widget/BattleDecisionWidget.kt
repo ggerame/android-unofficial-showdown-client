@@ -5,53 +5,72 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.drawable.BitmapDrawable
 import android.util.AttributeSet
 import android.util.Property
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewAnimationUtils
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.CompoundButton
 import android.widget.FrameLayout
-import androidx.appcompat.widget.AppCompatButton
-import androidx.core.content.ContextCompat
-import androidx.core.view.children
-import androidx.core.widget.TextViewCompat
+import android.widget.TextView
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.widget.NestedScrollView
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.color.MaterialColors
 import com.majeur.psclient.R
-import com.majeur.psclient.model.battle.*
+import com.majeur.psclient.model.battle.BattleDecision
+import com.majeur.psclient.model.battle.BattleDecisionRequest
+import com.majeur.psclient.model.battle.Move
+import com.majeur.psclient.model.battle.Player
+import com.majeur.psclient.model.battle.PokemonId
 import com.majeur.psclient.model.battle.Move.Target.Companion.computeTargetAvailabilities
 import com.majeur.psclient.model.common.Colors
 import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.model.pokemon.BattlingPokemon
 import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
-import com.majeur.psclient.util.*
-import java.util.*
+import com.majeur.psclient.util.SimpleAnimatorListener
+import com.majeur.psclient.util.concat
+import com.majeur.psclient.util.small
+import com.majeur.psclient.util.toId
+import java.util.Locale
 import kotlin.math.hypot
 import kotlin.math.min
-import kotlin.math.roundToInt
 
-class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
-    : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
+class BattleDecisionWidget @JvmOverloads constructor(
+        context: Context,
+        attrs: AttributeSet? = null,
+        defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
 
     var onRevealListener: ((Boolean) -> Unit)? = null
 
-    private val moveButtons: MutableList<Button> = LinkedList()
-    private val switchButtons: MutableList<SwitchButton> = LinkedList()
-    private val movesCheckBox: CheckBox
-    private val backButton: Button
+    private val contentRoot: View
+    private val titleView: TextView
+    private val subtitleView: TextView
+    private val choiceTabs: MaterialButtonToggleGroup
+    private val movesSection: View
+    private val teamGrid: View
+    private val targetContainer: View
+    private val farTargetLabel: TextView
+    private val nearTargetLabel: TextView
+    private val decisionScroll: NestedScrollView
+    private val moveButtons: List<MaterialButton>
+    private val teamButtons: List<SwitchButton>
+    private val farTargetButtons: List<SwitchButton>
+    private val nearTargetButtons: List<SwitchButton>
+    private val gimmickButton: MaterialButton
+    private val backButton: MaterialButton
 
-    private val paint: Paint
-    private var contentAlpha: Float = 1f
-        set(a) { field = a; children.forEach { it.alpha = a }; paint.alpha = (255 * a).roundToInt(); invalidate() }
+    private var contentAlpha = 1f
+        set(value) {
+            field = value
+            contentRoot.alpha = value
+        }
     private val alphaAnimator: ObjectAnimator
     private var revealAnimator: Animator? = null
     private var revealingIn = false
@@ -60,8 +79,21 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
 
     private var promptStage = 0
     private var targetToChoose: Move.Target? = null
-    private var checkBoxRepresentsTera = false
+    private var targetMoveName: String? = null
     private var foeTypes: List<String>? = null
+    private var battleViewFlipped = false
+    private var movesAvailable = false
+    private var teamAvailable = false
+    private var updatingTabs = false
+    private var updatingGimmick = false
+    private var gimmick = Gimmick.NONE
+    private val switchTabs = mutableSetOf<Int>()
+    private val gimmicksByStage = mutableMapOf<Int, Gimmick>()
+
+    private var trainerTargets: List<BattlingPokemon?> = emptyList()
+    private var foeTargets: List<BattlingPokemon?> = emptyList()
+    private var targetAvailabilities: Array<BooleanArray>? = null
+
     private var _observer: BattleRoomMessageObserver? = null
     private val observer get() = _observer!!
     private var _battleTipPopup: BattleTipPopup? = null
@@ -74,162 +106,101 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
     private val onDecisionListener get() = _onDecisionListener!!
     private var comingToPreviousStage = false
 
+    private val defaultMoveTint by lazy {
+        MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant)
+    }
+
     init {
         visibility = View.GONE
-        setWillNotDraw(false)
-        paint = Paint().apply {
-            color = ContextCompat.getColor(context, R.color.divider)
-            strokeWidth = dp(1f).toFloat()
+        LayoutInflater.from(context).inflate(R.layout.layout_battle_decision, this, true)
+        contentRoot = findViewById(R.id.decision_panel_content)
+        titleView = findViewById(R.id.decision_title)
+        subtitleView = findViewById(R.id.decision_subtitle)
+        choiceTabs = findViewById(R.id.choice_tabs)
+        movesSection = findViewById(R.id.moves_section)
+        teamGrid = findViewById(R.id.team_grid)
+        targetContainer = findViewById(R.id.target_container)
+        farTargetLabel = findViewById(R.id.far_target_label)
+        nearTargetLabel = findViewById(R.id.near_target_label)
+        decisionScroll = findViewById(R.id.decision_scroll)
+        moveButtons = listOf(R.id.move_1, R.id.move_2, R.id.move_3, R.id.move_4).map(::findViewById)
+        teamButtons = listOf(R.id.team_1, R.id.team_2, R.id.team_3, R.id.team_4, R.id.team_5, R.id.team_6).map(::findViewById)
+        farTargetButtons = listOf(R.id.far_target_1, R.id.far_target_2, R.id.far_target_3).map(::findViewById)
+        nearTargetButtons = listOf(R.id.near_target_1, R.id.near_target_2, R.id.near_target_3).map(::findViewById)
+        gimmickButton = findViewById(R.id.gimmick_button)
+        backButton = findViewById(R.id.decision_back)
+        gimmickButton.isCheckable = true
+
+        moveButtons.forEach { it.setOnClickListener(this) }
+        (teamButtons + farTargetButtons + nearTargetButtons).forEach { it.setOnClickListener(this) }
+        (farTargetButtons + nearTargetButtons).forEach { it.setIconVisible(false) }
+        backButton.setOnClickListener { promptPrevious() }
+
+        choiceTabs.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked || updatingTabs) return@addOnButtonCheckedListener
+            if (checkedId == R.id.switch_tab) switchTabs.add(promptStage) else switchTabs.remove(promptStage)
+            renderChoiceSection(scrollToTop = true)
         }
+        gimmickButton.addOnCheckedChangeListener { _, checked ->
+            if (updatingGimmick) return@addOnCheckedChangeListener
+            if (checked) gimmicksByStage[promptStage] = gimmick else gimmicksByStage.remove(promptStage)
+            when (gimmick) {
+                Gimmick.Z_MOVE -> toggleZMoves(checked)
+                Gimmick.DYNAMAX -> toggleMaxMoves(checked)
+                else -> Unit
+            }
+        }
+        val checkedStates = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        gimmickButton.backgroundTintList = ColorStateList(
+                checkedStates,
+                intArrayOf(
+                        MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimaryContainer),
+                        Color.TRANSPARENT))
+        gimmickButton.setTextColor(ColorStateList(
+                checkedStates,
+                intArrayOf(
+                        MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnPrimaryContainer),
+                        MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface))))
+
         alphaAnimator = ObjectAnimator().apply {
             interpolator = DecelerateInterpolator()
             target = this@BattleDecisionWidget
             setProperty(CONTENT_ALPHA_PROPERTY)
         }
-        repeat(4) {
-            AppCompatButton(context).apply {
-                isAllCaps = false
-                setTextColor(Colors.contrastTextColor(DEFAULT_TINT))
-                maxLines = 2
-                setPadding(dp(4f), dp(6f), dp(4f), dp(6f))
-                TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(this, 8, 14, 1, TypedValue.COMPLEX_UNIT_SP)
-                setOnClickListener(this@BattleDecisionWidget)
-            }.also {
-                addView(it)
-                moveButtons.add(it)
-            }
-        }
-        movesCheckBox = CheckBox(context).apply {
-            buttonTintList = ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_checked), intArrayOf(android.R.attr.state_checked)), intArrayOf(Color.GRAY, Color.DKGRAY))
-            addView(this, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
-        }
-        val inflater = LayoutInflater.from(context)
-        repeat(6) {
-            (inflater.inflate(R.layout.button_switch, this, false) as SwitchButton).apply {
-                setOnClickListener(this@BattleDecisionWidget)
-            }.also { btn ->
-                addView(btn)
-                switchButtons.add(btn)
-            }
-        }
-        backButton = inflater.inflate(R.layout.button_decision_back, this, false) as Button
-        addView(backButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
-    /* Layout methods */
-
+    /** Expands naturally and caps only the scrolling content when the remaining battle area is short. */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // TODO Handle and enforce Spec modes
-        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
-        var measuredHeight = paddingTop + paddingBottom
-        val availableWidth = measuredWidth - paddingStart - paddingEnd
-        var count = moveButtons.size
-        if (count > 0) {
-            val childWidthSpec = MeasureSpec.makeMeasureSpec(availableWidth / count, MeasureSpec.EXACTLY)
-            var maxChildHeight = 0
-            var noVisibleChild = true
-            for (i in 0 until count) {
-                val child = moveButtons[i]
-                child.measure(childWidthSpec, heightMeasureSpec)
-                if (child.measuredHeight > maxChildHeight) maxChildHeight = child.measuredHeight
-                if (child.visibility != View.GONE) noVisibleChild = false
-            }
-            val childHeightSpec = MeasureSpec.makeMeasureSpec(maxChildHeight, MeasureSpec.EXACTLY)
-            for (i in 0 until count) {
-                moveButtons[i].measure(childWidthSpec, childHeightSpec)
-            }
-            if (!noVisibleChild) measuredHeight += maxChildHeight
+        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+        if (heightMode == MeasureSpec.UNSPECIFIED) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            return
         }
-        count = switchButtons.size
-        if (count > 0) {
-            val childWidthSpec = MeasureSpec.makeMeasureSpec(availableWidth / 3, MeasureSpec.EXACTLY)
-            var noVisibleChild = true
-            for (i in 0 until count) {
-                val child = switchButtons[i]
-                child.measure(childWidthSpec, heightMeasureSpec)
-                if (child.visibility != View.GONE) noVisibleChild = false
-            }
-            if (!noVisibleChild) {
-                measuredHeight += switchButtons[0].measuredHeight
-                if (count > 3) measuredHeight += switchButtons[3].measuredHeight
-            }
-        }
-        val childWidthSpec = MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST)
-        movesCheckBox.measure(childWidthSpec, heightMeasureSpec)
-        if (movesCheckBox.visibility != View.GONE) measuredHeight += movesCheckBox.measuredHeight
 
-        backButton.measure(childWidthSpec, childWidthSpec)
-        if (backButton.visibility != View.GONE) measuredHeight += backButton.measuredHeight
+        decisionScroll.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
+        val availableHeight = MeasureSpec.getSize(heightMeasureSpec)
+        val naturalHeight = measuredHeight
+        if (heightMode == MeasureSpec.AT_MOST && naturalHeight <= availableHeight) return
 
-        setMeasuredDimension(measuredWidth, measuredHeight)
+        val fixedHeight = naturalHeight - decisionScroll.measuredHeight
+        decisionScroll.layoutParams.height = (availableHeight - fixedHeight).coerceAtLeast(0)
+        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(
+                availableHeight,
+                if (heightMode == MeasureSpec.EXACTLY) MeasureSpec.EXACTLY else MeasureSpec.AT_MOST))
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        val width = right - left
-        val paddingStart = paddingStart
-        val paddingTop = paddingTop
-        var yOffset = paddingTop
-        var N = moveButtons.size
-        var childWidth = width / N
-        var childHeight = 0
-        for (i in 0 until N) {
-            val child = moveButtons[i]
-            if (child.visibility == View.GONE) continue
-            childHeight = child.measuredHeight
-            child.layout(paddingStart + i * childWidth, yOffset,
-                    paddingStart + (i + 1) * childWidth, yOffset + childHeight)
-        }
-        yOffset += childHeight
-        if (movesCheckBox.visibility != View.GONE) {
-            val checkBoxWidth = movesCheckBox.measuredWidth
-            val checkBoxHeight = movesCheckBox.measuredHeight
-            movesCheckBox.layout(width / 2 - checkBoxWidth / 2, yOffset,
-                    width / 2 + checkBoxWidth / 2, yOffset + checkBoxHeight)
-            yOffset += checkBoxHeight
-        }
-        N = switchButtons.size
-        childWidth = width / (N / 2)
-        for (i in 0 until 3) {
-            val child = switchButtons[i]
-            if (child.visibility == View.GONE) continue
-            childHeight = child.measuredHeight
-            child.layout(paddingStart + i * childWidth, yOffset,
-                    paddingStart + (i + 1) * childWidth, yOffset + childHeight)
-        }
-        yOffset += childHeight
-        for (i in 3 until N) {
-            val child = switchButtons[i]
-            childHeight = child.measuredHeight
-            val j = i - 3
-            child.layout(paddingStart + j * childWidth, yOffset,
-                    paddingStart + (j + 1) * childWidth, yOffset + childHeight)
-        }
-        yOffset += childHeight
-        if (backButton.visibility != GONE)
-            backButton.layout(paddingStart, yOffset, paddingStart + backButton.measuredWidth,
-                    yOffset + backButton.measuredHeight)
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        if (moveButtons.isNotEmpty()) {
-            val offset = if (movesCheckBox.visibility != View.GONE) movesCheckBox.height else 0
-            val child: View = moveButtons.first()
-            if (child.visibility != View.GONE) canvas.drawLine(0f, offset + child.height.toFloat(),
-                    width.toFloat(), offset + child.height.toFloat(), paint)
-        }
-        if (backButton.visibility != GONE)
-            canvas.drawLine(0f, backButton.top.toFloat(), width.toFloat(),
-                    backButton.top.toFloat(), paint)
-
-    }
-
-    /* Decision making methods */
-
-    fun promptDecision(observer: BattleRoomMessageObserver, battleTipPopup: BattleTipPopup, request: BattleDecisionRequest,
-                       listener: (BattleDecision) -> Unit) {
+    fun promptDecision(
+            observer: BattleRoomMessageObserver,
+            battleTipPopup: BattleTipPopup,
+            request: BattleDecisionRequest,
+            listener: (BattleDecision) -> Unit
+    ) {
         promptStage = -1
         targetToChoose = null
+        targetMoveName = null
+        switchTabs.clear()
+        gimmicksByStage.clear()
         _observer = observer
         _battleTipPopup = battleTipPopup
         _request = request
@@ -241,34 +212,27 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
 
     private fun promptNext() {
         when {
-            targetToChoose != null -> { // Needs target selection
-                val targets = LinkedList<BattlingPokemon>()
-                val foeTargets = LinkedList<BattlingPokemon>()
-                for (i in 0 until request.count) {
-                    observer.getBattlingPokemon(PokemonId(Player.TRAINER, i))?.let { targets.add(it) }
-                    observer.getBattlingPokemon(PokemonId(Player.FOE, i))?.let { foeTargets.add(it) }
+            targetToChoose != null -> {
+                trainerTargets = (0 until request.count).map {
+                    observer.getBattlingPokemon(PokemonId(Player.TRAINER, it))
                 }
-                val arr = computeTargetAvailabilities(targetToChoose!!, promptStage, request.count)
-                showTargetChoice(battleTipPopup, targets, foeTargets, arr)
+                foeTargets = (0 until request.count).map {
+                    observer.getBattlingPokemon(PokemonId(Player.FOE, it))
+                }
+                targetAvailabilities = computeTargetAvailabilities(targetToChoose!!, promptStage, request.count)
+                showTargetChoice()
             }
-            promptStage + 1 >= request.count || (request.teamPreview && promptStage == 0) -> { // Request completed
-                onDecisionListener.invoke(decision)
+            promptStage + 1 >= request.count || (request.teamPreview && promptStage == 0) -> {
+                onDecisionListener(decision)
                 revealOut()
-                promptStage = 0
-                targetToChoose = null
-                _observer = null
-                _battleTipPopup = null
-                _request = null
-                _onDecisionListener = null
-                _decision = null
+                clearDecision()
             }
             else -> {
                 promptStage += 1
                 if (!request.teamPreview) {
                     val activeFainted = request.side[promptStage].condition.health == 0f
                     val unfaintedCount = request.side.drop(request.count).count { it.condition.health != 0f }
-                    val switchChoicesCount = decision.switchChoicesCount()
-                    val pass = activeFainted && unfaintedCount - switchChoicesCount <= 0
+                    val pass = activeFainted && unfaintedCount - decision.switchChoicesCount() <= 0
                     if (request.shouldPass(promptStage) || pass) {
                         decision.addPassChoice()
                         promptNext()
@@ -277,382 +241,510 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
                 }
                 val hideMoves = request.forceSwitch(promptStage) || request.teamPreview
                 val hideSwitch = request.trapped(promptStage)
-                val moves = if (hideMoves) null else request.getMoves(promptStage)
-                val team = if (hideSwitch) null else request.side
-                showChoice(battleTipPopup,
-                        moves,
+                showChoice(
+                        if (hideMoves) null else request.getMoves(promptStage),
                         request.canMegaEvo(promptStage),
                         request.canDynamax(promptStage),
                         request.isDynamaxed(promptStage),
                         request.canTerastallize(promptStage),
-                        team,
+                        if (hideSwitch) null else request.side,
                         request.teamPreview)
             }
         }
         if (comingToPreviousStage) comingToPreviousStage = false
     }
 
+    private fun clearDecision() {
+        promptStage = 0
+        targetToChoose = null
+        targetMoveName = null
+        trainerTargets = emptyList()
+        foeTargets = emptyList()
+        targetAvailabilities = null
+        _observer = null
+        _battleTipPopup = null
+        _request = null
+        _onDecisionListener = null
+        _decision = null
+    }
+
     private fun promptPrevious() {
+        if (_decision == null) return
+        if (request.teamPreview && decision.leadChoicesCount() > 0) {
+            decision.removeLastChoice()
+            bindTeamChoices(request.side, chooseLead = true)
+            updateChoiceHeader(chooseLead = true)
+            updateBackVisibility()
+            return
+        }
+
         comingToPreviousStage = true
         promptStage -= 1
-
-        if (targetToChoose != null) { // We are choosing a target, get back to move/switch choices and remove out move choice
+        if (targetToChoose != null) {
             targetToChoose = null
+            targetMoveName = null
             decision.removeLastChoice()
+        } else if (decision.lastChoiceWasMoveTarget()) {
+            val lastMove = decision.lastChoiceMove()
+            val wasZ = decision.lastChoiceWasZ()
+            val wasMax = decision.lastChoiceWasDynamax()
+            val move = request.getMoves(promptStage)?.getOrNull(lastMove - 1)
+            targetToChoose = when {
+                wasMax || request.isDynamaxed(promptStage) -> move?.maxMoveTarget
+                wasZ -> move?.zDetails?.target ?: move?.target
+                else -> move?.target
+            } ?: Move.Target.ALL
+            targetMoveName = move?.let { displayMoveName(it, wasZ, wasMax || request.isDynamaxed(promptStage)) }
         } else {
-            if (decision.lastChoiceWasMoveTarget()) { // We were choosing a target, we dont remove our choice, we'll override our target choice
-                val lastMove = decision.lastChoiceMove()
-                val wasZ = decision.lastChoiceWasZ()
-                val wasMax = decision.lastChoiceWasDynamax()
-                val move = request.getMoves(promptStage)?.get(lastMove - 1)
-                val target = if (wasMax || request.isDynamaxed(promptStage)) move?.maxMoveTarget else if (wasZ) move?.zDetails?.target else move?.target
-                targetToChoose = target ?: Move.Target.ALL
-            } else { // No taget selection involved, just get back to previous stage and remove our choice
-                promptStage -= 1 // Decrement one more time to take account of the increment in promptNext third when case
-                decision.removeLastChoice()
-            }
+            promptStage -= 1
+            decision.removeLastChoice()
         }
         promptNext()
     }
 
-    private fun showTargetChoice(battleTipPopup: BattleTipPopup, trainerTargets: List<BattlingPokemon?>,
-                                 foeTargets: List<BattlingPokemon?>, availabilities: Array<BooleanArray>) {
-        alphaAnimator.apply {
-            setFloatValues(1f, 0f)
-            duration = ANIM_NEXTCHOICE_FADE_DURATION
-            startDelay = 0
-            repeatMode = ObjectAnimator.REVERSE
-            repeatCount = 1
-            addListener(object : SimpleAnimatorListener() {
-                override fun onAnimationStart(animator: Animator) {
-                    isAnimatingContentAlpha = true
-                }
+    private fun showTargetChoice() = animateContentChange(::setTargetChoiceLayout)
 
-                override fun onAnimationRepeat(animator: Animator) {
-                    setTargetChoiceLayout(battleTipPopup, trainerTargets, foeTargets, availabilities)
-                }
-
-                override fun onAnimationEnd(animator: Animator) {
-                    isAnimatingContentAlpha = false
-                    alphaAnimator.removeListener(this)
-                }
-            })
-        }.start()
+    private fun setTargetChoiceLayout() {
+        movesAvailable = false
+        teamAvailable = false
+        choiceTabs.visibility = View.GONE
+        movesSection.visibility = View.GONE
+        teamGrid.visibility = View.GONE
+        targetContainer.visibility = View.VISIBLE
+        gimmickButton.visibility = View.GONE
+        titleView.text = context.getString(
+                R.string.battle_choose_target,
+                targetMoveName ?: context.getString(R.string.battle_move_target_fallback))
+        subtitleView.visibility = View.GONE
+        bindTargetRows()
+        backButton.visibility = View.VISIBLE
+        decisionScroll.scrollTo(0, 0)
     }
 
-    private fun setTargetChoiceLayout(battleTipPopup: BattleTipPopup, trainerTargets: List<BattlingPokemon?>,
-                                      foeTargets: List<BattlingPokemon?>, availabilities: Array<BooleanArray>) {
-        moveButtons.forEach { btn ->
-            btn.text = null
-            btn.visibility = View.GONE
+    private fun bindTargetRows() {
+        val availabilities = targetAvailabilities ?: return
+        val farIsTrainer = battleViewFlipped
+        farTargetLabel.setText(if (farIsTrainer) R.string.battle_your_side else R.string.battle_opponent_side)
+        nearTargetLabel.setText(if (farIsTrainer) R.string.battle_opponent_side else R.string.battle_your_side)
+        bindTargetButtons(
+                farTargetButtons,
+                if (farIsTrainer) trainerTargets else foeTargets,
+                availabilities[if (farIsTrainer) 1 else 0])
+        bindTargetButtons(
+                nearTargetButtons,
+                if (farIsTrainer) foeTargets else trainerTargets,
+                availabilities[if (farIsTrainer) 0 else 1])
+    }
+
+    private fun bindTargetButtons(
+            buttons: List<SwitchButton>,
+            targets: List<BattlingPokemon?>,
+            availabilities: BooleanArray
+    ) = buttons.forEachIndexed { index, button ->
+        val pokemon = targets.getOrNull(index)
+        if (pokemon == null) {
+            clearPokemonButton(button)
+            return@forEachIndexed
         }
-        movesCheckBox.apply {
-            visibility = View.GONE
-            text = null
-            setOnCheckedChangeListener(null)
+        val condition = pokemon.condition
+        val fainted = condition?.health == 0f
+        val enabled = availabilities.getOrElse(index) { false } && !fainted
+        val state = when {
+            fainted -> ChoiceState(
+                    context.getString(R.string.battle_choice_fainted),
+                    context.getString(R.string.battle_choice_fainted))
+            !enabled -> ChoiceState(
+                    context.getString(R.string.battle_choice_unavailable_short),
+                    context.getString(R.string.battle_choice_unavailable))
+            else -> ChoiceState()
         }
-        for (i in 0 until 6) {
-            val button = switchButtons[i]
-            val targets = if (i < 3) foeTargets else trainerTargets
-            val offset = if (i < 3) 0 else 3
-            if (i - offset < targets.size) {
-                val pokemon = targets[i - offset]
-                button.visibility = View.VISIBLE
-                button.setPokemonName(pokemon!!.name)
-                val enabled = availabilities[if (i < 3) 0 else 1][i - offset] && pokemon.condition!!.health != 0f
-                button.isEnabled = enabled
-                button.setTag(R.id.battle_data_tag, pokemon)
-                battleTipPopup.removeTippedView(button)
-                button.setDexIcon(null)
-            } else {
-                button.setPokemonName(null)
-                button.visibility = View.GONE
+        button.apply {
+            visibility = View.VISIBLE
+            setIconVisible(false)
+            setDexIcon(null)
+            setPokemonName(pokemon.name)
+            setCondition(condition)
+            setChoiceState(state.label, state.description)
+            setTag(R.id.battle_data_tag, pokemon)
+            isEnabled = enabled
+        }
+        battleTipPopup.addTippedView(button)
+    }
+
+    private fun showChoice(
+            moves: Array<Move>?,
+            canMega: Boolean,
+            canDynamax: Boolean,
+            isDynamaxed: Boolean,
+            teraType: String?,
+            team: List<SidePokemon>?,
+            chooseLead: Boolean
+    ) {
+        val update = {
+            setChoiceLayout(moves, canMega, canDynamax, isDynamaxed, teraType, team, chooseLead)
+        }
+        if ((promptStage == 0 || decision.hasOnlyPassChoice()) && !comingToPreviousStage) update()
+        else animateContentChange(update)
+    }
+
+    private fun setChoiceLayout(
+            moves: Array<Move>?,
+            canMega: Boolean,
+            canDynamax: Boolean,
+            isDynamaxed: Boolean,
+            teraType: String?,
+            team: List<SidePokemon>?,
+            chooseLead: Boolean
+    ) {
+        targetContainer.visibility = View.GONE
+        movesAvailable = !moves.isNullOrEmpty()
+        teamAvailable = !team.isNullOrEmpty()
+
+        moves?.forEach {
+            it.zflag = false
+            it.maxflag = false
+        }
+        bindMoves(moves)
+        configureGimmick(moves, canMega, canDynamax, isDynamaxed, teraType)
+        bindTeamChoices(team, chooseLead)
+        updateChoiceHeader(chooseLead)
+        renderChoiceSection(scrollToTop = true)
+        updateBackVisibility()
+    }
+
+    private fun bindMoves(moves: Array<Move>?) = moveButtons.forEachIndexed { index, button ->
+        val move = moves?.getOrNull(index)
+        if (move == null) {
+            battleTipPopup.removeTippedView(button)
+            button.visibility = View.GONE
+            button.setTag(R.id.battle_data_tag, null)
+            return@forEachIndexed
+        }
+        button.visibility = View.VISIBLE
+        button.setTag(R.id.battle_data_tag, move)
+        refreshMoveButton(button, move)
+        battleTipPopup.addTippedView(button)
+    }
+
+    private fun configureGimmick(
+            moves: Array<Move>?,
+            canMega: Boolean,
+            canDynamax: Boolean,
+            isDynamaxed: Boolean,
+            teraType: String?
+    ) {
+        gimmick = when {
+            canMega && !decision.hasMegaChoices() -> Gimmick.MEGA
+            moves?.any(Move::canZMove) == true && !decision.hasZMoveChoices() -> Gimmick.Z_MOVE
+            canDynamax && !decision.hasDynamaxChoices() -> Gimmick.DYNAMAX
+            teraType != null && !decision.hasTeraChoices() -> Gimmick.TERA
+            else -> Gimmick.NONE
+        }
+        if (isDynamaxed) gimmick = Gimmick.NONE
+        if (gimmicksByStage[promptStage] != gimmick) gimmicksByStage.remove(promptStage)
+
+        updatingGimmick = true
+        gimmickButton.apply {
+            visibility = if (gimmick == Gimmick.NONE) View.GONE else View.VISIBLE
+            text = when (gimmick) {
+                Gimmick.MEGA -> context.getString(R.string.battle_mega_evolution)
+                Gimmick.Z_MOVE -> context.getString(R.string.battle_z_move)
+                Gimmick.DYNAMAX -> context.getString(R.string.battle_dynamax)
+                Gimmick.TERA -> context.getString(
+                        R.string.battle_terastallize, teraType?.uppercase(Locale.ROOT).orEmpty())
+                Gimmick.NONE -> null
             }
+            isChecked = gimmicksByStage[promptStage] == gimmick && gimmick != Gimmick.NONE
         }
-        backButton.apply {
-            visibility = VISIBLE
-            setOnClickListener { promptPrevious() }
-        }
-    }
+        updatingGimmick = false
 
-    private fun showChoice(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean,
-                           canDynamax: Boolean, isDynamaxed: Boolean, teraType: String?, team: List<SidePokemon>?,
-                           chooseLead: Boolean) {
-        if ((promptStage == 0 || decision.hasOnlyPassChoice()) && !comingToPreviousStage) {
-            // First time a choice is shown, no need of animation
-            setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, teraType, team, chooseLead)
-            return
-        }
-        alphaAnimator.apply {
-            setFloatValues(1f, 0f)
-            duration = ANIM_NEXTCHOICE_FADE_DURATION
-            startDelay = 0
-            repeatMode = ObjectAnimator.REVERSE
-            repeatCount = 1
-            addListener(object : SimpleAnimatorListener() {
-                override fun onAnimationStart(animator: Animator) {
-                    isAnimatingContentAlpha = true
-                }
-
-                override fun onAnimationRepeat(animator: Animator) {
-                    setChoiceLayout(battleTipPopup, moves, canMega, canDynamax, isDynamaxed, teraType, team, chooseLead)
-                }
-
-                override fun onAnimationEnd(animator: Animator) {
-                    isAnimatingContentAlpha = false
-                    alphaAnimator.removeListener(this)
-                }
-            })
-        }.start()
-    }
-
-    private fun setChoiceLayout(battleTipPopup: BattleTipPopup, moves: Array<Move>?, canMega: Boolean, canDynamax: Boolean,
-                                isDynamaxed: Boolean, teraType: String?, team: List<SidePokemon>?, chooseLead: Boolean) {
-        var canZMove = false
-        moveButtons.forEachIndexed { i, btn ->
-            if (moves != null && i < moves.size) {
-                val move = moves[i]
-                btn.apply {
-                    text = moveText(move)
-                    visibility = View.VISIBLE
-                    setTag(R.id.battle_data_tag, move)
-                }
-                battleTipPopup.addTippedView(btn)
-                styleMoveButton(btn, !move.disabled, move.details?.color ?: DEFAULT_TINT)
-                if (move.canZMove) canZMove = true
-            } else btn.apply {
-                text = null
-                visibility = View.GONE
-            }
-        }
-        toggleMaxMoves(isDynamaxed)
-        checkBoxRepresentsTera = false
         when {
-            canMega && !decision.hasMegaChoices()-> movesCheckBox.apply {
-                visibility = View.VISIBLE
-                text = "Mega Evolution"
-                isChecked = false
-                setOnCheckedChangeListener(null)
-            }
-            canZMove && !decision.hasZMoveChoices() -> movesCheckBox.apply {
-                visibility = View.VISIBLE
-                text = "Z-Move"
-                isChecked = false
-                setOnCheckedChangeListener { _: CompoundButton?, checked: Boolean -> toggleZMoves(checked) }
-            }
-            canDynamax && !decision.hasDynamaxChoices() -> movesCheckBox.apply {
-                visibility = View.VISIBLE
-                text = "Dynamax"
-                isChecked = false
-                setOnCheckedChangeListener { _: CompoundButton?, checked: Boolean -> toggleMaxMoves(checked) }
-            }
-            teraType != null && !decision.hasTeraChoices() -> movesCheckBox.apply {
-                checkBoxRepresentsTera = true
-                visibility = View.VISIBLE
-                text = "Terastallize " concat teraType.toUpperCase().small().tag(Colors.typeColor(teraType.toId()))
-                isChecked = false
-                setOnCheckedChangeListener(null)
-            }
-            else -> movesCheckBox.apply {
-                visibility = View.GONE
-                text = null
-                setOnCheckedChangeListener(null)
-            }
+            isDynamaxed -> toggleMaxMoves(true)
+            gimmickButton.isChecked && gimmick == Gimmick.Z_MOVE -> toggleZMoves(true)
+            gimmickButton.isChecked && gimmick == Gimmick.DYNAMAX -> toggleMaxMoves(true)
         }
-        switchButtons.forEachIndexed { i, btn ->
-            if (team != null && i < team.size) {
-                val sidePokemon = team[i]
-                val notInBattleAndUnfainted = i >= request.count && sidePokemon.condition.health != 0f
-                val previouslyChosenAsSwitch = promptStage > 0 && request.count > 1 && decision.hasSwitchChoice(/* 1-based index */ i + 1)
-                btn.apply {
+    }
+
+    private fun bindTeamChoices(team: List<SidePokemon>?, chooseLead: Boolean) =
+            teamButtons.forEachIndexed { index, button ->
+                val pokemon = team?.getOrNull(index)
+                if (pokemon == null) {
+                    clearPokemonButton(button)
+                    return@forEachIndexed
+                }
+                val who = pokemon.index + 1
+                val order = if (chooseLead) decision.leadChoicePosition(who) else null
+                val previouslyChosenAsSwitch = !chooseLead && promptStage > 0 && request.count > 1 &&
+                        decision.hasSwitchChoice(who)
+                val availableSwitch = index >= request.count && pokemon.condition.health != 0f &&
+                        !previouslyChosenAsSwitch
+                val enabled = if (chooseLead) order == null else availableSwitch
+                val state = when {
+                    order != null -> ChoiceState(
+                            order.toString(),
+                            context.getString(R.string.battle_choice_order, order),
+                            selected = true)
+                    pokemon.condition.health == 0f -> ChoiceState(
+                            context.getString(R.string.battle_choice_fainted),
+                            context.getString(R.string.battle_choice_fainted))
+                    pokemon.active || index < request.count -> ChoiceState(
+                            context.getString(R.string.battle_choice_active),
+                            context.getString(R.string.battle_choice_active))
+                    previouslyChosenAsSwitch -> ChoiceState(
+                            context.getString(R.string.battle_choice_selected),
+                            context.getString(R.string.battle_choice_selected),
+                            selected = true)
+                    !enabled -> ChoiceState(
+                            context.getString(R.string.battle_choice_unavailable_short),
+                            context.getString(R.string.battle_choice_unavailable))
+                    else -> ChoiceState()
+                }
+                button.apply {
                     visibility = View.VISIBLE
-                    isEnabled = chooseLead || (notInBattleAndUnfainted && !previouslyChosenAsSwitch)
-                    setPokemonName(sidePokemon.name)
-                    setTag(R.id.battle_data_tag, sidePokemon)
+                    setIconVisible(true)
+                    setDexIcon(pokemon.icon?.toDrawable(resources))
+                    setPokemonName(pokemon.name)
+                    setCondition(pokemon.condition)
+                    setChoiceState(state.label, state.description, state.selected)
+                    setTag(R.id.battle_data_tag, pokemon)
+                    isEnabled = enabled
                 }
-                battleTipPopup.addTippedView(btn)
-                if (sidePokemon.icon != null) btn.setDexIcon(BitmapDrawable(resources, sidePokemon.icon))
-            } else btn.apply {
-                visibility = View.GONE
-                setPokemonName(null)
-                setDexIcon(null)
+                battleTipPopup.addTippedView(button)
             }
-        }
-        if (promptStage > 0 && !decision.hasOnlyPassChoice()) backButton.apply {
-            visibility = VISIBLE
-            setOnClickListener { promptPrevious() }
-        } else backButton.apply {
-            visibility = GONE
-            setOnClickListener(null)
-        }
-    }
 
-    private fun toggleZMoves(toggle: Boolean) {
-        moveButtons.forEach { button ->
-            if (button.visibility == View.GONE) return@forEach
-            val move = button.getTag(R.id.battle_data_tag) as Move
-            if (toggle) {
-                if (move.canZMove) {
-                    button.text = move.zName
-                    move.zflag = true
-                    styleMoveButton(button, true, move.details?.color ?: DEFAULT_TINT)
-                } else {
-                    button.text = "—"
-                    styleMoveButton(button, false, move.details?.color ?: DEFAULT_TINT)
-                }
-            } else {
-                button.text = moveText(move)
-                move.zflag = false
-                styleMoveButton(button, !move.disabled, move.details?.color ?: DEFAULT_TINT)
-            }
+    private fun clearPokemonButton(button: SwitchButton) {
+        if (_battleTipPopup != null) battleTipPopup.removeTippedView(button)
+        button.apply {
+            visibility = View.GONE
+            setPokemonName(null)
+            setCondition(null)
+            setChoiceState(null)
+            setDexIcon(null)
+            setTag(R.id.battle_data_tag, null)
         }
     }
 
-    private fun toggleMaxMoves(toggle: Boolean) {
-        moveButtons.forEach { button ->
-            if (button.visibility == View.GONE) return@forEach
-            val move = button.getTag(R.id.battle_data_tag) as Move
-            if (toggle) {
-                if (move.maxMoveId != null) {
-                    button.text = move.maxDetails?.name ?: move.maxMoveId!!
-                    move.maxflag = true
-                    styleMoveButton(button, true, move.maxDetails?.color ?: DEFAULT_TINT)
-                } else {
-                    button.text = "—"
-                    styleMoveButton(button, false, move.details?.color ?: DEFAULT_TINT)
-                }
-            } else {
-                button.text = moveText(move)
-                move.maxflag = false
-                styleMoveButton(button, !move.disabled, move.details?.color ?: DEFAULT_TINT)
-            }
+    private fun updateChoiceHeader(chooseLead: Boolean) {
+        val pokemonName = request.side.getOrNull(promptStage)?.name?.trim().orEmpty()
+        titleView.text = when {
+            chooseLead -> context.getString(R.string.battle_choose_team_order)
+            request.forceSwitch(promptStage) -> context.getString(R.string.battle_choose_replacement, pokemonName)
+            else -> context.getString(R.string.battle_choose_for, pokemonName)
+        }
+        if (chooseLead) {
+            subtitleView.text = context.getString(
+                    R.string.battle_team_choice_progress,
+                    decision.leadChoicesCount(),
+                    requiredLeadChoices())
+            subtitleView.visibility = View.VISIBLE
+        } else if (request.count > 1) {
+            subtitleView.text = context.getString(
+                    R.string.battle_choice_progress, promptStage + 1, request.count)
+            subtitleView.visibility = View.VISIBLE
+        } else {
+            subtitleView.visibility = View.GONE
         }
     }
 
-    private fun styleMoveButton(button: Button, enabled: Boolean, color: Int) = button.apply {
-        isEnabled = enabled
-        background.setTint(color)
-        setTextColor(Colors.contrastTextColor(color))
+    private fun renderChoiceSection(scrollToTop: Boolean) {
+        val hasTabs = movesAvailable && teamAvailable
+        choiceTabs.visibility = if (hasTabs) View.VISIBLE else View.GONE
+        val showSwitch = teamAvailable && (!movesAvailable || promptStage in switchTabs)
+        if (hasTabs) {
+            updatingTabs = true
+            choiceTabs.check(if (showSwitch) R.id.switch_tab else R.id.moves_tab)
+            updatingTabs = false
+        }
+        movesSection.visibility = if (movesAvailable && !showSwitch) View.VISIBLE else View.GONE
+        teamGrid.visibility = if (showSwitch) View.VISIBLE else View.GONE
+        targetContainer.visibility = View.GONE
+        if (scrollToTop) decisionScroll.scrollTo(0, 0)
     }
 
-    private fun moveText(move: Move): CharSequence {
-        val label = effectivenessLabel(move)
-        val second = if (label != null) "${move.pp}/${move.ppMax} ".small() concat label
-                     else "${move.pp}/${move.ppMax}".small()
-        return move.name concat "\n" concat second
+    private fun updateBackVisibility() {
+        backButton.visibility = if (
+                (request.teamPreview && decision.leadChoicesCount() > 0) ||
+                (promptStage > 0 && !decision.hasOnlyPassChoice())) View.VISIBLE else View.GONE
     }
 
-    /** Defending types of the opposing active Pokémon, used to show per-move effectiveness on the buttons. */
+    private fun requiredLeadChoices(): Int {
+        val fullTeamOrder = request.maxTeamSize < request.side.size ||
+                request.side.any { it.baseAbility.toId() == "illusion" }
+        return if (fullTeamOrder) min(request.maxTeamSize, request.side.size) else request.count
+    }
+
+    private fun toggleZMoves(toggle: Boolean) = moveButtons.forEach { button ->
+        val move = button.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
+        move.zflag = toggle && move.canZMove
+        refreshMoveButton(button, move)
+    }
+
+    private fun toggleMaxMoves(toggle: Boolean) = moveButtons.forEach { button ->
+        val move = button.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
+        move.maxflag = toggle && move.maxMoveId != null
+        refreshMoveButton(button, move)
+    }
+
+    private fun refreshMoveButton(button: MaterialButton, move: Move) {
+        val details = when {
+            move.maxflag -> move.maxDetails ?: move.details
+            move.zflag -> move.zDetails ?: move.details
+            else -> move.details
+        }
+        val enabled = when {
+            move.maxflag -> move.maxMoveId != null
+            move.zflag -> move.canZMove
+            else -> !move.disabled
+        }
+        val color = details?.color?.takeIf { it != 0 } ?: defaultMoveTint
+        button.apply {
+            text = moveText(move, details)
+            isEnabled = enabled
+            alpha = if (enabled) 1f else 0.55f
+            backgroundTintList = ColorStateList.valueOf(color)
+            setTextColor(Colors.contrastTextColor(color))
+        }
+    }
+
+    private fun moveText(move: Move, details: Move.Details?): CharSequence {
+        val metadata = mutableListOf<String>()
+        details?.type?.takeIf(String::isNotBlank)?.let { metadata.add(it.uppercase(Locale.ROOT)) }
+        if (move.pp >= 0 && move.ppMax >= 0) {
+            metadata.add(context.getString(R.string.battle_move_pp, move.pp, move.ppMax))
+        }
+        effectivenessLabel(details)?.let(metadata::add)
+        val name = displayMoveName(move, move.zflag, move.maxflag)
+        return if (metadata.isEmpty()) name else name concat "\n" concat metadata.joinToString(" · ").small()
+    }
+
+    private fun displayMoveName(move: Move, zMove: Boolean, maxMove: Boolean): String = when {
+        maxMove -> move.maxDetails?.name ?: move.maxMoveName ?: move.name
+        zMove -> move.zName ?: move.name
+        else -> move.name
+    }
+
+    /** Defending types of the opposing active Pokémon, used to show per-move effectiveness. */
     fun setFoeDefendingTypes(types: List<String>?) {
         foeTypes = types
-        moveButtons.forEach { btn ->
-            if (btn.visibility == View.GONE) return@forEach
-            val move = btn.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
-            if (!move.maxflag && !move.zflag) btn.text = moveText(move)
-        }
+        refreshVisibleMoves()
     }
 
-    private fun effectivenessLabel(move: Move): CharSequence? {
+    private fun effectivenessLabel(details: Move.Details?): String? {
         val types = foeTypes ?: return null
-        val details = move.details ?: return null
-        val type = details.type ?: return null
+        val type = details?.type ?: return null
         if (details.category.toId() == "status") return null
-        val m = Type.effectiveness(type, types)
-        return when {
-            m == 0.0 -> "0×".small().bold()
-            m > 1.0 -> "${formatMultiplier(m)}×".small().bold()
-            m < 1.0 -> "${formatMultiplier(m)}×".small().bold()
-            else -> null
-        }
+        val multiplier = Type.effectiveness(type, types)
+        if (multiplier == 1.0) return null
+        return "${formatMultiplier(multiplier)}×"
     }
 
-    private fun formatMultiplier(m: Double) = when (m) {
+    private fun formatMultiplier(multiplier: Double) = when (multiplier) {
         0.25 -> "¼"
         0.5 -> "½"
-        else -> if (m == m.toLong().toDouble()) m.toLong().toString() else m.toString()
+        else -> if (multiplier == multiplier.toLong().toDouble()) {
+            multiplier.toLong().toString()
+        } else multiplier.toString()
     }
 
-    fun notifyDexIconsUpdated() = switchButtons.forEach { btn ->
-        val tag = btn.getTag(R.id.battle_data_tag)
-        if (tag is SidePokemon) {
-            val icon = tag.icon
-            if (icon != null) btn.setDexIcon(BitmapDrawable(resources, icon))
-        }
+    fun notifyDexIconsUpdated() = teamButtons.forEach { button ->
+        val pokemon = button.getTag(R.id.battle_data_tag) as? SidePokemon ?: return@forEach
+        pokemon.icon?.let { button.setDexIcon(it.toDrawable(resources)) }
     }
 
-    fun notifyDetailsUpdated() = moveButtons.forEach { btn ->
-        val move = btn.getTag(R.id.battle_data_tag) as Move?
-        if (move != null && !move.maxflag && move.details != null) {
-            styleMoveButton(btn, btn.isEnabled, move.details!!.color)
-            if (!move.zflag) btn.text = moveText(move)
-        }
+    fun notifyDetailsUpdated() = refreshVisibleMoves()
+
+    fun notifyMaxDetailsUpdated() = refreshVisibleMoves()
+
+    private fun refreshVisibleMoves() = moveButtons.forEach { button ->
+        val move = button.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
+        refreshMoveButton(button, move)
     }
 
-    fun notifyMaxDetailsUpdated() = moveButtons.forEach { btn ->
-        val move = btn.getTag(R.id.battle_data_tag) as Move?
-        if (move != null && move.maxflag && move.maxDetails != null) {
-            btn.text = move.maxDetails!!.name
-            styleMoveButton(btn, btn.isEnabled, move.maxDetails!!.color)
-        }
+    internal fun setBattleViewFlipped(flipped: Boolean) {
+        battleViewFlipped = flipped
+        if (targetToChoose != null && targetContainer.visibility == View.VISIBLE) bindTargetRows()
     }
 
     override fun onClick(view: View) {
-        if (revealingIn || revealingOut || isAnimatingContentAlpha || _decision == null) return // Prevent undesired behaviours
-        val data = view.getTag(R.id.battle_data_tag)
-        if (data is Move) {
-            val which = data.index + 1
-            val checked = movesCheckBox.visibility == View.VISIBLE && movesCheckBox.isChecked
-            val tera = checked && checkBoxRepresentsTera
-            var mega = checked && !checkBoxRepresentsTera
-            var zmove = mega && data.zflag
-            val dynamax = mega && data.maxflag
-            if (dynamax) {
-                zmove = false
-                mega = zmove
-            } else if (zmove) mega = false
-            decision.addMoveChoice(which, mega, zmove, dynamax, tera)
-            val target = (if (data.maxflag) data.maxMoveTarget else if (data.zflag) data.zDetails?.target else data.target)
-                    ?: Move.Target.ALL
-            if (request.count > 1 && target.isChoosable) targetToChoose = target
-        } else if (data is BattlingPokemon) {
-            val id = data.id
-            var index = id.position + 1
-            if (!id.foe) index *= -1
-            decision.setLastMoveTarget(index)
-            targetToChoose = null
-        } else if (data is SidePokemon) {
-            val who = data.index + 1
-            if (request.teamPreview) {
-                decision.addLeadChoice(who, request.side.size)
-                view.isEnabled = false
-                // Request full team order if only a part of the team is need or if one of our Pokémon has Illusion
-                val fullTeamOrder = request.maxTeamSize < request.side.size || request.side.any { it.baseAbility.toId() == "illusion"}
-                val choicesCount = decision.leadChoicesCount()
-
-                if (fullTeamOrder) {
-                    if (choicesCount < min(request.maxTeamSize, request.side.size)) return // Prevents from moving to next prompt stage
-                } else {
-                    if (choicesCount < request.count) return // Prevents from moving to next prompt stage
+        if (revealingIn || revealingOut || isAnimatingContentAlpha || _decision == null) return
+        when (val data = view.getTag(R.id.battle_data_tag)) {
+            is Move -> {
+                val selectedGimmick = gimmick.takeIf {
+                    gimmickButton.visibility == View.VISIBLE && gimmickButton.isChecked
+                } ?: Gimmick.NONE
+                decision.addMoveChoice(
+                        data.index + 1,
+                        selectedGimmick == Gimmick.MEGA,
+                        selectedGimmick == Gimmick.Z_MOVE,
+                        selectedGimmick == Gimmick.DYNAMAX,
+                        selectedGimmick == Gimmick.TERA)
+                val target = when {
+                    data.maxflag -> data.maxMoveTarget
+                    data.zflag -> data.zDetails?.target ?: data.target
+                    else -> data.target
+                } ?: Move.Target.ALL
+                if (request.count > 1 && target.isChoosable) {
+                    targetToChoose = target
+                    targetMoveName = displayMoveName(data, data.zflag, data.maxflag)
                 }
-            } else {
-                decision.addSwitchChoice(who)
+            }
+            is BattlingPokemon -> {
+                var index = data.id.position + 1
+                if (!data.id.foe) index *= -1
+                decision.setLastMoveTarget(index)
+                targetToChoose = null
+                targetMoveName = null
+            }
+            is SidePokemon -> {
+                val who = data.index + 1
+                if (request.teamPreview) {
+                    decision.addLeadChoice(who, request.side.size)
+                    if (decision.leadChoicesCount() < requiredLeadChoices()) {
+                        bindTeamChoices(request.side, chooseLead = true)
+                        updateChoiceHeader(chooseLead = true)
+                        updateBackVisibility()
+                        return
+                    }
+                } else {
+                    decision.addSwitchChoice(who)
+                }
             }
         }
         promptNext()
     }
 
-    /* Reveal animation methods */
+    private fun animateContentChange(update: () -> Unit) {
+        alphaAnimator.apply {
+            setFloatValues(1f, 0f)
+            duration = ANIM_NEXT_CHOICE_FADE_DURATION
+            startDelay = 0
+            repeatMode = ObjectAnimator.REVERSE
+            repeatCount = 1
+            addListener(object : SimpleAnimatorListener() {
+                override fun onAnimationStart(animator: Animator) {
+                    isAnimatingContentAlpha = true
+                }
+
+                override fun onAnimationRepeat(animator: Animator) {
+                    update()
+                }
+
+                override fun onAnimationEnd(animator: Animator) {
+                    isAnimatingContentAlpha = false
+                    alphaAnimator.removeListener(this)
+                }
+            })
+        }.start()
+    }
 
     private fun revealIn() {
         if (revealingIn || visibility == View.VISIBLE) return
-        if (revealingOut) revealAnimator!!.cancel()
+        if (revealingOut) revealAnimator?.cancel()
         val viewDiagonal = hypot(width.toDouble(), height.toDouble()).toInt()
-        ViewAnimationUtils.createCircularReveal(this, 0, 0, 0f, viewDiagonal.toFloat())
-        revealAnimator = ViewAnimationUtils.createCircularReveal(this, 0, 0, 0f, viewDiagonal.toFloat()).apply {
-            startDelay = 0
+        revealAnimator = ViewAnimationUtils.createCircularReveal(
+                this, 0, 0, 0f, viewDiagonal.toFloat()).apply {
             duration = ANIM_REVEAL_DURATION
             interpolator = AccelerateInterpolator()
-            removeAllListeners()
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator) {
                     revealingIn = true
@@ -681,13 +773,13 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
 
     private fun revealOut() {
         if (revealingOut || visibility == View.GONE) return
-        if (revealingIn) revealAnimator!!.cancel()
+        if (revealingIn) revealAnimator?.cancel()
         val viewDiagonal = hypot(width.toDouble(), height.toDouble()).toInt()
-        revealAnimator = ViewAnimationUtils.createCircularReveal(this, 0, 0, viewDiagonal.toFloat(), 0f).apply {
+        revealAnimator = ViewAnimationUtils.createCircularReveal(
+                this, 0, 0, viewDiagonal.toFloat(), 0f).apply {
             startDelay = ANIM_REVEAL_FADE_DURATION
             duration = ANIM_REVEAL_DURATION
             interpolator = AccelerateInterpolator()
-            removeAllListeners()
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     revealingOut = false
@@ -706,15 +798,11 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
             startDelay = 0
             repeatCount = 0
         }.start()
-
-        // Setting the flag directly because reveal anim waits for fade anim to finish before running
         revealingOut = true
         onRevealListener?.invoke(false)
     }
 
-    fun dismiss() {
-        revealOut()
-    }
+    fun dismiss() = revealOut()
 
     fun dismissNow() {
         visibility = View.GONE
@@ -722,22 +810,25 @@ class BattleDecisionWidget @JvmOverloads constructor(context: Context, attrs: At
         revealAnimator?.cancel()
     }
 
+    private enum class Gimmick { NONE, MEGA, Z_MOVE, DYNAMAX, TERA }
+
+    private data class ChoiceState(
+            val label: CharSequence? = null,
+            val description: String? = null,
+            val selected: Boolean = false)
+
     companion object {
-
-        private val CONTENT_ALPHA_PROPERTY = object : Property<BattleDecisionWidget, Float>(Float::class.java, "contentAlpha") {
-
+        private val CONTENT_ALPHA_PROPERTY = object : Property<BattleDecisionWidget, Float>(
+                Float::class.java, "contentAlpha") {
             override fun get(widget: BattleDecisionWidget) = widget.contentAlpha
-
             override fun set(widget: BattleDecisionWidget, value: Float) {
                 widget.contentAlpha = value
             }
         }
 
-        private const val DEFAULT_TINT = Color.GRAY
-
         private const val ANIM_REVEAL_DURATION = 250L
         private const val ANIM_REVEAL_FADE_DURATION = 100L
-        private const val ANIM_NEXTCHOICE_FADE_DURATION = 200L
+        private const val ANIM_NEXT_CHOICE_FADE_DURATION = 200L
 
         const val REVEAL_ANIMATION_DURATION = ANIM_REVEAL_DURATION + ANIM_REVEAL_FADE_DURATION
     }

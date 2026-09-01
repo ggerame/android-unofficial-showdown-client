@@ -6,8 +6,10 @@ import org.json.JSONObject
 
 class Move(val index: Int, json: JSONObject, zJson: JSONObject?, maxJson: JSONObject?) {
 
-    val name = json.getString("move").replace("Hidden Power", "HP")
+    private val requestName = json.getString("move")
+    val name = requestName.replace("Hidden Power", "HP")
     val id: String = json.getString("id")
+    val detailsId = resolveMoveDetailsId(id, requestName)
     val pp = json.optInt("pp", -1)
     val ppMax = json.optInt("maxpp", -1)
     val target = Target.parse(json.optString("target"))
@@ -131,3 +133,6 @@ class Move(val index: Int, json: JSONObject, zJson: JSONObject?, maxJson: JSONOb
                 "Max Hailstorm", "Max Airstream", "Max Quake", "Max Starfall")
     }
 }
+
+internal fun resolveMoveDetailsId(id: String, requestName: String) =
+        if (id == "hiddenpower") requestName.toId() else id

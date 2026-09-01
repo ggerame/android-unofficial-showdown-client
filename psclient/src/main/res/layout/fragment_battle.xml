@@ -29,7 +29,8 @@
         android:paddingBottom="1dp"
         android:paddingEnd="12dp"
         android:background="@color/battle_overlay"
-        android:gravity="end"/>
+        android:gravity="end|center_vertical"
+        android:maxLines="1"/>
 
     <com.majeur.psclient.widget.BattleLayout
         android:id="@+id/battle_layout"
@@ -46,7 +47,9 @@
         android:elevation="4dp"
         android:paddingBottom="1dp"
         android:paddingStart="12dp"
-        android:background="@color/battle_overlay"/>
+        android:background="@color/battle_overlay"
+        android:gravity="start|center_vertical"
+        android:maxLines="1"/>
 
     <TextView
         android:id="@+id/battle_message"

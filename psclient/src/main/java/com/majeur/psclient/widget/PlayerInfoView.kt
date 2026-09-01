@@ -2,12 +2,17 @@ package com.majeur.psclient.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.TextPaint
+import android.text.TextUtils
 import android.text.style.ImageSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
@@ -31,6 +36,8 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
     private val spannableBuilder: SpannableStringBuilder
     private val pokeballDrawable: Drawable
     private val emptyPokeballDrawable: Drawable
+    private var username = ""
+    private var displayedUsername = ""
 
     private val pokemonIds = mutableListOf<String>()
     // Parallel to pokemonIds: the latest known data for each slot. A slot holds a BattlingPokemon
@@ -52,6 +59,8 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
     fun clear() {
         pokemonIds.clear()
         pokemons.clear()
+        username = ""
+        displayedUsername = ""
         spannableBuilder.clear()
         spannableBuilder.clearSpans()
         spannableBuilder.append(SUFFIX_PATTERN)
@@ -59,28 +68,7 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
     }
 
     fun setUsername(username: String) {
-        val k = spannableBuilder.length - SUFFIX_PATTERN.length
-        val start: Int
-        if (isGravityRight) {
-            if (k != 0) {
-                start = SUFFIX_PATTERN.length - 1
-                spannableBuilder.replace(start, spannableBuilder.length, username)
-            } else {
-                spannableBuilder.append(username)
-                start = spannableBuilder.length - username.length
-            }
-        } else {
-            start = if (k != 0) {
-                spannableBuilder.replace(0, k, username)
-                0
-            } else {
-                spannableBuilder.insert(0, username)
-                0
-            }
-        }
-        val potentialStyleSpans = spannableBuilder.getSpans(0, spannableBuilder.length, StyleSpan::class.java)
-        if (potentialStyleSpans != null && potentialStyleSpans.isNotEmpty()) spannableBuilder.removeSpan(potentialStyleSpans[0])
-        spannableBuilder.setSpan(StyleSpan(Typeface.BOLD), start, start + username.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        this.username = username
         invalidateText()
     }
 
@@ -91,11 +79,11 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
         for (span in spannableBuilder.getSpans(0, l, ImageSpan::class.java)) spannableBuilder.removeSpan(span)
         val k = spannableBuilder.length - MAX_TEAM_SIZE - SUFFIX_OFFSET
         if (isGravityRight) {
-            for (i in SUFFIX_OFFSET until SUFFIX_OFFSET + teamSize) spannableBuilder.setSpan(ImageSpan(pokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
-            for (i in SUFFIX_OFFSET + teamSize until SUFFIX_OFFSET + MAX_TEAM_SIZE) spannableBuilder.setSpan(ImageSpan(emptyPokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+            for (i in SUFFIX_OFFSET until SUFFIX_OFFSET + teamSize) spannableBuilder.setSpan(CenteredImageSpan(pokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+            for (i in SUFFIX_OFFSET + teamSize until SUFFIX_OFFSET + MAX_TEAM_SIZE) spannableBuilder.setSpan(CenteredImageSpan(emptyPokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
         } else {
-            for (i in k until k + teamSize) spannableBuilder.setSpan(ImageSpan(pokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
-            for (i in k + teamSize until l - SUFFIX_OFFSET) spannableBuilder.setSpan(ImageSpan(emptyPokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+            for (i in k until k + teamSize) spannableBuilder.setSpan(CenteredImageSpan(pokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+            for (i in k + teamSize until l - SUFFIX_OFFSET) spannableBuilder.setSpan(CenteredImageSpan(emptyPokeballDrawable), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
         }
         invalidateText()
     }
@@ -113,7 +101,7 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
         spannableBuilder.removeSpan(previousSpan)
         val aspectRatio = dexIcon.intrinsicWidth / dexIcon.intrinsicHeight.toFloat()
         dexIcon.setBounds(0, 0, (aspectRatio * dexIconSize).roundToInt(), dexIconSize)
-        spannableBuilder.setSpan(ImageSpan(dexIcon), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        spannableBuilder.setSpan(CenteredImageSpan(dexIcon), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
         invalidateText()
     }
 
@@ -129,7 +117,7 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
         spannableBuilder.removeSpan(previousSpan)
         val aspectRatio = dexIcon.intrinsicWidth / dexIcon.intrinsicHeight.toFloat()
         dexIcon.setBounds(0, 0, (aspectRatio * dexIconSize).roundToInt(), dexIconSize)
-        spannableBuilder.setSpan(ImageSpan(dexIcon), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        spannableBuilder.setSpan(CenteredImageSpan(dexIcon), i, i + 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
         invalidateText()
     }
 
@@ -178,7 +166,37 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
     }
 
     private fun invalidateText() {
+        for (span in spannableBuilder.getSpans(0, spannableBuilder.length, StyleSpan::class.java))
+            spannableBuilder.removeSpan(span)
+        if (displayedUsername.isNotEmpty()) {
+            if (isGravityRight) spannableBuilder.delete(spannableBuilder.length - displayedUsername.length, spannableBuilder.length)
+            else spannableBuilder.delete(0, displayedUsername.length)
+        }
+
+        val remainingWidth = width - compoundPaddingLeft - compoundPaddingRight -
+                Layout.getDesiredWidth(spannableBuilder, paint)
+        displayedUsername = if (width == 0) username else {
+            val boldPaint = TextPaint(paint).apply {
+                typeface = Typeface.create(typeface, Typeface.BOLD)
+            }
+            TextUtils.ellipsize(username, boldPaint, remainingWidth.coerceAtLeast(0f),
+                    TextUtils.TruncateAt.END).toString()
+        }
+        val start = if (isGravityRight) {
+            spannableBuilder.append(displayedUsername)
+            spannableBuilder.length - displayedUsername.length
+        } else {
+            spannableBuilder.insert(0, displayedUsername)
+            0
+        }
+        if (displayedUsername.isNotEmpty()) spannableBuilder.setSpan(StyleSpan(Typeface.BOLD),
+                start, start + displayedUsername.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
         text = spannableBuilder
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w != oldw) invalidateText()
     }
 
     companion object {
@@ -187,4 +205,32 @@ class PlayerInfoView @JvmOverloads constructor(context: Context, attrs: Attribut
         private const val MAX_TEAM_SIZE = 6
     }
 
+}
+
+private class CenteredImageSpan(drawable: Drawable) : ImageSpan(drawable) {
+
+    override fun getSize(paint: Paint, text: CharSequence, start: Int, end: Int,
+                         fm: Paint.FontMetricsInt?): Int {
+        fm?.let {
+            val paintMetrics = paint.fontMetricsInt
+            val drawableHeight = drawable.bounds.height()
+            val center = (paintMetrics.ascent + paintMetrics.descent) / 2
+            it.ascent = center - drawableHeight / 2
+            it.descent = it.ascent + drawableHeight
+            it.top = it.ascent
+            it.bottom = it.descent
+        }
+        return drawable.bounds.width()
+    }
+
+    override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float,
+                      top: Int, y: Int, bottom: Int, paint: Paint) {
+        val paintMetrics = paint.fontMetricsInt
+        val drawableTop = y + (paintMetrics.ascent + paintMetrics.descent -
+                drawable.bounds.height()) / 2f
+        canvas.save()
+        canvas.translate(x, drawableTop)
+        drawable.draw(canvas)
+        canvas.restore()
+    }
 }

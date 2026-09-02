@@ -13,6 +13,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.PopupBattleTipsBinding
+import com.majeur.psclient.model.battle.Move
+import com.majeur.psclient.model.pokemon.BasePokemon
 import com.majeur.psclient.util.dp
 import kotlin.math.max
 
@@ -40,8 +42,10 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     private var downY = 0
     private var isUserTouching = false
     private var longPressPerformed = false
+    private var isDetailTip = false
     private val tempArr = IntArray(2)
     private val tempRect = Rect()
+    private val visibleFrame = Rect()
 
     private val longPressTimeout
         get() = ViewConfiguration.getLongPressTimeout().toLong()
@@ -80,9 +84,22 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
         measureContentView(tempRect)
         currentAnchorView!!.getLocationInWindow(tempArr)
         val anchorCenterX = (currentAnchorView as? TipPopupContentProvider)?.getTipPopupAnchorX() ?: (currentAnchorView!!.width / 2)
-        val x = tempArr[0] + anchorCenterX - tempRect.width() / 2
         val windowInsetTop = topWindowInset
-        val y = max(windowInsetTop, tempArr[1] + downY - tempRect.height() - thumbOffset)
+        val touchY = tempArr[1] + downY
+        val x: Int
+        val y: Int
+        if (isDetailTip) {
+            currentAnchorView!!.getWindowVisibleDisplayFrame(visibleFrame)
+            x = visibleFrame.left + (visibleFrame.width() - tempRect.width()) / 2
+            val above = touchY - tempRect.height() - thumbOffset
+            val below = touchY + thumbOffset
+            val rawY = if (above >= visibleFrame.top) above else below
+            y = rawY.coerceIn(visibleFrame.top,
+                    max(visibleFrame.top, visibleFrame.bottom - tempRect.height()))
+        } else {
+            x = tempArr[0] + anchorCenterX - tempRect.width() / 2
+            y = max(windowInsetTop, touchY - tempRect.height() - thumbOffset)
+        }
         showAtLocation(currentAnchorView, Gravity.NO_GRAVITY, x, y)
     }
 
@@ -97,10 +114,12 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
                 false // Nothing tippable here, let the view handle the touch normally
             } else {
                 if (data != null) view.setTag(R.id.battle_data_tag, data)
+                val tipData = data ?: view.getTag(R.id.battle_data_tag)
+                isDetailTip = tipData is BasePokemon || tipData is Move
                 currentAnchorView = view
                 isUserTouching = true
-                // If view is clickable, we wait for a long press to be done before triggering popup, if not, we show immediately
-                if (view.isClickable) view.postDelayed(longPressCheckRunnable, longPressTimeout)
+                // Pokémon and move details always wait for a long press.
+                if (view.isClickable || isDetailTip) view.postDelayed(longPressCheckRunnable, longPressTimeout)
                 else longPressCheckRunnable.run()
                 true
             }
@@ -108,6 +127,7 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
         MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
             isUserTouching = false
             currentAnchorView = null
+            isDetailTip = false
             if (longPressPerformed) {
                 longPressPerformed = false
                 dismiss()

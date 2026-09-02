@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Showdown! Client</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="choose_format">Choose a format</string>
     <string name="search_formats">Search formats</string>
     <string name="no_formats_found">No formats found</string>

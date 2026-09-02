@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
-        app:navigationContentDescription="@android:string/cancel"
+        app:navigationContentDescription="@string/cancel"
         app:navigationIcon="@drawable/ic_back"
         app:titleTextColor="?attr/colorOnSurface" />
 

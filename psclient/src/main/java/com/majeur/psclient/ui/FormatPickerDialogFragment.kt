@@ -140,7 +140,7 @@ class FormatPickerDialogFragment : DialogFragment() {
         return MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.choose_format)
                 .setView(binding.root)
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .create()
     }
 

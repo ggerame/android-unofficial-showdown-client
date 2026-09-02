@@ -40,12 +40,16 @@ internal fun buildReplaySearchUrl(usernames: List<String>, format: String, page:
     }
 }
 
+private val RECONNECT_DELAYS_MS = longArrayOf(1_000, 2_000, 4_000, 8_000, 16_000, 30_000)
+
+internal fun reconnectDelayMillis(attempt: Int) =
+        RECONNECT_DELAYS_MS[attempt.coerceIn(0, RECONNECT_DELAYS_MS.lastIndex)]
+
 class ShowdownService : Service() {
 
     companion object {
         private const val WS_CLOSE_NORMAL = 1000
         private const val WS_CLOSE_GOING_AWAY = 1001
-        private const val WS_CLOSE_NETWORK_ERROR = 4001
         private const val SHOWDOWN_SOCKET_URL = "wss://sim3.psim.us/showdown/websocket"
         private const val BROWSER_USER_AGENT =
                 "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
@@ -68,6 +72,8 @@ class ShowdownService : Service() {
 
     private val sharedData = mutableMapOf<String, Any?>()
     private var webSocket: WebSocket? = null
+    private var reconnectEnabled = false
+    private var reconnectAttempt = 0
     private var _connected = AtomicBoolean(false)
     private val registrationInProgress = AtomicBoolean(false)
     @Volatile
@@ -88,6 +94,7 @@ class ShowdownService : Service() {
     private val stopSelfRunnable = object : Runnable {
         override fun run() = stopSelf()
     }
+    private val reconnectRunnable = Runnable { connectToServer() }
 
     var isConnected: Boolean
         private set(value) = _connected.set(value)
@@ -133,29 +140,52 @@ class ShowdownService : Service() {
 
     override fun onDestroy() {
         Timber.d("(${hashCode()}) Lifecycle: onDestroy")
+        reconnectEnabled = false
+        uiHandler.removeCallbacks(reconnectRunnable)
+        val socket = webSocket
+        webSocket = null
+        if (isConnected) socket?.close(WS_CLOSE_GOING_AWAY, null) else socket?.cancel()
+        isConnected = false
         super.onDestroy()
-        if (isConnected) webSocket?.close(WS_CLOSE_GOING_AWAY, null)
     }
 
     fun connectToServer() {
-        if (isConnected) return
+        reconnectEnabled = true
+        uiHandler.removeCallbacks(reconnectRunnable)
+        if (isConnected || webSocket != null) return
         Timber.d("Attempting to open WS connection.")
         val request = Request.Builder().url(SHOWDOWN_SOCKET_URL).build()
         webSocket = okHttpClient.newWebSocket(request, webSocketListener)
     }
 
-    fun reconnectToServer() {
-        if (isConnected) return
-        connectToServer()
-    }
+    fun reconnectToServer() = connectToServer()
 
     fun disconnectFromServer() {
         clearCurrentAccountState()
-        if (!isConnected) return
-        Timber.d("Attempting to close WS connection.")
-        webSocket?.close(WS_CLOSE_NORMAL, "Normal closure")
+        reconnectEnabled = false
+        reconnectAttempt = 0
+        uiHandler.removeCallbacks(reconnectRunnable)
+        val socket = webSocket
+        webSocket = null
+        if (socket != null) {
+            Timber.d("Attempting to close WS connection.")
+            if (isConnected) socket.close(WS_CLOSE_NORMAL, "Normal closure") else socket.cancel()
+        }
+        isConnected = false
         sharedData.clear()
         finishValidation(TeamValidationResult(false, "Disconnected before team validation completed"))
+    }
+
+    private fun handleConnectionLoss(socket: WebSocket) {
+        if (webSocket !== socket) return
+        webSocket = null
+        isConnected = false
+        clearCurrentAccountState()
+        dispatchMessage(ServerMessage("lobby", "|networkerror|"))
+        if (!reconnectEnabled) return
+        val delay = reconnectDelayMillis(reconnectAttempt++)
+        Timber.d("Retrying WS connection in $delay ms.")
+        uiHandler.postDelayed(reconnectRunnable, delay)
     }
 
     fun offerRegistrationFor(username: String) {
@@ -346,8 +376,11 @@ class ShowdownService : Service() {
     private val webSocketListener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
             Timber.tag("WebSocket[OPEN]").i("Host: ${response.request.url.host}")
-            isConnected = true
             uiHandler.post {
+                if (this@ShowdownService.webSocket !== webSocket) return@post
+                uiHandler.removeCallbacks(reconnectRunnable)
+                reconnectAttempt = 0
+                isConnected = true
                 dispatchMessage(ServerMessage("lobby", "|connected|"))
             }
         }
@@ -355,6 +388,7 @@ class ShowdownService : Service() {
         override fun onMessage(webSocket: WebSocket, text: String) {
             Timber.tag("WebSocket[RECEIVE]").i(text)
             uiHandler.post {
+                if (this@ShowdownService.webSocket !== webSocket) return@post
                 processServerData(text)
             }
         }
@@ -365,19 +399,12 @@ class ShowdownService : Service() {
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             Timber.tag("WebSocket[ERR]").w(t)
-            isConnected = false
-            clearCurrentAccountState()
-            this@ShowdownService.webSocket = null
-            uiHandler.post {
-                dispatchMessage(ServerMessage("lobby", "|networkerror|"))
-            }
+            uiHandler.post { handleConnectionLoss(webSocket) }
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             Timber.tag("WebSocket[CLOSED]").i(reason)
-            isConnected = false
-            clearCurrentAccountState()
-            this@ShowdownService.webSocket = null
+            uiHandler.post { handleConnectionLoss(webSocket) }
         }
     }
 

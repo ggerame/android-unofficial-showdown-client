@@ -12,7 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
         android:visibility="gone"
-        app:navigationContentDescription="@android:string/cancel"
+        app:navigationContentDescription="@string/cancel"
         app:navigationIcon="@drawable/ic_back"
         app:title="@string/choose_format"
         app:titleTextColor="?attr/colorOnSurface" />

@@ -59,7 +59,6 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private var challengeTo: String? = null
     private var isAcceptingChallenge = false
     private var isAcceptingFrom: String? = null
-    private var onConnectedListeners = mutableMapOf<String, () -> Unit>()
     private var roomDeinitListeners = mutableMapOf<String, (String) -> Unit>()
     private var fullUsername: String = ""
 
@@ -92,11 +91,14 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     override fun onDestroyView() {
         super.onDestroyView()
         mainActivity.glideHelper.clear(binding.homeBackground)
+        activeSnackbar?.dismiss()
+        activeSnackbar = null
         _binding = null
         service?.globalMessageObserver?.uiCallbacks = null
     }
 
     private fun makeSnackbar(message: String, indefinite: Boolean = false, action: Pair<String, () -> Unit>? = null, maxLines: Int = 0) {
+        activeSnackbar?.dismiss()
         val snackbar = Snackbar.make(binding.root, message, if (indefinite) Snackbar.LENGTH_INDEFINITE else Snackbar.LENGTH_LONG)
                 .addCallback(snackbarCallbacks)
         if (action != null) snackbar.setAction(action.first) { action.second.invoke() }
@@ -106,6 +108,21 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         activeSnackbar = snackbar
         snackbar.show()
+    }
+
+    private fun showConnectionUnavailable() {
+        makeSnackbar("Connection unavailable. Retrying automatically...", indefinite = true,
+                action = "Retry now" to {
+                    makeSnackbar("Reconnecting to Showdown server...", indefinite = true)
+                    service?.reconnectToServer()
+                })
+    }
+
+    private fun requireServerConnection(): Boolean {
+        if (service?.isConnected == true) return true
+        showConnectionUnavailable()
+        service?.reconnectToServer()
+        return false
     }
 
     private fun resolveHomeBackground(background: HomeBackground): HomeBackground {
@@ -153,7 +170,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     applyHomeBackground(background)
                     dialog.dismiss()
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .show()
     }
 
@@ -266,7 +283,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onClick(view: View) {
-        if (service?.isConnected != true) return
+        val requiresConnection = view === binding.accountButton ||
+                view === binding.searchButton ||
+                view === binding.userSearchButton ||
+                view === binding.battleSearchButton
+        if (requiresConnection && !requireServerConnection()) return
         when (view) {
             binding.accountButton -> when {
                 observer.isUserGuest -> promptUserSignIn()
@@ -298,6 +319,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             binding.cancelButton -> when {
                 isChallengingSomeone -> {
                     if (waitingForChallenge) {
+                        if (!requireServerConnection()) return
                         service?.sendGlobalCommand("cancelchallenge", challengeTo!!.toId())
                     } else {
                         resetOutgoingChallenge()
@@ -310,7 +332,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     showSearchableFormatsOnly(true)
                     binding.formatsSelector.isEnabled = true
                 }
-                else -> service?.sendGlobalCommand("cancelsearch")
+                else -> if (requireServerConnection()) service?.sendGlobalCommand("cancelsearch")
             }
             binding.userSearchButton -> {
                 val dialogBinding = DialogSimpleInputBinding.inflate(layoutInflater)
@@ -527,19 +549,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     private fun requestRoomJoin(roomId: String) {
-        val isWaitingForConnection = onConnectedListeners.containsKey(roomId)
-        if (isWaitingForConnection) return
-        if (service?.isConnected != true) {
-            onConnectedListeners[roomId] = {
-                onConnectedListeners.remove(roomId)
-                requestRoomJoin(roomId)
-            }
-            return
+        val isReplay = roomId.startsWith("replay-", ignoreCase = true)
+        if (!isReplay && !requireServerConnection()) return
+        if (isReplay && service?.isConnected != true &&
+                battleFragment.observedRoomId?.startsWith("battle-", ignoreCase = true) == true) {
+            battleFragment.observedRoomId = null
         }
         val isWaitingForRoomToDeinit = roomDeinitListeners.containsKey(roomId)
         if (isWaitingForRoomToDeinit) return
 
-        val isReplay = roomId.startsWith("replay-", ignoreCase = true)
         val isBattle = roomId.startsWith("battle-", ignoreCase = true) || isReplay
         val currentRoomId = if (isBattle) battleFragment.observedRoomId else chatFragment.observedRoomId
         if (currentRoomId != null) {
@@ -685,9 +703,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
 
     override fun onConnectedToServer() {
         activeSnackbar?.dismiss()
-        if (battleFragment.observedRoomId != null) battleFragment.observedRoomId = null
+        if (battleFragment.observedRoomId != null && !battleFragment.isReplay)
+            battleFragment.observedRoomId = null
         if (chatFragment.observedRoomId != null) chatFragment.observedRoomId = null
-        onConnectedListeners.values.forEach { it.invoke() }
     }
 
     override fun onUserChanged(userName: String, isGuest: Boolean, avatarId: String) {
@@ -982,12 +1000,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onNetworkError() {
-        Snackbar.make(requireView(), "Unable to reach Showdown server", Snackbar.LENGTH_INDEFINITE)
-                .setAction("Retry") {
-                    makeSnackbar("Reconnecting to Showdown server...", indefinite = true)
-                    service!!.reconnectToServer()
-                }
-                .show()
+        showConnectionUnavailable()
     }
 
     private inner class TeamsAdapter : CategoryAdapter(context) {

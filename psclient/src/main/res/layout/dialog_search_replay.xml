@@ -13,7 +13,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationContentDescription="@android:string/cancel"
+        app:navigationContentDescription="@string/cancel"
         app:navigationIcon="@drawable/ic_back"
         app:title="@string/search_replays"
         app:titleTextColor="?attr/colorOnSurface" />

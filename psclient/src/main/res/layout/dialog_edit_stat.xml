@@ -84,7 +84,7 @@
         android:layout_height="48dp"
         android:layout_gravity="end"
         android:layout_marginTop="8dp"
-        android:text="@android:string/ok"
+        android:text="@string/ok"
         style="@style/Widget.Material3.Button.TextButton.Dialog"/>
 
 </LinearLayout>

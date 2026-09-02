@@ -194,7 +194,7 @@ class TeamFragment : Fragment() {
                         team.format = candidate.id
                         binding.header.formatInput.setText(candidate.label)
                     }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(R.string.cancel, null)
                     .show()
         }
         val openFormatPicker = View.OnClickListener {

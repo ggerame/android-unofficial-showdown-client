@@ -366,7 +366,7 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
                         removeTeamWithUndo(team)
                     }
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .show()
     }
 

@@ -47,7 +47,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
 
-    var onRevealListener: ((Boolean) -> Unit)? = null
+    var onChoosingChangedListener: ((Boolean) -> Unit)? = null
 
     private val contentRoot: View
     private val titleView: TextView
@@ -206,6 +206,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         _request = request
         _onDecisionListener = listener
         _decision = BattleDecision()
+        onChoosingChangedListener?.invoke(true)
         promptNext()
         revealIn()
     }
@@ -223,8 +224,16 @@ class BattleDecisionWidget @JvmOverloads constructor(
                 showTargetChoice()
             }
             promptStage + 1 >= request.count || (request.teamPreview && promptStage == 0) -> {
+                val summary = if (request.teamPreview) {
+                    context.getString(
+                            R.string.battle_pending_team_order,
+                            decision.summaryLines().joinToString(" → "))
+                } else {
+                    decision.summaryLines().joinToString("\n")
+                }
                 onDecisionListener(decision)
-                revealOut()
+                showPendingDecision(summary)
+                onChoosingChangedListener?.invoke(false)
                 clearDecision()
             }
             else -> {
@@ -318,6 +327,19 @@ class BattleDecisionWidget @JvmOverloads constructor(
         subtitleView.visibility = View.GONE
         bindTargetRows()
         backButton.visibility = View.VISIBLE
+        decisionScroll.scrollTo(0, 0)
+    }
+
+    private fun showPendingDecision(summary: String) = animateContentChange {
+        choiceTabs.visibility = View.GONE
+        movesSection.visibility = View.GONE
+        teamGrid.visibility = View.GONE
+        targetContainer.visibility = View.GONE
+        gimmickButton.visibility = View.GONE
+        backButton.visibility = View.GONE
+        titleView.setText(R.string.battle_waiting_for_opponent)
+        subtitleView.text = summary
+        subtitleView.visibility = if (summary.isBlank()) View.GONE else View.VISIBLE
         decisionScroll.scrollTo(0, 0)
     }
 
@@ -672,12 +694,14 @@ class BattleDecisionWidget @JvmOverloads constructor(
                 val selectedGimmick = gimmick.takeIf {
                     gimmickButton.visibility == View.VISIBLE && gimmickButton.isChecked
                 } ?: Gimmick.NONE
+                val moveName = displayMoveName(data, data.zflag, data.maxflag)
                 decision.addMoveChoice(
                         data.index + 1,
                         selectedGimmick == Gimmick.MEGA,
                         selectedGimmick == Gimmick.Z_MOVE,
                         selectedGimmick == Gimmick.DYNAMAX,
-                        selectedGimmick == Gimmick.TERA)
+                        selectedGimmick == Gimmick.TERA,
+                        moveChoiceSummary(moveName, selectedGimmick))
                 val target = when {
                     data.maxflag -> data.maxMoveTarget
                     data.zflag -> data.zDetails?.target ?: data.target
@@ -685,20 +709,25 @@ class BattleDecisionWidget @JvmOverloads constructor(
                 } ?: Move.Target.ALL
                 if (request.count > 1 && target.isChoosable) {
                     targetToChoose = target
-                    targetMoveName = displayMoveName(data, data.zflag, data.maxflag)
+                    targetMoveName = moveName
                 }
             }
             is BattlingPokemon -> {
                 var index = data.id.position + 1
                 if (!data.id.foe) index *= -1
-                decision.setLastMoveTarget(index)
+                decision.setLastMoveTarget(
+                        index,
+                        moveChoiceSummary(
+                                targetMoveName ?: context.getString(R.string.battle_move_target_fallback),
+                                gimmicksByStage[promptStage] ?: Gimmick.NONE,
+                                data.name))
                 targetToChoose = null
                 targetMoveName = null
             }
             is SidePokemon -> {
                 val who = data.index + 1
                 if (request.teamPreview) {
-                    decision.addLeadChoice(who, request.side.size)
+                    decision.addLeadChoice(who, request.side.size, data.name.trim())
                     if (decision.leadChoicesCount() < requiredLeadChoices()) {
                         bindTeamChoices(request.side, chooseLead = true)
                         updateChoiceHeader(chooseLead = true)
@@ -706,11 +735,36 @@ class BattleDecisionWidget @JvmOverloads constructor(
                         return
                     }
                 } else {
-                    decision.addSwitchChoice(who)
+                    val activeName = request.side.getOrNull(promptStage)?.name?.trim().orEmpty()
+                    decision.addSwitchChoice(
+                            who,
+                            context.getString(R.string.battle_pending_switch, activeName, data.name.trim()))
                 }
             }
         }
         promptNext()
+    }
+
+    private fun moveChoiceSummary(
+            moveName: String,
+            selectedGimmick: Gimmick,
+            targetName: String? = null
+    ): String {
+        val pokemonName = request.side.getOrNull(promptStage)?.name?.trim().orEmpty()
+        val action = when (selectedGimmick) {
+            Gimmick.MEGA -> context.getString(R.string.battle_pending_move_mega, pokemonName, moveName)
+            Gimmick.Z_MOVE -> context.getString(R.string.battle_pending_move_z, pokemonName, moveName)
+            Gimmick.DYNAMAX -> context.getString(R.string.battle_pending_move_dynamax, pokemonName, moveName)
+            Gimmick.TERA -> context.getString(
+                    R.string.battle_pending_move_tera,
+                    pokemonName,
+                    request.canTerastallize(promptStage)?.uppercase(Locale.ROOT).orEmpty(),
+                    moveName)
+            Gimmick.NONE -> context.getString(R.string.battle_pending_move, pokemonName, moveName)
+        }
+        return action + targetName?.let {
+            context.getString(R.string.battle_pending_move_target, it.trim())
+        }.orEmpty() + "."
     }
 
     private fun animateContentChange(update: () -> Unit) {
@@ -768,7 +822,6 @@ class BattleDecisionWidget @JvmOverloads constructor(
             startDelay = ANIM_REVEAL_DURATION
             repeatCount = 0
         }.start()
-        onRevealListener?.invoke(true)
     }
 
     private fun revealOut() {
@@ -799,7 +852,6 @@ class BattleDecisionWidget @JvmOverloads constructor(
             repeatCount = 0
         }.start()
         revealingOut = true
-        onRevealListener?.invoke(false)
     }
 
     fun dismiss() = revealOut()

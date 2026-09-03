@@ -13,6 +13,7 @@
         android:id="@+id/decision_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"

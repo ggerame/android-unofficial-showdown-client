@@ -2,7 +2,12 @@
 
 All notable changes made are documented here.
 
-## [1.6.1] – Readable replay ages
+## [1.6.1] – Battle choice summaries and replay polish
+
+### Added
+- Submitted battle choices now remain visible in a compact waiting panel,
+  including moves, targets, switches, battle gimmicks and Team Preview order,
+  until the turn starts or the choice is undone.
 
 ### Changed
 - Replay ages now switch from days to months and years for older battles.

@@ -17,17 +17,24 @@ class BattleDecision {
             val action: String = "",
             val index: Int = 0,
             val extra: String? = null,
-            var target: Int = 0
+            var target: Int = 0,
+            var summary: String? = null
     )
 
     /* 1 based index */
-    fun addSwitchChoice(who: Int) {
+    fun addSwitchChoice(who: Int) = addSwitchChoice(who, null)
+
+    internal fun addSwitchChoice(who: Int, summary: String?) {
         _command = CMD_CHOOSE
-        choices.add(Choice(action = ACTION_SWITCH, index = who))
+        choices.add(Choice(action = ACTION_SWITCH, index = who, summary = summary))
     }
 
     /* 1 based index */
-    fun addMoveChoice(which: Int, mega: Boolean, zmove: Boolean, dynamax: Boolean, tera: Boolean) {
+    fun addMoveChoice(which: Int, mega: Boolean, zmove: Boolean, dynamax: Boolean, tera: Boolean) =
+            addMoveChoice(which, mega, zmove, dynamax, tera, null)
+
+    internal fun addMoveChoice(which: Int, mega: Boolean, zmove: Boolean, dynamax: Boolean, tera: Boolean,
+                               summary: String?) {
         _command = CMD_CHOOSE
         val extra = when {
             mega -> EXTRA_MEGA
@@ -36,12 +43,17 @@ class BattleDecision {
             tera -> EXTRA_TERA
             else -> null
         }
-        choices.add(Choice(action = ACTION_MOVE, index = which, extra = extra))
+        choices.add(Choice(action = ACTION_MOVE, index = which, extra = extra, summary = summary))
     }
 
     /* 1 based index */
-    fun setLastMoveTarget(target: Int) {
-        choices.last().target = target
+    fun setLastMoveTarget(target: Int) = setLastMoveTarget(target, null)
+
+    internal fun setLastMoveTarget(target: Int, summary: String?) {
+        choices.last().apply {
+            this.target = target
+            if (summary != null) this.summary = summary
+        }
     }
 
     fun addPassChoice() {
@@ -50,11 +62,15 @@ class BattleDecision {
     }
 
     /* 1 based index */
-    fun addLeadChoice(first: Int, teamSize: Int) {
+    fun addLeadChoice(first: Int, teamSize: Int) = addLeadChoice(first, teamSize, null)
+
+    internal fun addLeadChoice(first: Int, teamSize: Int, summary: String?) {
         _command = CMD_TEAM
         this.teamSize = teamSize
-        choices.add(Choice(index = first))
+        choices.add(Choice(index = first, summary = summary))
     }
+
+    internal fun summaryLines() = choices.mapNotNull(Choice::summary)
 
     fun leadChoicesCount() = choices.count { it.action.isEmpty() }
 

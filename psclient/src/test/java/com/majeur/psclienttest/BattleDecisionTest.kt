@@ -59,18 +59,51 @@ class BattleDecisionTest {
     @Test
     fun `tracks and removes numbered team preview choices`() {
         val decision = BattleDecision()
-        decision.addLeadChoice(4, teamSize = 6)
-        decision.addLeadChoice(2, teamSize = 6)
+        decision.addLeadChoice(4, teamSize = 6, summary = "Gholdengo")
+        decision.addLeadChoice(2, teamSize = 6, summary = "Meowscarada")
 
         assertEquals("team", decision.command)
         assertEquals(1, decision.leadChoicePosition(4))
         assertEquals(2, decision.leadChoicePosition(2))
         assertEquals("421356", decision.build())
+        assertEquals(listOf("Gholdengo", "Meowscarada"), decision.summaryLines())
 
         decision.removeLastChoice()
 
         assertNull(decision.leadChoicePosition(2))
         assertEquals("412356", decision.build())
+        assertEquals(listOf("Gholdengo"), decision.summaryLines())
+    }
+
+    @Test
+    fun `keeps readable summaries aligned with wire choices`() {
+        val decision = BattleDecision()
+        decision.addPassChoice()
+        decision.addMoveChoice(
+                2,
+                mega = false,
+                zmove = false,
+                dynamax = false,
+                tera = true,
+                summary = "Garchomp will Terastallize (GROUND) and use Earthquake.")
+        decision.setLastMoveTarget(
+                1,
+                "Garchomp will Terastallize (GROUND) and use Earthquake on Rotom.")
+        decision.addSwitchChoice(4, "Dragonite will switch to Scizor.")
+
+        assertEquals(
+                listOf(
+                        "Garchomp will Terastallize (GROUND) and use Earthquake on Rotom.",
+                        "Dragonite will switch to Scizor."),
+                decision.summaryLines())
+        assertEquals("pass,move 2 terastallize 1,switch 4", decision.build())
+
+        decision.removeLastChoice()
+
+        assertEquals(
+                listOf("Garchomp will Terastallize (GROUND) and use Earthquake on Rotom."),
+                decision.summaryLines())
+        assertEquals("pass,move 2 terastallize 1", decision.build())
     }
 
     @Test

@@ -125,8 +125,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             // Allow tapping the already-appeared team icons to show their tip popup (moves, etc.).
             battleTipPopup.addTippedView(trainerInfo)
             battleTipPopup.addTippedView(foeInfo)
-            battleDecisionWidget.onRevealListener = { reveal ->
-                if (reveal) {
+            battleDecisionWidget.onChoosingChangedListener = { choosing ->
+                if (choosing) {
                     extraActionLayout.hideItem(R.id.undo_button)
                     extraActionLayout.setTopOffset(3 * battleLogContainer.height / 5)
                 } else {
@@ -718,6 +718,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     override fun onBattleEnded(winner: String) {
         mainActivity.setKeepScreenOn(false)
         audioManager.stopBattleMusic()
+        binding.battleDecisionWidget.dismiss()
+        binding.extraActionLayout.hideItem(R.id.undo_button)
         inactiveBattleOverlayDrawable.setWinner(winner)
         clearBattleFieldUi()
         if (observer.isUserPlaying) {

@@ -179,6 +179,15 @@
     <string name="battle_choice_unavailable">Unavailable</string>
     <string name="battle_choice_order">Selected number %1$d</string>
     <string name="battle_pokemon_choice_description">%1$s, %2$s</string>
+    <string name="battle_waiting_for_opponent">Waiting for opponent…</string>
+    <string name="battle_pending_move">%1$s will use %2$s</string>
+    <string name="battle_pending_move_mega">%1$s will Mega Evolve and use %2$s</string>
+    <string name="battle_pending_move_z">%1$s will use the Z-Move %2$s</string>
+    <string name="battle_pending_move_dynamax">%1$s will Dynamax and use %2$s</string>
+    <string name="battle_pending_move_tera">%1$s will Terastallize (%2$s) and use %3$s</string>
+    <string name="battle_pending_move_target"> on %1$s</string>
+    <string name="battle_pending_switch">%1$s will switch to %2$s.</string>
+    <string name="battle_pending_team_order">Team order: %1$s.</string>
     <string name="replay_previous_turn">Previous replay turn</string>
     <string name="replay_play_pause">Play or pause replay</string>
     <string name="replay_next_turn">Next replay turn</string>

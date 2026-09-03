@@ -273,13 +273,8 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
         dismiss()
     }
 
-    private fun relativeTime(uploadTime: Long): String {
-        val elapsed = (System.currentTimeMillis() / 1000L - uploadTime).coerceAtLeast(0L)
-        val (quantity, plurals) = when {
-            elapsed < 3600L -> max(1L, elapsed / 60L) to R.plurals.minutes_ago
-            elapsed < 86400L -> elapsed / 3600L to R.plurals.hours_ago
-            else -> elapsed / 86400L to R.plurals.days_ago
-        }
+    private fun relativeTime(uploadTime: Long): String? {
+        val (quantity, plurals) = relativeTimeParts(uploadTime) ?: return null
         return resources.getQuantityString(plurals, quantity.toInt(), quantity)
     }
 
@@ -310,7 +305,7 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
             val details = listOfNotNull(
                     replay.format.takeIf(String::isNotBlank),
                     replay.rating?.let { getString(R.string.rating_label, it) },
-                    replay.uploadTime.takeIf { it > 0L }?.let(::relativeTime)).joinToString(" · ")
+                    relativeTime(replay.uploadTime)).joinToString(" · ")
             row.findViewById<TextView>(android.R.id.text2).text = details
             return row
         }
@@ -323,5 +318,21 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
         private const val STATE_LAST_USERS = "last-users"
         private const val STATE_LAST_FORMAT = "last-format"
         private const val STATE_HAS_REQUESTED = "has-requested"
+    }
+}
+
+internal fun relativeTimeParts(
+        uploadTime: Long,
+        now: Long = System.currentTimeMillis() / 1000L
+): Pair<Long, Int>? {
+    if (uploadTime <= 0L) return null
+    val elapsed = (now - uploadTime).coerceAtLeast(0L)
+    val day = 86400L
+    return when {
+        elapsed < 3600L -> max(1L, elapsed / 60L) to R.plurals.minutes_ago
+        elapsed < day -> elapsed / 3600L to R.plurals.hours_ago
+        elapsed < 30L * day -> elapsed / day to R.plurals.days_ago
+        elapsed < 365L * day -> min(11L, elapsed / (30L * day)) to R.plurals.months_ago
+        else -> elapsed / (365L * day) to R.plurals.years_ago
     }
 }

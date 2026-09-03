@@ -1,5 +1,6 @@
 package com.majeur.psclienttest
 
+import com.majeur.psclient.R
 import com.majeur.psclient.model.ReplayInfo
 import com.majeur.psclient.service.buildReplaySearchUrl
 import com.majeur.psclient.service.observer.parseBattleRoomList
@@ -8,6 +9,7 @@ import com.majeur.psclient.ui.appendUniqueReplays
 import com.majeur.psclient.ui.normalizeReplayUsernames
 import com.majeur.psclient.ui.parseReplayList
 import com.majeur.psclient.ui.replayPage
+import com.majeur.psclient.ui.relativeTimeParts
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -111,5 +113,35 @@ class SearchContractsTest {
         assertEquals(listOf("a", "b", "c"), merged.map { it.id })
     }
 
+    @Test fun replayAgeUsesMinutesHoursAndDaysAtBoundaries() {
+        assertEquals(59L to R.plurals.minutes_ago, age(59L * MINUTE + 59L))
+        assertEquals(1L to R.plurals.hours_ago, age(HOUR))
+        assertEquals(23L to R.plurals.hours_ago, age(24L * HOUR - 1L))
+        assertEquals(1L to R.plurals.days_ago, age(DAY))
+        assertEquals(29L to R.plurals.days_ago, age(30L * DAY - 1L))
+    }
+
+    @Test fun replayAgeUsesSingularAndPluralMonthsAndYears() {
+        assertEquals(1L to R.plurals.months_ago, age(30L * DAY))
+        assertEquals(2L to R.plurals.months_ago, age(60L * DAY))
+        assertEquals(11L to R.plurals.months_ago, age(364L * DAY))
+        assertEquals(1L to R.plurals.years_ago, age(365L * DAY))
+        assertEquals(2L to R.plurals.years_ago, age(730L * DAY))
+    }
+
+    @Test fun replayAgeHandlesFutureAndMissingTimestamps() {
+        assertEquals(1L to R.plurals.minutes_ago, relativeTimeParts(NOW + DAY, NOW))
+        assertNull(relativeTimeParts(0L, NOW))
+    }
+
     private fun replay(id: String) = ReplayInfo(id, "[Gen 9] OU", "A", "B", 0L, null)
+
+    private fun age(elapsed: Long) = relativeTimeParts(NOW - elapsed, NOW)
+
+    companion object {
+        private const val MINUTE = 60L
+        private const val HOUR = 60L * MINUTE
+        private const val DAY = 24L * HOUR
+        private const val NOW = 2_000_000_000L
+    }
 }

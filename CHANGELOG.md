@@ -2,6 +2,11 @@
 
 All notable changes made are documented here.
 
+## [1.6.1] – Readable replay ages
+
+### Changed
+- Replay ages now switch from days to months and years for older battles.
+
 ## [1.6.0] – Battle decision redesign
 
 ### Added

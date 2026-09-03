@@ -7,6 +7,10 @@ All notable changes made are documented here.
 ### Changed
 - Replay ages now switch from days to months and years for older battles.
 
+### Fixed
+- Pokémon and move detail popups now stay open after a long press and close on
+  the next tap, so their text remains readable after lifting your finger.
+
 ## [1.6.0] – Battle decision redesign
 
 ### Added

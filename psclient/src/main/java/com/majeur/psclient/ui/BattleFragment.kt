@@ -103,6 +103,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     }
 
     override fun onDestroyView() {
+        battleTipPopup.dismiss()
         super.onDestroyView()
         _binding = null
         service?.battleMessageObserver?.uiCallbacks = null

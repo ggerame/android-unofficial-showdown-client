@@ -1,7 +1,9 @@
 package com.majeur.psclient.widget
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.util.AttributeSet
 import android.view.*
 import android.view.View.MeasureSpec
@@ -30,6 +32,14 @@ interface TipPopupContentProvider {
     fun getTipPopupAnchorX(): Int
 }
 
+internal enum class TipTouchEndAction { PERFORM_CLICK, KEEP_OPEN, IGNORE }
+
+internal fun tipTouchEndAction(longPressPerformed: Boolean, cancelled: Boolean) = when {
+    longPressPerformed -> TipTouchEndAction.KEEP_OPEN
+    cancelled -> TipTouchEndAction.IGNORE
+    else -> TipTouchEndAction.PERFORM_CLICK
+}
+
 class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
 
     var bindPopupListener: ((anchorView: View, titleView: TextView, descView: TextView, placeHolderTop: ImageView, placeHolderBottom: ImageView) -> Unit)? = null
@@ -55,17 +65,25 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
                         WindowInsetsCompat.Type.displayCutout())?.top ?: 0
 
     init {
-        setBackgroundDrawable(null)
+        setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        isFocusable = true
+        isOutsideTouchable = true
         animationStyle = R.style.Animation_PSClient_TipPopup
         binding = PopupBattleTipsBinding.inflate(LayoutInflater.from(context))
-        contentView = binding.root
+        contentView = binding.root.apply { setOnClickListener { dismiss() } }
     }
 
     fun addTippedView(view: View) = view.setOnTouchListener(this)
 
     fun removeTippedView(view: View) {
         view.setOnTouchListener(null)
+        view.removeCallbacks(longPressCheckRunnable)
         if (currentAnchorView == view) dismiss()
+    }
+
+    override fun dismiss() {
+        resetTouchState()
+        super.dismiss()
     }
 
     private val longPressCheckRunnable = Runnable {
@@ -76,8 +94,7 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
     }
 
     // This one is a bit tricky. PopupWindow does not provide any support for showing a popup above a view.
-    // We have to measure our content view ourselves (assuming our content view is the Popup's view itself, which
-    // is the case when Popup's background is null). Then the Window created for the Popup is fullscreen with the
+    // We have to measure our content view ourselves. The Window created for the Popup is fullscreen with the
     // content view container using setFitsSystemWindows, so we have to offset our y coordinate to avoid issue
     // in measurement due to window inset.
     private fun showPopup() {
@@ -125,18 +142,28 @@ class BattleTipPopup(context: Context) : PopupWindow(context), OnTouchListener {
             }
         }
         MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
+            view.removeCallbacks(longPressCheckRunnable)
             isUserTouching = false
-            currentAnchorView = null
-            isDetailTip = false
-            if (longPressPerformed) {
-                longPressPerformed = false
-                dismiss()
-            } else { // If pointer is up before long press timeout, perform a regular click
-                view.performClick()
+            when (tipTouchEndAction(longPressPerformed,
+                    motionEvent.action == MotionEvent.ACTION_CANCEL)) {
+                TipTouchEndAction.PERFORM_CLICK -> {
+                    resetTouchState()
+                    view.performClick()
+                }
+                TipTouchEndAction.KEEP_OPEN -> longPressPerformed = false
+                TipTouchEndAction.IGNORE -> resetTouchState()
             }
             true
         }
         else -> false
+    }
+
+    private fun resetTouchState() {
+        currentAnchorView?.removeCallbacks(longPressCheckRunnable)
+        currentAnchorView = null
+        isUserTouching = false
+        longPressPerformed = false
+        isDetailTip = false
     }
 
     private fun measureContentView(out: Rect) {

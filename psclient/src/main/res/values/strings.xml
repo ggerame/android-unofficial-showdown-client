@@ -162,6 +162,7 @@
     <string name="battle_moves_tab">Moves</string>
     <string name="battle_switch_tab">Switch</string>
     <string name="battle_decision_back">Back</string>
+    <string name="battle_decision_undo">Undo</string>
     <string name="battle_mega_evolution">Mega Evolution</string>
     <string name="battle_z_move">Z-Move</string>
     <string name="battle_dynamax">Dynamax</string>

@@ -125,12 +125,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             // Allow tapping the already-appeared team icons to show their tip popup (moves, etc.).
             battleTipPopup.addTippedView(trainerInfo)
             battleTipPopup.addTippedView(foeInfo)
-            battleDecisionWidget.onChoosingChangedListener = { choosing ->
-                if (choosing) {
-                    extraActionLayout.hideItem(R.id.undo_button)
-                } else {
-                    extraActionLayout.showItem(R.id.undo_button)
-                }
+            battleDecisionWidget.onUndoListener = {
+                sendUndoCommand()
+                observer.reAskForRequest()
             }
 
 
@@ -142,7 +139,6 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                 setExtraActionsCollapsed(!extraActionsCollapsed)
             }
             setExtraActionsCollapsed(extraActionsCollapsed, animate = false)
-            undoButton.setOnClickListener(this@BattleFragment)
             rematchButton.setOnClickListener(this@BattleFragment)
             uploadReplayButton.setOnClickListener(this@BattleFragment)
 
@@ -337,11 +333,6 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
             binding.extraActions.flipButton -> {
                 setBattleViewFlipped(!battleViewFlipped)
-            }
-            binding.undoButton -> {
-                binding.undoButton.isEnabled = false
-                sendUndoCommand()
-                observer.reAskForRequest()
             }
             binding.rematchButton -> {
                 homeFragment.challengeSomeone(observer.foeUsername)
@@ -717,7 +708,6 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         mainActivity.setKeepScreenOn(false)
         audioManager.stopBattleMusic()
         binding.battleDecisionWidget.dismiss()
-        binding.extraActionLayout.hideItem(R.id.undo_button)
         inactiveBattleOverlayDrawable.setWinner(winner)
         clearBattleFieldUi()
         if (observer.isUserPlaying) {
@@ -1053,10 +1043,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     }
 
     override fun onMarkBreak() {
-        binding.apply {
-            battleDecisionWidget.dismiss()
-            extraActionLayout.hideItem(R.id.undo_button)
-        }
+        binding.battleDecisionWidget.dismiss()
     }
 
     override fun onPrintText(text: CharSequence) {
@@ -1180,7 +1167,6 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             extraActionLayout.apply {
                 hideItem(R.id.rematch_button)
                 hideItem(R.id.upload_replay_button)
-                hideItem(R.id.undo_button)
                 hideItem(R.id.replay_actions)
             }
             extraActions.apply {

@@ -72,7 +72,7 @@
         android:id="@+id/battle_decision_widget"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/extra_action_layout"
+        android:layout_below="@id/trainer_info"
         android:elevation="4dp"
         android:background="?attr/colorSurface"/>
 
@@ -99,22 +99,13 @@
             android:id="@+id/extra_action_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/trainer_info"
+            android:layout_below="@id/battle_decision_widget"
             android:layout_alignParentEnd="true">
 
         <!-- FIX Same id as parent in included layout (See https://issuetracker.google.com/issues/145687658) -->
         <include android:id="@+id/replay_actions" layout="@layout/layout_replay_actions" />
 
         <include android:id="@+id/extra_actions" layout="@layout/layout_extra_actions" />
-
-        <TextView
-            android:id="@+id/undo_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="Undo"
-            android:drawableStart="@drawable/ic_undo"
-            style="@style/Widget.PSClient.ExtraActionButton"/>
 
         <TextView
             android:id="@+id/rematch_button"

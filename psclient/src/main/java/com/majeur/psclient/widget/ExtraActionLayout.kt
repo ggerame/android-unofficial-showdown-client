@@ -24,7 +24,7 @@ class ExtraActionLayout @JvmOverloads constructor(
     init {
         orientation = VERTICAL
         gravity = Gravity.END
-        setPadding(dp(16f), 0, 0, 0)
+        setPadding(dp(16f), 0, 0, dp(8f))
         clipToPadding = false
     }
 

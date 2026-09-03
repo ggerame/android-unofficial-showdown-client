@@ -280,4 +280,17 @@
         app:iconGravity="textStart"
         app:iconTint="?attr/colorOnSurface" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/decision_undo"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:gravity="center_vertical"
+        android:text="@string/battle_decision_undo"
+        android:visibility="gone"
+        app:icon="@drawable/ic_undo"
+        app:iconGravity="textStart"
+        app:iconTint="?attr/colorOnSurface" />
+
 </LinearLayout>

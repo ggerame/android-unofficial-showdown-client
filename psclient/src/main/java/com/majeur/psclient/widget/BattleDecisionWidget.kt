@@ -35,6 +35,7 @@ import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
 import com.majeur.psclient.util.SimpleAnimatorListener
 import com.majeur.psclient.util.concat
+import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.small
 import com.majeur.psclient.util.toId
 import java.util.Locale
@@ -47,7 +48,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr), View.OnClickListener {
 
-    var onChoosingChangedListener: ((Boolean) -> Unit)? = null
+    var onUndoListener: (() -> Unit)? = null
 
     private val contentRoot: View
     private val titleView: TextView
@@ -65,6 +66,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
     private val nearTargetButtons: List<SwitchButton>
     private val gimmickButton: MaterialButton
     private val backButton: MaterialButton
+    private val undoButton: MaterialButton
 
     private var contentAlpha = 1f
         set(value) {
@@ -129,12 +131,17 @@ class BattleDecisionWidget @JvmOverloads constructor(
         nearTargetButtons = listOf(R.id.near_target_1, R.id.near_target_2, R.id.near_target_3).map(::findViewById)
         gimmickButton = findViewById(R.id.gimmick_button)
         backButton = findViewById(R.id.decision_back)
+        undoButton = findViewById(R.id.decision_undo)
         gimmickButton.isCheckable = true
 
         moveButtons.forEach { it.setOnClickListener(this) }
         (teamButtons + farTargetButtons + nearTargetButtons).forEach { it.setOnClickListener(this) }
         (farTargetButtons + nearTargetButtons).forEach { it.setIconVisible(false) }
         backButton.setOnClickListener { promptPrevious() }
+        undoButton.setOnClickListener {
+            it.isEnabled = false
+            onUndoListener?.invoke()
+        }
 
         choiceTabs.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked || updatingTabs) return@addOnButtonCheckedListener
@@ -179,7 +186,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
 
         decisionScroll.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-        val availableHeight = MeasureSpec.getSize(heightMeasureSpec)
+        val availableHeight = (MeasureSpec.getSize(heightMeasureSpec) - dp(68f)).coerceAtLeast(0)
         val naturalHeight = measuredHeight
         if (heightMode == MeasureSpec.AT_MOST && naturalHeight <= availableHeight) return
 
@@ -206,7 +213,8 @@ class BattleDecisionWidget @JvmOverloads constructor(
         _request = request
         _onDecisionListener = listener
         _decision = BattleDecision()
-        onChoosingChangedListener?.invoke(true)
+        undoButton.visibility = View.GONE
+        undoButton.isEnabled = true
         promptNext()
         revealIn()
     }
@@ -233,7 +241,6 @@ class BattleDecisionWidget @JvmOverloads constructor(
                 }
                 onDecisionListener(decision)
                 showPendingDecision(summary)
-                onChoosingChangedListener?.invoke(false)
                 clearDecision()
             }
             else -> {
@@ -337,6 +344,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         targetContainer.visibility = View.GONE
         gimmickButton.visibility = View.GONE
         backButton.visibility = View.GONE
+        undoButton.visibility = View.VISIBLE
         titleView.setText(R.string.battle_waiting_for_opponent)
         subtitleView.text = summary
         subtitleView.visibility = if (summary.isBlank()) View.GONE else View.VISIBLE
@@ -882,6 +890,5 @@ class BattleDecisionWidget @JvmOverloads constructor(
         private const val ANIM_REVEAL_FADE_DURATION = 100L
         private const val ANIM_NEXT_CHOICE_FADE_DURATION = 200L
 
-        const val REVEAL_ANIMATION_DURATION = ANIM_REVEAL_DURATION + ANIM_REVEAL_FADE_DURATION
     }
 }

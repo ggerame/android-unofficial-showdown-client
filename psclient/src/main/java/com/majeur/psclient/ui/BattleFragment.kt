@@ -128,10 +128,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             battleDecisionWidget.onChoosingChangedListener = { choosing ->
                 if (choosing) {
                     extraActionLayout.hideItem(R.id.undo_button)
-                    extraActionLayout.setTopOffset(3 * battleLogContainer.height / 5)
                 } else {
                     extraActionLayout.showItem(R.id.undo_button)
-                    extraActionLayout.setTopOffset(0, BattleDecisionWidget.REVEAL_ANIMATION_DURATION)
                 }
             }
 

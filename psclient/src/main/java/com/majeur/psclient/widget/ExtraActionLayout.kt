@@ -5,7 +5,6 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import androidx.core.view.children
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -18,8 +17,6 @@ class ExtraActionLayout @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val TRANSLATE_ANIM_DURATION = 500L
-        private val TRANSLATE_ANIM_INTERPOLATOR = OvershootInterpolator(1.4f)
         private const val SHOW_HIDE_ANIM_DURATION = 300L
         private val SHOW_HIDE_ANIM_INTERPOLATOR = FastOutSlowInInterpolator()
     }
@@ -38,18 +35,6 @@ class ExtraActionLayout @JvmOverloads constructor(
     override fun onViewAdded(child: View?) {
         super.onViewAdded(child)
         if (child?.visibility == GONE) child.alpha = 0f
-    }
-
-    fun setTopOffset(offset: Int, delay: Long = 0L) {
-        children.forEach { child ->
-            child.animate().apply {
-                duration = TRANSLATE_ANIM_DURATION
-                interpolator = TRANSLATE_ANIM_INTERPOLATOR
-                startDelay = delay
-                translationY(offset.toFloat())
-                start()
-            }
-        }
     }
 
     fun showItem(id: Int) {

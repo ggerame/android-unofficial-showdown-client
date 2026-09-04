@@ -13,8 +13,9 @@ All notable changes made are documented here.
 - Replay ages now switch from days to months and years for older battles.
 
 ### Fixed
-- Battle quick actions now stay directly below move, switch and target choices
-  with a consistent shadow, while Undo is part of the submitted-choice summary.
+- Battle quick actions now start collapsed in an overlay at the bottom-right of
+  the field, avoiding the navigation bar without reducing the choice space;
+  Undo remains part of the submitted-choice summary.
 - Pokémon and move detail popups now stay open after a long press and close on
   the next tap, so their text remains readable after lifting your finger.
 

@@ -35,7 +35,6 @@ import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
 import com.majeur.psclient.util.SimpleAnimatorListener
 import com.majeur.psclient.util.concat
-import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.small
 import com.majeur.psclient.util.toId
 import java.util.Locale
@@ -186,7 +185,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
 
         decisionScroll.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-        val availableHeight = (MeasureSpec.getSize(heightMeasureSpec) - dp(68f)).coerceAtLeast(0)
+        val availableHeight = MeasureSpec.getSize(heightMeasureSpec)
         val naturalHeight = measuredHeight
         if (heightMode == MeasureSpec.AT_MOST && naturalHeight <= availableHeight) return
 

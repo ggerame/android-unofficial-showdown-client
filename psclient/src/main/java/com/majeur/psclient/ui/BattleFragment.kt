@@ -67,7 +67,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private var soundEnabled = false
     private var wasPlayingBattleMusicWhenPaused = false
     private var battleViewFlipped = false
-    private var extraActionsCollapsed = false
+    private var extraActionsCollapsed = true
 
     private var _binding: FragmentBattleBinding? = null
     private val binding get() = _binding!!
@@ -85,7 +85,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        extraActionsCollapsed = savedInstanceState?.getBoolean(STATE_EXTRA_ACTIONS_COLLAPSED) ?: false
+        extraActionsCollapsed = savedInstanceState?.getBoolean(STATE_EXTRA_ACTIONS_COLLAPSED) ?: true
     }
 
     override fun onAttach(context: Context) {
@@ -1108,7 +1108,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         lastDecisionRequest = null
         onTimerEnabled(false)
         resetBattleViewFlip()
-        setExtraActionsCollapsed(false, animate = false)
+        setExtraActionsCollapsed(true, animate = false)
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismissNow()
@@ -1160,7 +1160,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         clearBattleFieldUi(animate = false)
         onTimerEnabled(false)
         resetBattleViewFlip()
-        setExtraActionsCollapsed(false, animate = false)
+        setExtraActionsCollapsed(true, animate = false)
         binding.apply {
             battleLog.clearText()
             battleDecisionWidget.dismiss()

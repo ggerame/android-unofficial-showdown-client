@@ -2,6 +2,17 @@
 
 All notable changes made are documented here.
 
+## [1.6.2] – Battle log and controls polish
+
+### Added
+- The battle choice panel can now collapse to a compact header, revealing more
+  of the battle log without discarding unfinished moves, switches, targets or
+  Team Preview choices. New requests expand it automatically.
+
+### Changed
+- Collapsed battle quick actions now use a compact 40×32dp handle while keeping
+  the full 48×48dp touch target and accessible show/hide controls.
+
 ## [1.6.1] – Battle choice summaries and replay polish
 
 ### Added

@@ -166,6 +166,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
             actionButtons.animate().cancel()
             if (!animate) {
+                root.isActivated = collapsed
                 actionButtons.visibility = if (collapsed) GONE else VISIBLE
                 actionButtons.alpha = if (collapsed) 0f else 1f
                 actionButtons.translationX = 0f
@@ -181,10 +182,12 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                             if (extraActionsCollapsed) {
                                 actionButtons.visibility = GONE
                                 actionButtons.translationX = 0f
+                                root.isActivated = true
                             }
                         }
                         .start()
             } else {
+                root.isActivated = false
                 actionButtons.visibility = VISIBLE
                 actionButtons.alpha = 0f
                 actionButtons.post {

@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:elevation="8dp"
-    android:background="@drawable/bg_battle_extra_actions">
+    android:background="@drawable/bg_battle_quick_actions">
 
     <LinearLayout
         android:id="@+id/action_buttons"

@@ -152,6 +152,8 @@
     <string name="toggle_battle_timer">Toggle battle timer</string>
     <string name="show_battle_actions">Show battle actions</string>
     <string name="hide_battle_actions">Hide battle actions</string>
+    <string name="show_battle_choices">Show battle choices</string>
+    <string name="hide_battle_choices">Hide battle choices</string>
     <string name="battle_choose_for">Choose for %1$s</string>
     <string name="battle_choose_replacement">Choose a replacement for %1$s</string>
     <string name="battle_choose_team_order">Choose your team order</string>

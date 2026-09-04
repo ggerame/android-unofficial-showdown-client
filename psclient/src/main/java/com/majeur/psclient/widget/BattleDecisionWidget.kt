@@ -6,6 +6,8 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.util.Property
 import android.view.LayoutInflater
@@ -15,8 +17,10 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isGone
 import androidx.core.widget.NestedScrollView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -50,7 +54,9 @@ class BattleDecisionWidget @JvmOverloads constructor(
     var onUndoListener: (() -> Unit)? = null
 
     private val contentRoot: View
+    private val decisionBody: View
     private val titleView: TextView
+    private val collapseButton: ImageButton
     private val subtitleView: TextView
     private val choiceTabs: MaterialButtonToggleGroup
     private val movesSection: View
@@ -115,7 +121,9 @@ class BattleDecisionWidget @JvmOverloads constructor(
         visibility = View.GONE
         LayoutInflater.from(context).inflate(R.layout.layout_battle_decision, this, true)
         contentRoot = findViewById(R.id.decision_panel_content)
+        decisionBody = findViewById(R.id.decision_body)
         titleView = findViewById(R.id.decision_title)
+        collapseButton = findViewById(R.id.decision_collapse)
         subtitleView = findViewById(R.id.decision_subtitle)
         choiceTabs = findViewById(R.id.choice_tabs)
         movesSection = findViewById(R.id.moves_section)
@@ -136,6 +144,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         moveButtons.forEach { it.setOnClickListener(this) }
         (teamButtons + farTargetButtons + nearTargetButtons).forEach { it.setOnClickListener(this) }
         (farTargetButtons + nearTargetButtons).forEach { it.setIconVisible(false) }
+        collapseButton.setOnClickListener { setDecisionCollapsed(!decisionBody.isGone) }
         backButton.setOnClickListener { promptPrevious() }
         undoButton.setOnClickListener {
             it.isEnabled = false
@@ -177,6 +186,11 @@ class BattleDecisionWidget @JvmOverloads constructor(
 
     /** Expands naturally and caps only the scrolling content when the remaining battle area is short. */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (decisionBody.isGone) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            return
+        }
+
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
         if (heightMode == MeasureSpec.UNSPECIFIED) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -212,6 +226,8 @@ class BattleDecisionWidget @JvmOverloads constructor(
         _request = request
         _onDecisionListener = listener
         _decision = BattleDecision()
+        collapseButton.visibility = View.VISIBLE
+        setDecisionCollapsed(false, animate = false)
         undoButton.visibility = View.GONE
         undoButton.isEnabled = true
         promptNext()
@@ -337,6 +353,8 @@ class BattleDecisionWidget @JvmOverloads constructor(
     }
 
     private fun showPendingDecision(summary: String) = animateContentChange {
+        setDecisionCollapsed(false, animate = false)
+        collapseButton.visibility = View.GONE
         choiceTabs.visibility = View.GONE
         movesSection.visibility = View.GONE
         teamGrid.visibility = View.GONE
@@ -348,6 +366,30 @@ class BattleDecisionWidget @JvmOverloads constructor(
         subtitleView.text = summary
         subtitleView.visibility = if (summary.isBlank()) View.GONE else View.VISIBLE
         decisionScroll.scrollTo(0, 0)
+    }
+
+    private fun setDecisionCollapsed(collapsed: Boolean, animate: Boolean = true) {
+        val changed = decisionBody.isGone != collapsed
+        if (animate && changed) {
+            TransitionManager.beginDelayedTransition(
+                    (parent as? ViewGroup) ?: this,
+                    AutoTransition().apply {
+                        duration = ANIM_COLLAPSE_DURATION
+                        interpolator = DecelerateInterpolator()
+                    })
+        }
+        decisionBody.isGone = collapsed
+        collapseButton.contentDescription = context.getString(if (collapsed)
+            R.string.show_battle_choices else R.string.hide_battle_choices)
+        collapseButton.animate().cancel()
+        if (animate && changed) {
+            collapseButton.animate()
+                    .rotation(if (collapsed) 270f else 90f)
+                    .setDuration(ANIM_COLLAPSE_DURATION)
+                    .start()
+        } else {
+            collapseButton.rotation = if (collapsed) 270f else 90f
+        }
     }
 
     private fun bindTargetRows() {
@@ -888,6 +930,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         private const val ANIM_REVEAL_DURATION = 250L
         private const val ANIM_REVEAL_FADE_DURATION = 100L
         private const val ANIM_NEXT_CHOICE_FADE_DURATION = 200L
+        private const val ANIM_COLLAPSE_DURATION = 200L
 
     }
 }

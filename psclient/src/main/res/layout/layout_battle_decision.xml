@@ -5,19 +5,44 @@
     android:id="@+id/decision_panel_content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="4dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/decision_title"
+    <FrameLayout
+        android:id="@+id/decision_header"
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <TextView
+            android:id="@+id/decision_title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:accessibilityLiveRegion="polite"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="56dp"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <ImageButton
+            android:id="@+id/decision_collapse"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:background="?selectableItemBackgroundBorderless"
+            android:contentDescription="@string/hide_battle_choices"
+            android:padding="12dp"
+            android:rotation="90"
+            android:src="@drawable/ic_back"
+            app:tint="?attr/colorOnSurface" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/decision_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:accessibilityLiveRegion="polite"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:textColor="?attr/colorOnSurface" />
+        android:orientation="vertical"
+        android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/decision_subtitle"
@@ -292,5 +317,7 @@
         app:icon="@drawable/ic_undo"
         app:iconGravity="textStart"
         app:iconTint="?attr/colorOnSurface" />
+
+    </LinearLayout>
 
 </LinearLayout>

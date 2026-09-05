@@ -26,6 +26,11 @@ import com.majeur.psclient.util.resizeForIme
 import com.majeur.psclient.util.toId
 import kotlin.math.min
 
+internal data class BattleSearchFilters(
+        val formatId: String,
+        val username: String,
+        val minElo: Int)
+
 class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     private var _binding: DialogSearchBattleBinding? = null
@@ -50,12 +55,19 @@ class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
         val fullScreen = !resources.getBoolean(R.bool.canUseLandscapeLayout)
         setStyle(STYLE_NO_TITLE, if (fullScreen) R.style.Theme_PSClient_FullScreenDialog else 0)
         selectedFormatId = savedInstanceState?.getString(STATE_FORMAT_ID)
+                ?: arguments?.getString(ARG_FORMAT_ID)
                 ?: BattleFormat.FORMAT_ALL.id
-        selectedMinEloIndex = savedInstanceState?.getInt(STATE_MIN_ELO_INDEX) ?: 0
-        lastFormat = savedInstanceState?.getString(STATE_LAST_FORMAT).orEmpty()
-        lastUsername = savedInstanceState?.getString(STATE_LAST_USERNAME).orEmpty()
-        lastMinElo = savedInstanceState?.getInt(STATE_LAST_MIN_ELO) ?: 0
-        hasRequested = savedInstanceState?.getBoolean(STATE_HAS_REQUESTED) ?: false
+        selectedMinEloIndex = savedInstanceState?.getInt(STATE_MIN_ELO_INDEX)
+                ?: eloValues.indexOf(arguments?.getInt(ARG_MIN_ELO) ?: 0).coerceAtLeast(0)
+        lastFormat = savedInstanceState?.getString(STATE_LAST_FORMAT)
+                ?: arguments?.getString(ARG_FORMAT_ID).orEmpty()
+                        .takeUnless { it == BattleFormat.FORMAT_ALL.id }.orEmpty()
+        lastUsername = savedInstanceState?.getString(STATE_LAST_USERNAME)
+                ?: arguments?.getString(ARG_USERNAME).orEmpty()
+        lastMinElo = savedInstanceState?.getInt(STATE_LAST_MIN_ELO)
+                ?: arguments?.getInt(ARG_MIN_ELO) ?: 0
+        hasRequested = savedInstanceState?.getBoolean(STATE_HAS_REQUESTED)
+                ?: (arguments != null)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -66,7 +78,8 @@ class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.setNavigationOnClickListener { dismiss() }
-        binding.userInput.setText(savedInstanceState?.getString(STATE_INPUT_USERNAME).orEmpty())
+        binding.userInput.setText(savedInstanceState?.getString(STATE_INPUT_USERNAME)
+                ?: arguments?.getString(ARG_USERNAME).orEmpty())
         binding.userInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 submitSearch()
@@ -268,7 +281,11 @@ class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         if (position >= listAdapter.count) return
-        homeFragment.joinRoom(listAdapter.getItem(position).roomId)
+        homeFragment.joinRoomFromBattleSearch(listAdapter.getItem(position).roomId,
+                BattleSearchFilters(
+                        lastFormat.ifEmpty { BattleFormat.FORMAT_ALL.id },
+                        lastUsername,
+                        lastMinElo))
         dismiss()
     }
 
@@ -305,6 +322,9 @@ class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     companion object {
         const val FRAGMENT_TAG = "search-battle-dialog"
+        private const val ARG_FORMAT_ID = "format-id"
+        private const val ARG_USERNAME = "username"
+        private const val ARG_MIN_ELO = "min-elo"
         private const val REQUEST_TIMEOUT_MS = 15_000L
         private const val STATE_FORMAT_ID = "format-id"
         private const val STATE_MIN_ELO_INDEX = "min-elo-index"
@@ -313,5 +333,13 @@ class SearchBattleDialog : DialogFragment(), AdapterView.OnItemClickListener {
         private const val STATE_LAST_USERNAME = "last-username"
         private const val STATE_LAST_MIN_ELO = "last-min-elo"
         private const val STATE_HAS_REQUESTED = "has-requested"
+
+        internal fun newInstance(filters: BattleSearchFilters? = null) = SearchBattleDialog().apply {
+            if (filters != null) arguments = Bundle().apply {
+                putString(ARG_FORMAT_ID, filters.formatId)
+                putString(ARG_USERNAME, filters.username)
+                putInt(ARG_MIN_ELO, filters.minElo)
+            }
+        }
     }
 }

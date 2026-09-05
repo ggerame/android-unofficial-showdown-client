@@ -29,6 +29,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
+internal data class ReplaySearchFilters(
+        val formatId: String,
+        val usernames: List<String>)
+
 class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     private var _binding: DialogSearchReplayBinding? = null
@@ -51,10 +55,15 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
         val fullScreen = !resources.getBoolean(R.bool.canUseLandscapeLayout)
         setStyle(STYLE_NO_TITLE, if (fullScreen) R.style.Theme_PSClient_FullScreenDialog else 0)
         selectedFormatId = savedInstanceState?.getString(STATE_FORMAT_ID)
+                ?: arguments?.getString(ARG_FORMAT_ID)
                 ?: BattleFormat.FORMAT_ALL.id
-        lastUsernames = savedInstanceState?.getStringArrayList(STATE_LAST_USERS).orEmpty()
-        lastFormat = savedInstanceState?.getString(STATE_LAST_FORMAT).orEmpty()
-        hasRequested = savedInstanceState?.getBoolean(STATE_HAS_REQUESTED) ?: false
+        lastUsernames = savedInstanceState?.getStringArrayList(STATE_LAST_USERS)
+                ?: arguments?.getStringArrayList(ARG_USERNAMES).orEmpty()
+        lastFormat = savedInstanceState?.getString(STATE_LAST_FORMAT)
+                ?: arguments?.getString(ARG_FORMAT_ID).orEmpty()
+                        .takeUnless { it == BattleFormat.FORMAT_ALL.id }.orEmpty()
+        hasRequested = savedInstanceState?.getBoolean(STATE_HAS_REQUESTED)
+                ?: (arguments != null)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -65,7 +74,8 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.setNavigationOnClickListener { dismiss() }
-        binding.userInput.setText(savedInstanceState?.getString(STATE_INPUT_USERS).orEmpty())
+        binding.userInput.setText(savedInstanceState?.getString(STATE_INPUT_USERS)
+                ?: lastUsernames.joinToString(", "))
         binding.userInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 submitSearch()
@@ -269,7 +279,10 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         if (position >= listAdapter.count) return
-        homeFragment.startReplay(listAdapter.getItem(position).id)
+        homeFragment.startReplayFromSearch(listAdapter.getItem(position).id,
+                ReplaySearchFilters(
+                        lastFormat.ifEmpty { BattleFormat.FORMAT_ALL.id },
+                        lastUsernames))
         dismiss()
     }
 
@@ -313,11 +326,20 @@ class SearchReplayDialog : DialogFragment(), AdapterView.OnItemClickListener {
 
     companion object {
         const val FRAGMENT_TAG = "search-replay-dialog"
+        private const val ARG_FORMAT_ID = "format-id"
+        private const val ARG_USERNAMES = "usernames"
         private const val STATE_FORMAT_ID = "format-id"
         private const val STATE_INPUT_USERS = "input-users"
         private const val STATE_LAST_USERS = "last-users"
         private const val STATE_LAST_FORMAT = "last-format"
         private const val STATE_HAS_REQUESTED = "has-requested"
+
+        internal fun newInstance(filters: ReplaySearchFilters? = null) = SearchReplayDialog().apply {
+            if (filters != null) arguments = Bundle().apply {
+                putString(ARG_FORMAT_ID, filters.formatId)
+                putStringArrayList(ARG_USERNAMES, ArrayList(filters.usernames))
+            }
+        }
     }
 }
 

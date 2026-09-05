@@ -61,6 +61,8 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private var isAcceptingFrom: String? = null
     private var roomDeinitListeners = mutableMapOf<String, (String) -> Unit>()
     private var fullUsername: String = ""
+    private var returnBattleSearchFilters: BattleSearchFilters? = null
+    private var returnReplaySearchFilters: ReplaySearchFilters? = null
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -70,6 +72,34 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             snackbar?.removeCallback(this)
             if (activeSnackbar == snackbar) activeSnackbar = null
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState?.containsKey(STATE_BATTLE_SEARCH_FORMAT) == true) {
+            returnBattleSearchFilters = BattleSearchFilters(
+                    savedInstanceState.getString(STATE_BATTLE_SEARCH_FORMAT).orEmpty(),
+                    savedInstanceState.getString(STATE_BATTLE_SEARCH_USERNAME).orEmpty(),
+                    savedInstanceState.getInt(STATE_BATTLE_SEARCH_MIN_ELO))
+        }
+        if (savedInstanceState?.containsKey(STATE_REPLAY_SEARCH_FORMAT) == true) {
+            returnReplaySearchFilters = ReplaySearchFilters(
+                    savedInstanceState.getString(STATE_REPLAY_SEARCH_FORMAT).orEmpty(),
+                    savedInstanceState.getStringArrayList(STATE_REPLAY_SEARCH_USERNAMES).orEmpty())
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        returnBattleSearchFilters?.let {
+            outState.putString(STATE_BATTLE_SEARCH_FORMAT, it.formatId)
+            outState.putString(STATE_BATTLE_SEARCH_USERNAME, it.username)
+            outState.putInt(STATE_BATTLE_SEARCH_MIN_ELO, it.minElo)
+        }
+        returnReplaySearchFilters?.let {
+            outState.putString(STATE_REPLAY_SEARCH_FORMAT, it.formatId)
+            outState.putStringArrayList(STATE_REPLAY_SEARCH_USERNAMES, ArrayList(it.usernames))
+        }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onAttach(context: Context) {
@@ -364,12 +394,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 }
             }
             binding.battleSearchButton -> {
-                if (childFragmentManager.findFragmentByTag(SearchBattleDialog.FRAGMENT_TAG) == null)
-                    SearchBattleDialog().show(childFragmentManager, SearchBattleDialog.FRAGMENT_TAG)
+                showBattleSearch()
             }
             binding.replaySearchButton -> {
-                if (childFragmentManager.findFragmentByTag(SearchReplayDialog.FRAGMENT_TAG) == null)
-                    SearchReplayDialog().show(childFragmentManager, SearchReplayDialog.FRAGMENT_TAG)
+                showReplaySearch()
             }
             binding.newsButton -> {
                 if (childFragmentManager.findFragmentByTag(NewsDialog.FRAGMENT_TAG) == null)
@@ -517,28 +545,42 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
     }
 
-    fun startReplay(replayId: String) {
-        joinRoom("replay-$replayId")
-    }
+    fun startReplay(replayId: String) = joinRoom("replay-$replayId", null, null)
 
-    fun joinRoom(roomId: String) {
+    internal fun startReplayFromSearch(replayId: String, filters: ReplaySearchFilters) =
+            joinRoom("replay-$replayId", null, filters)
+
+    fun joinRoom(roomId: String) = joinRoom(roomId, null, null)
+
+    internal fun joinRoomFromBattleSearch(roomId: String, filters: BattleSearchFilters) =
+            joinRoom(roomId, filters, null)
+
+    private fun joinRoom(
+            roomId: String,
+            battleSearchFilters: BattleSearchFilters?,
+            replaySearchFilters: ReplaySearchFilters?) {
         val isReplay = roomId.startsWith("replay-", ignoreCase = true)
         val isBattle = roomId.startsWith("battle-", ignoreCase = true) || isReplay
         val currentRoomId = if (isBattle) battleFragment.observedRoomId else chatFragment.observedRoomId
         if (currentRoomId != null) {
             if (isBattle) mainActivity.showBattleFragment() else mainActivity.showChatFragment()
-            if (currentRoomId == roomId) return
+            if (currentRoomId == roomId) {
+                rememberReturnSearch(isBattle, battleSearchFilters, replaySearchFilters)
+                return
+            }
             AlertDialog.Builder(mainActivity).apply {
                 setTitle("Warning")
                 setMessage("You are already in " concat readableRoomName(currentRoomId) concat ".\nJoining "
                         concat readableRoomName(roomId) concat " will make you leave "
                         concat readableRoomName(currentRoomId) concat ".")
-                setPositiveButton("Continue") { _, _ -> requestRoomJoin(roomId) }
+                setPositiveButton("Continue") { _, _ ->
+                    requestRoomJoin(roomId, battleSearchFilters, replaySearchFilters)
+                }
                 setNegativeButton("Cancel") { _,_ -> }
                 show()
             }
         } else {
-            requestRoomJoin(roomId)
+            requestRoomJoin(roomId, battleSearchFilters, replaySearchFilters)
         }
     }
 
@@ -548,7 +590,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         else -> "room " concat "'$roomId'".italic()
     }
 
-    private fun requestRoomJoin(roomId: String) {
+    private fun requestRoomJoin(
+            roomId: String,
+            battleSearchFilters: BattleSearchFilters?,
+            replaySearchFilters: ReplaySearchFilters?) {
         val isReplay = roomId.startsWith("replay-", ignoreCase = true)
         if (!isReplay && !requireServerConnection()) return
         if (isReplay && service?.isConnected != true &&
@@ -559,6 +604,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         if (isWaitingForRoomToDeinit) return
 
         val isBattle = roomId.startsWith("battle-", ignoreCase = true) || isReplay
+        rememberReturnSearch(isBattle, battleSearchFilters, replaySearchFilters)
         val currentRoomId = if (isBattle) battleFragment.observedRoomId else chatFragment.observedRoomId
         if (currentRoomId != null) {
             roomDeinitListeners[roomId] = { deinitRoomId ->
@@ -580,6 +626,43 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             else
                 service?.sendGlobalCommand("join", roomId)
         }
+    }
+
+    private fun rememberReturnSearch(
+            isBattle: Boolean,
+            battleSearchFilters: BattleSearchFilters?,
+            replaySearchFilters: ReplaySearchFilters?) {
+        if (!isBattle) return
+        returnBattleSearchFilters = battleSearchFilters
+        returnReplaySearchFilters = replaySearchFilters
+    }
+
+    internal fun onBattleExited(destination: BattleExitDestination) {
+        val battleFilters = returnBattleSearchFilters
+        val replayFilters = returnReplaySearchFilters
+        returnBattleSearchFilters = null
+        returnReplaySearchFilters = null
+        mainActivity.showHomeFragment()
+        binding.root.post {
+            if (_binding == null || childFragmentManager.isStateSaved) return@post
+            when (destination) {
+                BattleExitDestination.HOME -> Unit
+                BattleExitDestination.BATTLE_SEARCH -> showBattleSearch(battleFilters)
+                BattleExitDestination.REPLAY_SEARCH -> showReplaySearch(replayFilters)
+            }
+        }
+    }
+
+    private fun showBattleSearch(filters: BattleSearchFilters? = null) {
+        if (childFragmentManager.findFragmentByTag(SearchBattleDialog.FRAGMENT_TAG) == null)
+            SearchBattleDialog.newInstance(filters)
+                    .show(childFragmentManager, SearchBattleDialog.FRAGMENT_TAG)
+    }
+
+    private fun showReplaySearch(filters: ReplaySearchFilters? = null) {
+        if (childFragmentManager.findFragmentByTag(SearchReplayDialog.FRAGMENT_TAG) == null)
+            SearchReplayDialog.newInstance(filters)
+                    .show(childFragmentManager, SearchReplayDialog.FRAGMENT_TAG)
     }
 
     fun startPrivateChat(user: String) {
@@ -1044,6 +1127,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     companion object {
+        private const val STATE_BATTLE_SEARCH_FORMAT = "battle-search-format"
+        private const val STATE_BATTLE_SEARCH_USERNAME = "battle-search-username"
+        private const val STATE_BATTLE_SEARCH_MIN_ELO = "battle-search-min-elo"
+        private const val STATE_REPLAY_SEARCH_FORMAT = "replay-search-format"
+        private const val STATE_REPLAY_SEARCH_USERNAMES = "replay-search-usernames"
         private const val URL_BUG_REPORT_GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSfvaHpKtRhN-naHtmaIongBRzjU0rmPXu770tvjseWUNky48Q/viewform?usp=send_form"
         private const val URL_SMOGON_THREAD = "https://www.smogon.com/forums/threads/02-23-alpha06-unofficial-showdown-android-client.3654298/"
         private val USERNAME_REGEX = "[{}:\",|\\[\\]]".toRegex()

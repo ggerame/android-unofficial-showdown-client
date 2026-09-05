@@ -51,6 +51,14 @@ import com.majeur.psclient.widget.BattleTipPopup
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+internal enum class BattleExitDestination { HOME, BATTLE_SEARCH, REPLAY_SEARCH }
+
+internal fun battleExitDestination(isReplay: Boolean, isUserPlaying: Boolean) = when {
+    isReplay -> BattleExitDestination.REPLAY_SEARCH
+    isUserPlaying -> BattleExitDestination.HOME
+    else -> BattleExitDestination.BATTLE_SEARCH
+}
+
 class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, View.OnClickListener {
 
     private val observer get() = service!!.battleMessageObserver
@@ -68,6 +76,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     private var wasPlayingBattleMusicWhenPaused = false
     private var battleViewFlipped = false
     private var extraActionsCollapsed = true
+    private var pendingExitDestination: BattleExitDestination? = null
 
     private var _binding: FragmentBattleBinding? = null
     private val binding get() = _binding!!
@@ -86,6 +95,8 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         extraActionsCollapsed = savedInstanceState?.getBoolean(STATE_EXTRA_ACTIONS_COLLAPSED) ?: true
+        pendingExitDestination = savedInstanceState?.getString(STATE_PENDING_EXIT_DESTINATION)
+                ?.let { runCatching { BattleExitDestination.valueOf(it) }.getOrNull() }
     }
 
     override fun onAttach(context: Context) {
@@ -150,6 +161,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(STATE_EXTRA_ACTIONS_COLLAPSED, extraActionsCollapsed)
+        pendingExitDestination?.let {
+            outState.putString(STATE_PENDING_EXIT_DESTINATION, it.name)
+        }
         super.onSaveInstanceState(outState)
     }
 
@@ -253,6 +267,15 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     fun sendSaveReplayCommand() = service?.sendRoomCommand(observedRoomId, "savereplay")
 
+    private fun leaveBattleRoom() {
+        val replay = observer.isReplay
+        pendingExitDestination = battleExitDestination(
+                isReplay = replay,
+                isUserPlaying = !replay && observer.isUserPlaying)
+        if (replay) service?.replayManager?.closeReplay()
+        else service?.sendRoomCommand(observedRoomId, "leave")
+    }
+
     private fun prepareBattleFieldUi() = binding.apply {
         battleLayout.alpha = 1f
         overlayImage.alpha = 1f
@@ -297,7 +320,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         when (clickedView) {
             binding.extraActions.forfeitButton -> {
                 if (observer.isReplay) {
-                    service?.replayManager?.closeReplay()
+                    leaveBattleRoom()
                 } else if (battleRunning && observer.isUserPlaying) {
                     AlertDialog.Builder(requireActivity())
                             .setMessage("Do you really want to forfeit this battle ?")
@@ -305,7 +328,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                             .setNegativeButton("Cancel", null)
                             .show()
                 } else { // Acts as a leave button when user is spectator
-                    service?.sendRoomCommand(observedRoomId, "leave")
+                    leaveBattleRoom()
                 }
             }
             binding.extraActions.sendButton -> {
@@ -948,7 +971,7 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             false
         } catch (e: IllegalStateException) {
             val msg = "A bug has occurred, please try to rejoin the battle. Click this message to leave it without forfeiting."
-            onPrintText(msg.bold().clickable { service?.sendRoomCommand(observedRoomId, "leave") })
+            onPrintText(msg.bold().clickable { leaveBattleRoom() })
             true
         }
     }
@@ -1180,10 +1203,15 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             }
         }
         audioManager.stopBattleMusic()
+        pendingExitDestination?.let { destination ->
+            pendingExitDestination = null
+            homeFragment.onBattleExited(destination)
+        }
     }
 
     companion object {
         private const val EXTRA_ACTIONS_ANIMATION_DURATION = 300L
         private const val STATE_EXTRA_ACTIONS_COLLAPSED = "extra-actions-collapsed"
+        private const val STATE_PENDING_EXIT_DESTINATION = "pending-exit-destination"
     }
 }

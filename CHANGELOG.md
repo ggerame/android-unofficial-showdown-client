@@ -2,6 +2,15 @@
 
 All notable changes made are documented here.
 
+## [1.6.3] – Battle exit navigation
+
+### Changed
+- Leaving a completed battle now returns players to Home, while leaving a
+  spectated battle or replay reopens the corresponding search with the applied
+  filters restored and fresh results.
+- Two-pane layouts keep Home visible and show the existing inactive-battle
+  state after leaving a completed battle.
+
 ## [1.6.2] – Battle log and controls polish
 
 ### Added

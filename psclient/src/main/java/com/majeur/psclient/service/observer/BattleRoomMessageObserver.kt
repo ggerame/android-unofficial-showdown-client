@@ -20,6 +20,17 @@ import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+internal fun shouldAnimateMove(tags: Set<String>) =
+        tags.none { it == "still" || it == "notarget" || it == "miss" }
+
+internal fun blockedMoveToast(effect: String?) = when (effect?.substringAfter(':')?.toId()) {
+    "protect" -> "Protected"
+    "quickguard" -> "Quick Guard"
+    "wideguard" -> "Wide Guard"
+    "craftyshield" -> "Crafty Shield"
+    else -> null
+}
+
 class BattleRoomMessageObserver(service: ShowdownService)
     : RoomMessageObserver<BattleRoomMessageObserver.UiCallbacks>(service) {
 
@@ -199,7 +210,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val moveName = msg.nextArg
         val targetPoke = if (msg.hasNextArg) getPokemonId(msg.nextArg) else null
 
-        val shouldAnim = !msg.kwargs.keys.containsAll(listOf("still", "notarget", "miss"))
+        val shouldAnim = shouldAnimateMove(msg.kwargs.keys)
         val from = msg.kwargs["from"]
         val text = battleTextBuilder.move(sourcePoke, moveName, from,
                 msg.kwargs["of"], msg.kwargs["zMove"])
@@ -470,7 +481,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val text = battleTextBuilder.miss(pokemonId, targetPokeId, msg.kwargs["from"],
                 msg.kwargs["of"])
         actionQueue.enqueueMinorAction {
-            onDisplayBattleToast(targetPokeId ?: pokemonId, "Missed", Colors.GRAY)
+            targetPokeId?.let { onDisplayBattleToast(it, "Missed", Colors.GRAY) }
             displayMinorActionMessage(text)
         }
     }
@@ -795,7 +806,11 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val attacker = msg.nextArgSafe
         val text = battleTextBuilder.block(id, effect, move, attacker,
                 msg.kwargs["from"], msg.kwargs["of"])
-        actionQueue.enqueueMinorAction { displayMinorActionMessage(text) }
+        val toast = blockedMoveToast(effect)
+        actionQueue.enqueueMinorAction {
+            displayMinorActionMessage(text)
+            if (toast != null) onDisplayBattleToast(id, toast, Colors.VOLATILE_GOOD)
+        }
     }
 
     private fun handleOhko() {

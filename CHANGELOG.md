@@ -24,6 +24,9 @@ All notable changes made are documented here.
   validations remain editable and can be saved as persistent local drafts.
 
 ### Fixed
+- Missed moves no longer animate as successful hits and show their feedback on
+  the target rather than the attacker; Protect and guard effects now show
+  feedback on the protected Pokémon.
 - Team-builder toolbar actions remain visible in the light theme, Pokémon type
   badges no longer overlap the Ability field, and the stat editor has a usable
   responsive width with directly editable IV values; EV-limit warnings now

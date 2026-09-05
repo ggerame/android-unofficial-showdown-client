@@ -369,8 +369,4 @@ class TeamFragment : Fragment() {
         inner class ItemViewHolder(val binding: ListItemPokemonBinding, var job: Job? = null) : RecyclerView.ViewHolder(binding.root)
     }
 
-    companion object {
-        const val ARG_FORMATS = "arg-formats"
-    }
-
 }

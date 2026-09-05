@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -71,16 +70,6 @@ class TeamBuilderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        configureEdgeToEdge()
-        binding = ActivityTeamBuilderBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.root.applySafeDrawingInsets(includeIme = true)
-        setSupportActionBar(binding.toolbar)
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
-        canUnbindService = bindService(Intent(this, ShowdownService::class.java), serviceConnection,
-                Context.BIND_AUTO_CREATE)
-
-        // TODO Retrieve cached formats if null
         @Suppress("UNCHECKED_CAST", "DEPRECATION")
         formats = intent.getSerializableExtra(INTENT_EXTRA_FORMATS) as List<BattleFormat.Category>? ?: emptyList()
 
@@ -96,10 +85,17 @@ class TeamBuilderActivity : AppCompatActivity() {
             }
         }
 
+        configureEdgeToEdge()
+        binding = ActivityTeamBuilderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.root.applySafeDrawingInsets(includeIme = true)
+        setSupportActionBar(binding.toolbar)
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        canUnbindService = bindService(Intent(this, ShowdownService::class.java), serviceConnection,
+                Context.BIND_AUTO_CREATE)
+
         val navController = findNavController(R.id.nav_host_fragment)
-        navController.setGraph(R.navigation.team_builder, bundleOf(
-                TeamFragment.ARG_FORMATS to formats
-        ))
+        navController.setGraph(R.navigation.team_builder)
         navController.addOnDestinationChangedListener { controller, destination, _ ->
             val isStartDestination = controller.graph.startDestinationId == destination.id
             onBackPressedCallback.isEnabled = isStartDestination

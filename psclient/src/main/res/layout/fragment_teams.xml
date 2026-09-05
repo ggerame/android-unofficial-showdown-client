@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/build_team"
-                android:src="@drawable/ic_build"
+                android:src="@drawable/ic_new"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
                 app:useCompatPadding="true" />
         </LinearLayout>

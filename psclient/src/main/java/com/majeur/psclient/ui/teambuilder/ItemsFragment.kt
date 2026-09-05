@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.ListItemItemBinding
@@ -30,6 +31,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
     private val fragmentScope = BaseFragment.FragmentScope()
     private lateinit var assetLoader: AssetLoader
+    private var selectedItem = ""
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -38,6 +40,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        selectedItem = arguments?.getString(ARG_SELECTED_ITEM).orEmpty()
         lifecycle.addObserver(fragmentScope)
     }
 
@@ -58,6 +61,11 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
             val adapterItems = listOf("None") + items.orEmpty()
             val textHighlightColor = Utils.alphaColor(ContextCompat.getColor(requireContext(), R.color.secondary), 0.45f)
             setAdapter(Adapter(adapterItems, this@ItemsFragment, textHighlightColor))
+            val selectedPosition = if (selectedItem.isBlank()) 0
+            else adapterItems.indexOfFirst { it.toId() == selectedItem.toId() }
+            if (selectedPosition > 0)
+                (recyclerView.layoutManager as LinearLayoutManager)
+                        .scrollToPositionWithOffset(selectedPosition, 0)
         }
     }
 
@@ -164,6 +172,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
     }
 
     companion object {
+        const val ARG_SELECTED_ITEM = "arg-selected-item"
         const val RESULT_KEY = "request-result-item"
         const val RESULT_ITEM = "request-result-item"
     }

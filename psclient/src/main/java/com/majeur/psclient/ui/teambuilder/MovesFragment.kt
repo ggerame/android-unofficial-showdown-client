@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.ListItemMoveBinding
@@ -22,6 +23,7 @@ import com.majeur.psclient.util.CategoryDrawable
 import com.majeur.psclient.util.Utils
 import com.majeur.psclient.util.italic
 import com.majeur.psclient.util.recyclerview.OnItemClickListener
+import com.majeur.psclient.util.toId
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -31,6 +33,7 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     private lateinit var assetLoader: AssetLoader
     private lateinit var species: String
     private var slot = 0
+    private var selectedMove = ""
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -41,6 +44,7 @@ class MovesFragment : ListFragment(), OnItemClickListener {
         super.onCreate(savedInstanceState)
         species = requireArguments().getString(ARG_SPECIES)!!
         slot = requireArguments().getInt(ARG_SLOT)
+        selectedMove = requireArguments().getString(ARG_SELECTED_MOVE).orEmpty()
         lifecycle.addObserver(fragmentScope)
     }
 
@@ -61,6 +65,11 @@ class MovesFragment : ListFragment(), OnItemClickListener {
             val adapterItems = listOf("None") + moves.orEmpty()
             val textHighlightColor = Utils.alphaColor(ContextCompat.getColor(requireContext(), R.color.secondary), 0.45f)
             setAdapter(Adapter(adapterItems, this@MovesFragment, textHighlightColor))
+            val selectedPosition = if (selectedMove.isBlank()) 0
+            else adapterItems.indexOfFirst { it.toId() == selectedMove.toId() }
+            if (selectedPosition > 0)
+                (recyclerView.layoutManager as LinearLayoutManager)
+                        .scrollToPositionWithOffset(selectedPosition, 0)
         }
     }
 
@@ -174,6 +183,7 @@ class MovesFragment : ListFragment(), OnItemClickListener {
 
         const val ARG_SPECIES = "arg-species"
         const val ARG_SLOT = "arg-slot"
+        const val ARG_SELECTED_MOVE = "arg-selected-move"
 
         const val RESULT_KEY = "request-result-move"
         const val RESULT_MOVE = "result-move"

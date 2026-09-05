@@ -2,7 +2,7 @@
 
 All notable changes made are documented here.
 
-## [1.6.3] – Battle exit navigation
+## [1.6.3] – Battle exit navigation and team-builder polish
 
 ### Changed
 - Leaving a completed battle now returns players to Home, while leaving a
@@ -10,6 +10,14 @@ All notable changes made are documented here.
   filters restored and fresh results.
 - Two-pane layouts keep Home visible and show the existing inactive-battle
   state after leaving a completed battle.
+- Move and item pickers now reopen at the current selection, Tera Type's
+  automatic first-type behavior is explicit, and the new-team action uses a
+  clear plus icon.
+
+### Fixed
+- Team-builder toolbar actions remain visible in the light theme, Pokémon type
+  badges no longer overlap the Ability field, and the stat editor has a usable
+  responsive width with directly editable IV values.
 
 ## [1.6.2] – Battle log and controls polish
 

@@ -240,14 +240,17 @@ class PokemonFragment : Fragment() {
         }
         binding.itemInput.apply {
             setOnClickListener {
-                findNavController().navigate(R.id.action_pokemon_frag_to_item_choice_frag)
+                findNavController().navigate(R.id.action_pokemon_frag_to_item_choice_frag, bundleOf(
+                        ItemsFragment.ARG_SELECTED_ITEM to pokemon.item
+                ))
             }
         }
         moveInputs.forEachIndexed { moveSlot, textView ->
             textView.setOnClickListener {
                 val bundle = bundleOf(
                         MovesFragment.ARG_SPECIES to pokemon.species.toId(),
-                        MovesFragment.ARG_SLOT to moveSlot
+                        MovesFragment.ARG_SLOT to moveSlot,
+                        MovesFragment.ARG_SELECTED_MOVE to pokemon.moves.getOrElse(moveSlot) { "" }
                 )
                 findNavController().navigate(R.id.action_pokemon_frag_to_move_choice_frag, bundle)
             }
@@ -290,7 +293,7 @@ class PokemonFragment : Fragment() {
             }
         }
         binding.teraTypeSelector.apply {
-            val choices = listOf("Default") + Type.ALL
+            val choices = listOf(getString(R.string.tera_type_automatic)) + Type.ALL
             adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, choices)
             onItemSelectedListener = object : SimpleOnItemSelectedListener() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {

@@ -18,6 +18,7 @@
     <string name="evs">EVs</string>
     <string name="ivs">IVs</string>
     <string name="ev_value">EV value</string>
+    <string name="iv_value">IV value</string>
     <string name="teams">Teams</string>
     <string name="import_team">Import team</string>
     <string name="import_teams_title">Import teams</string>
@@ -113,6 +114,7 @@
     <string name="nature">Nature</string>
     <string name="hp_type">HP Type</string>
     <string name="tera_type">Tera Type</string>
+    <string name="tera_type_automatic">Automatic (first type)</string>
     <string name="dynamax_level">Dynamax Level</string>
     <string name="gigantamax">Gigantamax</string>
     <string name="poke_ball_optional">Poké Ball (optional)</string>

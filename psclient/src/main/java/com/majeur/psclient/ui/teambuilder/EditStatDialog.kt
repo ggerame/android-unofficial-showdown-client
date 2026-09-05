@@ -7,10 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.fragment.app.DialogFragment
+import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogEditStatBinding
 import com.majeur.psclient.util.RangeNumberTextWatcher
 import com.majeur.psclient.util.SimpleTextWatcher
+import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.resizeForIme
+import kotlin.math.min
 
 
 class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
@@ -51,6 +54,10 @@ class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
     override fun onStart() {
         super.onStart()
         requireDialog().resizeForIme()
+        val availableWidth = dp((resources.configuration.screenWidthDp - 32).toFloat())
+        requireDialog().window?.setLayout(
+                min(availableWidth, resources.getDimensionPixelSize(R.dimen.dialog_max_width)),
+                ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,6 +68,13 @@ class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
                 progress = iv
             }
             ivValue.setText(iv.toString())
+            ivValue.addTextChangedListener(RangeNumberTextWatcher(0, 31))
+            ivValue.addTextChangedListener(object : SimpleTextWatcher() {
+                override fun afterTextChanged(editable: Editable) {
+                    val value = editable.toString().toIntOrNull()
+                    if (value != null) ivSlider.progress = value
+                }
+            })
             evSlider.apply {
                 setOnSeekBarChangeListener(this@EditStatDialog)
                 progress = ev
@@ -88,7 +102,9 @@ class EditStatDialog : DialogFragment(), SeekBar.OnSeekBarChangeListener {
                 binding.evValue.setText(progress.toString())
             ev = progress
         } else {
-            binding.ivValue.text = progress.toString()
+            val currentVal = binding.ivValue.text.toString().toIntOrNull()
+            if (currentVal == null || currentVal != progress)
+                binding.ivValue.setText(progress.toString())
             iv = progress
         }
     }

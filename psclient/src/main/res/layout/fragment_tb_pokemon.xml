@@ -182,7 +182,14 @@
             android:background="?android:attr/listDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/happinessInput"/>
+            app:layout_constraintTop_toBottomOf="@+id/headerBottom"/>
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/headerBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="type1,type2,happinessInput" />
 
         <View
             android:id="@+id/divider2"

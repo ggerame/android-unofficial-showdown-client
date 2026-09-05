@@ -68,13 +68,15 @@
             android:max="31"
             style="@style/Widget.AppCompat.SeekBar.Discrete"/>
 
-        <TextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/iv_value"
             android:layout_width="64dp"
             android:layout_height="48dp"
             android:gravity="center"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-            android:textColor="?attr/colorOnSurface" />
+            android:hint="@string/iv_value"
+            android:inputType="number"
+            android:maxLength="2"
+            android:selectAllOnFocus="true" />
 
     </LinearLayout>
 

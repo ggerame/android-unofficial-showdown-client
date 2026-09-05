@@ -73,9 +73,10 @@ object SmogonTeamBuilder {
             builder.append("\n")
             builder.append("Happiness: ${pokemon.happiness}")
         }
-        if (pokemon.pokeball.isNotBlank()) {
+        if (pokemon.pokeball.isNotBlank() && pokemon.pokeball.toId() != "pokeball") {
             builder.append("\n")
-            builder.append("Pokeball: ${pokemon.pokeball}")
+            val pokeball = assetLoader.item(pokemon.pokeball.toId())?.name ?: pokemon.pokeball
+            builder.append("Pokeball: $pokeball")
         }
         if (pokemon.hpType.isNotBlank()) {
             builder.append("\n")

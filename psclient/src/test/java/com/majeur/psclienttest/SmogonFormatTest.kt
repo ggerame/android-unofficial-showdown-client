@@ -2,6 +2,7 @@ package com.majeur.psclienttest
 
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.battle.Move
+import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Item
 import com.majeur.psclient.model.common.Stats
 import com.majeur.psclient.model.common.Team
@@ -29,6 +30,7 @@ class SmogonFormatTest {
         abilities = listOf("Inner Focus")
     }
     val flyiniumz = Item().apply { name = "Flyinium Z" }
+    val luxuryball = Item().apply { name = "Luxury Ball" }
     val bravebird = Move.Details().apply { name = "Brave Bird" }
     val superfang = Move.Details().apply { name = "Super Fang" }
     val taunt = Move.Details().apply { name = "Taunt" }
@@ -42,6 +44,7 @@ class SmogonFormatTest {
             The bat (Crobat) (F) @ Flyinium Z  
             Ability: Infiltrator  
             Tera Type: Ghost
+            Pokeball: Luxury Ball
             Level: 58  
             Shiny: Yes  
             EVs: 252 Atk / 4 Def / 252 Spe  
@@ -61,6 +64,7 @@ class SmogonFormatTest {
             assert(item.toId() == "flyiniumz") { "Wrong item: $item" }
             assert(ability == "Infiltrator") { "Wrong ability: $ability" }
             assert(teraType == "Ghost") { "Wrong tera type: $teraType" }
+            assert(pokeball == "luxuryball") { "Wrong Poké Ball: $pokeball" }
             assert(level == 58) { "Wrong level: $level" }
             assert(shiny == true) { "Wrong shinyness: $shiny" }
             assert(evs.atk == 252 && evs.def == 4 && evs.spe == 252) { "Wrong evs: ${evs.joinToString()}" }
@@ -72,6 +76,45 @@ class SmogonFormatTest {
                     moves[3].toId() == "roost") { "Wrong moves: ${moves.joinToString()}" }
         }
         Unit
+    }
+
+    @Test
+    fun `test_Default poke ball stays implicit`(): Unit = runBlocking(Dispatchers.Unconfined) {
+        val pokemon = SmogonTeamParser.parsePokemon(
+            "Crobat\nPokeball: Poke Ball\n- Roost",
+            assetLoader
+        )!!
+
+        assert(pokemon.pokeball.isBlank()) { "Default Poké Ball should not be stored explicitly" }
+        Unit
+    }
+
+    @Test
+    fun `test_Remove unsupported imported fields by format`() {
+        fun importedPokemon() = TeamPokemon("Mew").apply {
+            item = "leftovers"
+            ability = "synchronize"
+        }
+
+        val gen1 = importedPokemon()
+        assert(SmogonTeamParser.removeUnsupportedFields(listOf(gen1), FormatProfile.from("gen1ou")))
+        assert(gen1.item.isBlank() && gen1.ability.isBlank())
+
+        val gen2 = importedPokemon()
+        assert(SmogonTeamParser.removeUnsupportedFields(listOf(gen2), FormatProfile.from("gen2ou")))
+        assert(gen2.item == "leftovers" && gen2.ability.isBlank())
+
+        val letsGo = importedPokemon()
+        assert(SmogonTeamParser.removeUnsupportedFields(listOf(letsGo), FormatProfile.from("gen7letsgoou")))
+        assert(letsGo.item.isBlank() && letsGo.ability.isBlank())
+
+        val gen9 = importedPokemon()
+        assert(!SmogonTeamParser.removeUnsupportedFields(listOf(gen9), FormatProfile.from("gen9ou")))
+        assert(gen9.item == "leftovers" && gen9.ability == "synchronize")
+
+        val other = importedPokemon()
+        assert(!SmogonTeamParser.removeUnsupportedFields(listOf(other), FormatProfile.from("other")))
+        assert(other.item == "leftovers" && other.ability == "synchronize")
     }
 
     @Test
@@ -334,6 +377,7 @@ class SmogonFormatTest {
     fun `test_Build a single pokemon`(): Unit = runBlocking(Dispatchers.Unconfined) {
         Mockito.`when`(assetLoader.dexPokemon("crobat")).thenReturn(crobat)
         Mockito.`when`(assetLoader.item("flyiniumz")).thenReturn(flyiniumz)
+        Mockito.`when`(assetLoader.item("luxuryball")).thenReturn(luxuryball)
         Mockito.`when`(assetLoader.moveDetails("bravebird")).thenReturn(bravebird)
         Mockito.`when`(assetLoader.moveDetails("superfang")).thenReturn(superfang)
         Mockito.`when`(assetLoader.moveDetails("taunt")).thenReturn(taunt)
@@ -346,6 +390,7 @@ class SmogonFormatTest {
             item = "flyiniumz"
             ability = "infiltrator"
             teraType = "Ghost"
+            pokeball = "luxuryball"
             level = 58
             shiny = true
             evs.apply { atk = 252; def = 4; spe = 252 }
@@ -361,6 +406,7 @@ class SmogonFormatTest {
             Ability: Infiltrator  
             Shiny: Yes  
             Level: 58  
+            Pokeball: Luxury Ball
             Tera Type: Ghost
             EVs: 252 Atk / 4 Def / 252 Spe  
             Jolly Nature  

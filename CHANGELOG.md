@@ -13,6 +13,12 @@ All notable changes made are documented here.
 - Move and item pickers now reopen at the current selection, Tera Type's
   automatic first-type behavior is explicit, and the new-team action uses a
   clear plus icon.
+- The bundled item catalog now includes current Showdown data such as Booster
+  Energy, and Poké Balls use a generation-aware official picker instead of
+  free-form text.
+- Bundled Pokédex, move, learnset, battle-text, and animation data has been
+  refreshed from Pokémon Showdown; their generators now use HTTPS and fail
+  safely on network errors.
 - Saving from the Team Builder now checks the team with Pokémon Showdown's
   authoritative format validator before accepting it; rejected or unavailable
   validations remain editable and can be saved as persistent local drafts.
@@ -25,6 +31,9 @@ All notable changes made are documented here.
   and are hidden in Gen 1–2 where the 510 EV cap does not apply. New Gen 1–2
   Pokémon now correctly use Showdown's maximum default IVs instead of treating
   the maximum DV value as an IV.
+- Imports now remove and report item or ability fields that the selected
+  generation does not support, while the existing local and server validators
+  remain the final legality checks.
 
 ## [1.6.2] – Battle log and controls polish
 

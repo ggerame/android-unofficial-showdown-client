@@ -6,7 +6,7 @@ from json import dumps
 
 app_data_dir = "../psclient/src/main/res/raw"
 target_file_name = "items.json"
-url_js_file = "http://play.pokemonshowdown.com/data/items.js"
+url_js_file = "https://play.pokemonshowdown.com/data/items.js"
 
 data = get_remote_data(url_js_file)
 
@@ -15,7 +15,7 @@ obj = parse(data)
 
 properties = obj['body'][0]['expression']['right']['properties']
 items = dict()   
-keys = ["name", "id", "desc", "spritenum"]
+keys = ["name", "id", "desc", "spritenum", "gen", "isPokeball"]
 set_log_p() 
 for item_entry in properties:
     log_p()

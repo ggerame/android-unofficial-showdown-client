@@ -2,6 +2,7 @@ package com.majeur.psclient.util.smogon
 
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.common.BattleFormat
+import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Team
 import com.majeur.psclient.model.common.toId
 import com.majeur.psclient.model.pokemon.TeamPokemon
@@ -12,6 +13,21 @@ object SmogonTeamParser {
 
     private val TEAM_HEADER_CONTENT_PATTERN = "(?<=={3}).*(?=={3})".toRegex().toPattern()
     private val TEAM_HEADER_SPLIT_REGEX = "={3}.*={3}".toRegex()
+
+    fun removeUnsupportedFields(pokemons: Iterable<TeamPokemon>, profile: FormatProfile): Boolean {
+        var removed = false
+        pokemons.forEach { pokemon ->
+            if (!profile.hasItems && pokemon.item.isNotBlank()) {
+                pokemon.item = ""
+                removed = true
+            }
+            if (!profile.hasAbilities && pokemon.ability.isNotBlank()) {
+                pokemon.ability = ""
+                removed = true
+            }
+        }
+        return removed
+    }
 
     suspend fun parseTeams(importString: String, assetLoader: AssetLoader): List<Team> {
         val teams = mutableListOf<Team>()
@@ -153,6 +169,9 @@ object SmogonTeamParser {
                 val matchingAbility = dexPokemon?.matchingAbility(ability.toId(), "") ?: ""
                 if (matchingAbility.isNotBlank())
                     p.ability = matchingAbility
+            } else if (line.startsWith("Pokeball:", ignoreCase = true)) {
+                p.pokeball = line.substringAfter(':').trim().toId()
+                        .takeUnless { it == "pokeball" }.orEmpty()
             } else if (line.startsWith("Tera Type:")) {
                 p.teraType = line.removePrefix("Tera Type:").trim()
             } else if (line.startsWith("Level:")) {

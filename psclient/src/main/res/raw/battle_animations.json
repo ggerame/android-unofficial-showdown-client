@@ -283,7 +283,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -1065,7 +1065,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -1106,7 +1106,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -1147,7 +1147,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -3035,7 +3035,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -3081,7 +3081,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -3177,7 +3177,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -3223,7 +3223,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -3269,7 +3269,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -3315,7 +3315,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -4127,7 +4127,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4171,7 +4171,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4216,7 +4216,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4364,7 +4364,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4426,7 +4426,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4488,7 +4488,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4550,7 +4550,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -4612,7 +4612,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -5751,7 +5751,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -5796,7 +5796,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -8026,7 +8026,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -8130,7 +8130,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -10652,7 +10652,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -10683,7 +10683,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -11136,7 +11136,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -11167,7 +11167,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -13247,7 +13247,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -13288,7 +13288,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -13329,7 +13329,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -13370,7 +13370,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -13411,7 +13411,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -14801,7 +14801,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -14846,7 +14846,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -14891,7 +14891,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -14936,7 +14936,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -14981,7 +14981,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -15026,7 +15026,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -15071,7 +15071,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -15116,7 +15116,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -22926,7 +22926,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -22967,7 +22967,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -23008,7 +23008,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -31361,7 +31361,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -31407,7 +31407,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -37793,7 +37793,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -37834,7 +37834,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -37875,7 +37875,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -41622,7 +41622,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -41663,7 +41663,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -41704,7 +41704,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -41749,7 +41749,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -41795,7 +41795,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -41841,7 +41841,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -41887,7 +41887,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -41928,7 +41928,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -41969,7 +41969,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47696,7 +47696,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47742,7 +47742,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47788,7 +47788,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47834,7 +47834,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47880,7 +47880,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47926,7 +47926,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -47972,7 +47972,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -48018,7 +48018,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -48064,7 +48064,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -48110,7 +48110,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -48156,7 +48156,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -48202,7 +48202,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -55834,7 +55834,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -55865,7 +55865,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -55896,7 +55896,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -57417,7 +57417,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -57507,7 +57507,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -57600,7 +57600,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -57690,7 +57690,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -57779,7 +57779,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -57869,7 +57869,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58101,7 +58101,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58291,7 +58291,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58336,7 +58336,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58382,7 +58382,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58507,7 +58507,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58551,7 +58551,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58595,7 +58595,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58784,7 +58784,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58829,7 +58829,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -58875,7 +58875,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -63609,7 +63609,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -63643,7 +63643,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -63678,7 +63678,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64428,7 +64428,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64468,7 +64468,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64509,7 +64509,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64550,7 +64550,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64591,7 +64591,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64632,7 +64632,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64673,7 +64673,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64714,7 +64714,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -64792,7 +64792,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -64833,7 +64833,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -64874,7 +64874,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -64915,7 +64915,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -64956,7 +64956,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -65028,7 +65028,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -65103,7 +65103,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -65185,7 +65185,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -65214,7 +65214,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -65244,7 +65244,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -66008,7 +66008,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66053,7 +66053,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66098,7 +66098,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66143,7 +66143,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66188,7 +66188,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66233,7 +66233,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66278,7 +66278,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66323,7 +66323,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66549,7 +66549,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66639,7 +66639,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66729,7 +66729,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -66819,7 +66819,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70472,7 +70472,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70501,7 +70501,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70565,7 +70565,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70610,7 +70610,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70654,7 +70654,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70699,7 +70699,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70743,7 +70743,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70788,7 +70788,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70832,7 +70832,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70877,7 +70877,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -70921,7 +70921,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -70966,7 +70966,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -71010,7 +71010,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -71055,7 +71055,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -71099,7 +71099,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -71144,7 +71144,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -71188,7 +71188,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -71233,7 +71233,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -71281,7 +71281,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -71371,7 +71371,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -71426,362 +71426,6 @@
               "rel": "attacker",
               "axis": "y",
               "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "mistball",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "mistball",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "poisonwisp",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "poisonwisp",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
             },
             "z": {
               "rel": "attacker",
@@ -71845,6 +71489,362 @@
             "y": {
               "rel": "attacker",
               "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "mistball",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "purplewisp",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "purplewisp",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "mistball",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
               "offset": -50
             },
             "z": {
@@ -71993,7 +71993,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -72083,7 +72083,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -72349,7 +72349,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -72439,7 +72439,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -77604,7 +77604,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -77666,7 +77666,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -77728,7 +77728,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -77790,7 +77790,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -77852,7 +77852,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -87654,7 +87654,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -87716,7 +87716,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -88900,7 +88900,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -88945,7 +88945,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -88991,7 +88991,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -93111,7 +93111,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -93156,7 +93156,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -93202,7 +93202,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -93248,7 +93248,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -93294,7 +93294,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -93340,7 +93340,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -94090,7 +94090,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -94136,7 +94136,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -94182,7 +94182,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -94435,7 +94435,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -94466,7 +94466,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -95557,7 +95557,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -96812,7 +96812,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -96874,7 +96874,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -96936,7 +96936,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -96998,7 +96998,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -97060,7 +97060,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -97953,7 +97953,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -97988,7 +97988,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -98023,7 +98023,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -98058,7 +98058,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99669,7 +99669,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99704,7 +99704,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99739,7 +99739,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99783,7 +99783,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99827,7 +99827,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -99905,7 +99905,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -99941,7 +99941,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -100307,7 +100307,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -100342,7 +100342,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -108572,7 +108572,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -108602,7 +108602,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -108642,7 +108642,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -108682,7 +108682,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -109211,7 +109211,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -109248,7 +109248,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -109420,7 +109420,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -109497,7 +109497,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -109572,7 +109572,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -109664,7 +109664,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110209,7 +110209,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110235,7 +110235,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110261,7 +110261,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110287,7 +110287,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110313,7 +110313,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110339,7 +110339,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110365,7 +110365,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110391,7 +110391,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110417,7 +110417,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110443,7 +110443,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110469,7 +110469,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110495,7 +110495,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110521,7 +110521,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110547,7 +110547,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110573,7 +110573,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110599,7 +110599,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110625,7 +110625,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110651,7 +110651,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110677,7 +110677,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110703,7 +110703,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110729,7 +110729,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110755,7 +110755,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110781,7 +110781,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110807,7 +110807,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110833,7 +110833,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110859,7 +110859,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110885,7 +110885,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110911,7 +110911,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110937,7 +110937,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110963,7 +110963,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -110989,7 +110989,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111015,7 +111015,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111041,7 +111041,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111067,7 +111067,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111093,7 +111093,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111119,7 +111119,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111145,7 +111145,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111171,7 +111171,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111197,7 +111197,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111223,7 +111223,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -111313,7 +111313,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -115368,7 +115368,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -115398,7 +115398,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -115428,7 +115428,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -115458,7 +115458,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -115488,7 +115488,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -120051,7 +120051,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -120083,7 +120083,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -121408,7 +121408,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -121438,7 +121438,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -124685,7 +124685,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -124723,7 +124723,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -124761,7 +124761,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -124799,7 +124799,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -125519,7 +125519,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -125627,7 +125627,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -125735,7 +125735,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -141389,7 +141389,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141423,7 +141423,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141458,7 +141458,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141497,7 +141497,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141531,7 +141531,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141566,7 +141566,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141605,7 +141605,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141639,7 +141639,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141674,7 +141674,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141713,7 +141713,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141747,7 +141747,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141782,7 +141782,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141821,7 +141821,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141855,7 +141855,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -141890,7 +141890,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -143498,7 +143498,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -143539,7 +143539,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -143580,7 +143580,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146448,7 +146448,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146493,7 +146493,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146538,7 +146538,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146583,7 +146583,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146628,7 +146628,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146673,7 +146673,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146718,7 +146718,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -146763,7 +146763,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -156559,7 +156559,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -156603,7 +156603,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -156648,7 +156648,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159177,7 +159177,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159222,7 +159222,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159268,7 +159268,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159318,7 +159318,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159363,7 +159363,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159409,7 +159409,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159459,7 +159459,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159504,7 +159504,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159550,7 +159550,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159596,7 +159596,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159642,7 +159642,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159688,7 +159688,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159738,7 +159738,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159783,7 +159783,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159829,7 +159829,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159879,7 +159879,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159924,7 +159924,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -159970,7 +159970,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -160020,7 +160020,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160066,7 +160066,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160112,7 +160112,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160252,7 +160252,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160298,7 +160298,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160344,7 +160344,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -160484,7 +160484,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -162010,7 +162010,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -162039,7 +162039,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -162147,7 +162147,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -162237,7 +162237,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -163370,7 +163370,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163411,7 +163411,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163452,7 +163452,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163493,7 +163493,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163534,7 +163534,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163867,7 +163867,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163908,7 +163908,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163949,7 +163949,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -163990,7 +163990,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -164031,7 +164031,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -166936,7 +166936,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -166982,7 +166982,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -167028,7 +167028,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -167074,7 +167074,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -170482,7 +170482,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -170544,7 +170544,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -170606,7 +170606,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -170668,7 +170668,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -170730,7 +170730,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -171668,7 +171668,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -171699,7 +171699,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174338,7 +174338,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174400,7 +174400,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174462,7 +174462,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174524,7 +174524,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174586,7 +174586,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -174862,7 +174862,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174924,7 +174924,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -174986,7 +174986,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -175048,7 +175048,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -175110,7 +175110,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -181903,7 +181903,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -181929,7 +181929,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -181955,7 +181955,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -181981,7 +181981,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182007,7 +182007,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182033,7 +182033,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182059,7 +182059,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182085,7 +182085,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182111,7 +182111,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182137,7 +182137,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182163,7 +182163,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182189,7 +182189,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182215,7 +182215,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182241,7 +182241,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182267,7 +182267,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182293,7 +182293,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182319,7 +182319,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182345,7 +182345,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182371,7 +182371,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182397,7 +182397,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182423,7 +182423,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182449,7 +182449,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182475,7 +182475,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182501,7 +182501,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182527,7 +182527,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182553,7 +182553,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182579,7 +182579,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182605,7 +182605,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182631,7 +182631,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182657,7 +182657,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182683,7 +182683,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182709,7 +182709,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182735,7 +182735,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182761,7 +182761,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182787,7 +182787,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182813,7 +182813,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182839,7 +182839,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182865,7 +182865,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182891,7 +182891,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -182917,7 +182917,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -183007,7 +183007,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -186784,7 +186784,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -186814,7 +186814,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -186854,7 +186854,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -186894,7 +186894,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -187423,7 +187423,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -187460,7 +187460,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -187753,7 +187753,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -187783,7 +187783,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -187823,7 +187823,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -187863,7 +187863,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -188392,7 +188392,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -188429,7 +188429,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -190314,7 +190314,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -190376,7 +190376,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -190438,7 +190438,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -190500,7 +190500,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -190562,7 +190562,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -191141,7 +191141,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -191175,7 +191175,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -191210,7 +191210,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -191249,7 +191249,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -191293,7 +191293,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -191338,7 +191338,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -192516,7 +192516,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -192546,7 +192546,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -192576,7 +192576,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -192606,7 +192606,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -192636,7 +192636,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -193372,7 +193372,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -193406,7 +193406,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -193441,7 +193441,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -196278,7 +196278,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -196759,7 +196759,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -196821,7 +196821,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -198086,7 +198086,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -198127,7 +198127,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -198168,7 +198168,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -198841,7 +198841,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -198931,7 +198931,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -199117,7 +199117,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199143,7 +199143,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199169,7 +199169,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199195,7 +199195,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199221,7 +199221,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199247,7 +199247,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199273,7 +199273,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199299,7 +199299,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199325,7 +199325,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199351,7 +199351,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199377,7 +199377,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199403,7 +199403,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199429,7 +199429,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199455,7 +199455,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199481,7 +199481,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199507,7 +199507,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199533,7 +199533,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199559,7 +199559,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199585,7 +199585,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199611,7 +199611,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199637,7 +199637,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199663,7 +199663,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199689,7 +199689,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199715,7 +199715,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199741,7 +199741,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199767,7 +199767,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199793,7 +199793,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199819,7 +199819,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199845,7 +199845,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199871,7 +199871,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199897,7 +199897,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199923,7 +199923,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199949,7 +199949,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -199975,7 +199975,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200001,7 +200001,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200027,7 +200027,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200053,7 +200053,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200079,7 +200079,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200105,7 +200105,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200131,7 +200131,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200221,7 +200221,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200812,7 +200812,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200858,7 +200858,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -200904,7 +200904,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -201044,7 +201044,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201089,7 +201089,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201135,7 +201135,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201482,7 +201482,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -201511,7 +201511,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -201866,7 +201866,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201901,7 +201901,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201936,7 +201936,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -201980,7 +201980,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -202024,7 +202024,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -202102,7 +202102,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -202138,7 +202138,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -202504,7 +202504,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -202539,7 +202539,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203763,7 +203763,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203808,7 +203808,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203853,7 +203853,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203898,7 +203898,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203943,7 +203943,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -203988,7 +203988,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -204033,7 +204033,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -204078,7 +204078,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -204499,7 +204499,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -204540,7 +204540,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -204581,7 +204581,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -206281,7 +206281,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -206371,7 +206371,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -206426,362 +206426,6 @@
               "rel": "attacker",
               "axis": "y",
               "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "mistball",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "mistball",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 50
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "poisonwisp",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.2,
-            "opacity": 0.6,
-            "time": 0
-          },
-          "end": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "opacity": 0,
-            "time": 500
-          },
-          "transition": "decel",
-          "after": null
-        },
-        {
-          "type": "showEffect",
-          "effect": "poisonwisp",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "attacker",
-              "axis": "z",
-              "offset": 0
-            },
-            "scale": 0.4,
-            "opacity": 0.6,
-            "time": 500
-          },
-          "end": {
-            "x": {
-              "rel": "defender",
-              "axis": "x",
-              "offset": 0
-            },
-            "y": {
-              "rel": "defender",
-              "axis": "y",
-              "offset": 0
-            },
-            "z": {
-              "rel": "defender",
-              "axis": "z",
-              "offset": 0
-            },
-            "time": 1000
-          },
-          "transition": "accel",
-          "after": "explode"
-        },
-        {
-          "type": "showEffect",
-          "effect": "feather",
-          "start": {
-            "x": {
-              "rel": "attacker",
-              "axis": "x",
-              "offset": 50
-            },
-            "y": {
-              "rel": "attacker",
-              "axis": "y",
-              "offset": 0
             },
             "z": {
               "rel": "attacker",
@@ -206845,6 +206489,362 @@
             "y": {
               "rel": "attacker",
               "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "mistball",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 50
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "purplewisp",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "opacity": 0,
+            "time": 500
+          },
+          "transition": "decel",
+          "after": null
+        },
+        {
+          "type": "showEffect",
+          "effect": "purplewisp",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "feather",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.2,
+            "opacity": 0.6,
+            "time": 500
+          },
+          "end": {
+            "x": {
+              "rel": "defender",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "defender",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "defender",
+              "axis": "z",
+              "offset": 0
+            },
+            "time": 1000
+          },
+          "transition": "accel",
+          "after": "explode"
+        },
+        {
+          "type": "showEffect",
+          "effect": "mistball",
+          "start": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 0
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
+              "offset": 0
+            },
+            "z": {
+              "rel": "attacker",
+              "axis": "z",
+              "offset": 0
+            },
+            "scale": 0.4,
+            "opacity": 0.6,
+            "time": 0
+          },
+          "end": {
+            "x": {
+              "rel": "attacker",
+              "axis": "x",
+              "offset": 50
+            },
+            "y": {
+              "rel": "attacker",
+              "axis": "y",
               "offset": -50
             },
             "z": {
@@ -206993,7 +206993,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -207083,7 +207083,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -207349,7 +207349,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -207439,7 +207439,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209177,7 +209177,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209222,7 +209222,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209267,7 +209267,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209312,7 +209312,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209357,7 +209357,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209402,7 +209402,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209447,7 +209447,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209492,7 +209492,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209572,7 +209572,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209634,7 +209634,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209696,7 +209696,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209758,7 +209758,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -209820,7 +209820,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -213237,7 +213237,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -213282,7 +213282,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -213328,7 +213328,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -215472,7 +215472,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -215517,7 +215517,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -215563,7 +215563,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220463,7 +220463,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220498,7 +220498,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220673,7 +220673,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220717,7 +220717,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220761,7 +220761,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "defender",
@@ -220979,7 +220979,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -221014,7 +221014,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -223939,7 +223939,7 @@
       "anim": [
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -223975,7 +223975,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",
@@ -224011,7 +224011,7 @@
         },
         {
           "type": "showEffect",
-          "effect": "poisonwisp",
+          "effect": "purplewisp",
           "start": {
             "x": {
               "rel": "attacker",

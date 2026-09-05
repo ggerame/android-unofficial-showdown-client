@@ -73,6 +73,10 @@ class AssetLoader(val context: Context) {
         allItemsLoader.load(constraint)
     }
 
+    suspend fun allPokeballs(generation: Int) = withContext(Dispatchers.IO) {
+        allItemsLoader.loadPokeballs(generation)
+    }
+
 //    Not used for now
 //    suspend fun allSpecies(constraint: String) = withContext(Dispatchers.IO) {
 //        allSpeciesLoader.load(constraint)
@@ -181,16 +185,25 @@ class AssetLoader(val context: Context) {
 
     class AllItemsLoader(context: Context) : Loader<List<String>>(context, useCache = false) {
 
+        fun loadPokeballs(generation: Int) = compute("", generation)
+
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
         @Throws(IOException::class)
-        override fun compute(constraint: String): List<String>? {
+        override fun compute(constraint: String) = compute(constraint, null)
+
+        @Throws(IOException::class)
+        private fun compute(constraint: String, maxPokeballGeneration: Int?): List<String> {
             val itemNames = mutableListOf<String>()
             jsonReader(R.raw.items).use { reader ->
                 reader.beginObject()
                 while (reader.hasNext()) {
                     val itemId = reader.nextName()
                     if (itemId.contains(constraint)) {
-                        itemNames.add(parseItemName(reader, itemId))
+                        val item = parseItemSummary(reader, itemId)
+                        if (maxPokeballGeneration == null ||
+                                item.isPokeball && item.generation <= maxPokeballGeneration) {
+                            itemNames.add(item.name)
+                        }
                     } else {
                         reader.skipValue()
                     }
@@ -201,18 +214,24 @@ class AssetLoader(val context: Context) {
         }
 
         @Throws(IOException::class)
-        private fun parseItemName(reader: JsonReader, itemId: String): String {
+        private fun parseItemSummary(reader: JsonReader, itemId: String): ItemSummary {
             var name = itemId
+            var generation = 0
+            var isPokeball = false
             reader.beginObject()
             while (reader.hasNext()) {
                 when (reader.nextName()) {
                     "name" -> name = reader.nextString()
+                    "gen" -> generation = reader.nextInt()
+                    "isPokeball" -> isPokeball = reader.nextBoolean()
                     else -> reader.skipValue()
                 }
             }
             reader.endObject()
-            return name
+            return ItemSummary(name, generation, isPokeball)
         }
+
+        private data class ItemSummary(val name: String, val generation: Int, val isPokeball: Boolean)
     }
 
     class AllSpeciesLoader(context: Context) : Loader<List<String>>(context, useCache = false) {

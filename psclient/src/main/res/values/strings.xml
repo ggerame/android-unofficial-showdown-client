@@ -117,6 +117,8 @@
     <string name="happiness">Happiness</string>
     <string name="ability">Ability</string>
     <string name="item">Item</string>
+    <string name="items">Items</string>
+    <string name="none">None</string>
     <string name="moves">Moves</string>
     <string name="nature">Nature</string>
     <string name="hp_type">HP Type</string>
@@ -124,7 +126,9 @@
     <string name="tera_type_automatic">Automatic (first type)</string>
     <string name="dynamax_level">Dynamax Level</string>
     <string name="gigantamax">Gigantamax</string>
-    <string name="poke_ball_optional">Poké Ball (optional)</string>
+    <string name="poke_balls">Poké Balls</string>
+    <string name="poke_ball_default">Poké Ball (default)</string>
+    <string name="import_removed_unsupported_fields">Team import completed. Unsupported items or abilities were removed for the selected formats.</string>
     <string name="pick_username">Pick a user name</string>
     <string name="sign_in_title">Choose your Showdown name</string>
     <string name="sign_in_description">Enter any available name to continue as a guest. If the name belongs to a registered account, you’ll be asked for its password.</string>

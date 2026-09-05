@@ -25,6 +25,7 @@ import com.majeur.psclient.R
 import com.majeur.psclient.databinding.FragmentTbPokemonBinding
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.io.GlideHelper
+import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Nature
 import com.majeur.psclient.model.common.Stats
 import com.majeur.psclient.model.common.Type
@@ -59,6 +60,7 @@ class PokemonFragment : Fragment() {
 
     private var slotIndex = 0
     private var baseStats: Stats? = null
+    private lateinit var profile: FormatProfile
 
     private fun makeSnackbar(message: String, indefinite: Boolean = false) {
         Snackbar.make(binding.root, message, if (indefinite) Snackbar.LENGTH_INDEFINITE else Snackbar.LENGTH_LONG).show()
@@ -85,10 +87,16 @@ class PokemonFragment : Fragment() {
         }
 
         setFragmentResultListener(ItemsFragment.RESULT_KEY) { _, bundle ->
-            val item = bundle.getString(ItemsFragment.RESULT_ITEM)
-            if (item != null) {
-                pokemon.item = if (item == "None") "" else item
-                binding.itemInput.text = item
+            val value = bundle.getString(ItemsFragment.RESULT_VALUE) ?: return@setFragmentResultListener
+            when (bundle.getString(ItemsFragment.RESULT_TARGET)) {
+                ItemsFragment.TARGET_POKEBALL -> {
+                    pokemon.pokeball = value
+                    binding.pokeballInput.text = value.ifBlank { getString(R.string.poke_ball_default) }
+                }
+                else -> {
+                    pokemon.item = value
+                    binding.itemInput.text = value.ifBlank { getString(R.string.none) }
+                }
             }
         }
 
@@ -126,6 +134,8 @@ class PokemonFragment : Fragment() {
                     makeSnackbar("Could not parse pokemon from clipboard data")
                     return@launch
                 }
+                val removedUnsupportedFields = SmogonTeamParser.removeUnsupportedFields(
+                        listOf(poke), profile)
                 pokemon.apply {
                     species = poke.species
                     name = poke.name
@@ -148,6 +158,7 @@ class PokemonFragment : Fragment() {
                 toggleInputViewsEnabled(false)
                 bindToPokemon()
                 trySpecies(poke.species, poke.ability, poke.moves)
+                if (removedUnsupportedFields) makeSnackbar(getString(R.string.import_removed_unsupported_fields))
             }
             true
         }
@@ -180,8 +191,8 @@ class PokemonFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val profile = (requireActivity() as TeamBuilderActivity).currentFormat?.profile
-                ?: com.majeur.psclient.model.common.FormatProfile.from(
+        profile = (requireActivity() as TeamBuilderActivity).currentFormat?.profile
+                ?: FormatProfile.from(
                         (requireActivity() as TeamBuilderActivity).team.format.orEmpty())
         binding.speciesInput.apply {
             threshold = 1
@@ -233,6 +244,7 @@ class PokemonFragment : Fragment() {
         binding.abilitySelector.apply {
             onItemSelectedListener = object : SimpleOnItemSelectedListener() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
+                    if (!profile.hasAbilities) return
                     val ability = adapter.getItem(i) as String
                     pokemon.ability = ability.removeSuffix(" (Hidden)")
                 }
@@ -241,7 +253,8 @@ class PokemonFragment : Fragment() {
         binding.itemInput.apply {
             setOnClickListener {
                 findNavController().navigate(R.id.action_pokemon_frag_to_item_choice_frag, bundleOf(
-                        ItemsFragment.ARG_SELECTED_ITEM to pokemon.item
+                        ItemsFragment.ARG_SELECTED_VALUE to pokemon.item,
+                        ItemsFragment.ARG_TARGET to ItemsFragment.TARGET_ITEM
                 ))
             }
         }
@@ -275,8 +288,8 @@ class PokemonFragment : Fragment() {
                     @Suppress("UNCHECKED_CAST")
                     val adapter = adapterView.adapter as ArrayAdapter<Nature>
                     val nature = adapter.getItem(i) ?: Nature.DEFAULT
-                    binding.statsTable.setNature(nature)
-                    pokemon.nature = nature.name.toId()
+                    binding.statsTable.setNature(if (profile.hasNatures) nature else Nature.DEFAULT)
+                    if (profile.hasNatures) pokemon.nature = nature.name.toId()
                 }
             }
         }
@@ -284,6 +297,7 @@ class PokemonFragment : Fragment() {
             adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, Type.HP_TYPES)
             onItemSelectedListener = object : SimpleOnItemSelectedListener() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
+                    if (!profile.hasHiddenPower) return
                     @Suppress("UNCHECKED_CAST")
                     val adapter = adapterView.adapter as ArrayAdapter<String>
                     val hpType = adapter.getItem(i) ?: ""
@@ -298,7 +312,7 @@ class PokemonFragment : Fragment() {
             adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, choices)
             onItemSelectedListener = object : SimpleOnItemSelectedListener() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
-                    pokemon.teraType = if (i == 0) "" else choices[i]
+                    if (profile.hasTera) pokemon.teraType = if (i == 0) "" else choices[i]
                 }
             }
         }
@@ -311,11 +325,14 @@ class PokemonFragment : Fragment() {
             })
         }
         binding.gigantamaxInput.setOnCheckedChangeListener { _, checked -> pokemon.gigantamax = checked }
-        binding.pokeballInput.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun afterTextChanged(editable: Editable?) {
-                pokemon.pokeball = editable?.toString().orEmpty()
-            }
-        })
+        binding.pokeballInput.setOnClickListener {
+            findNavController().navigate(R.id.action_pokemon_frag_to_item_choice_frag, bundleOf(
+                    ItemsFragment.ARG_SELECTED_VALUE to pokemon.pokeball
+                            .takeUnless { it.toId() == "pokeball" }.orEmpty(),
+                    ItemsFragment.ARG_TARGET to ItemsFragment.TARGET_POKEBALL,
+                    ItemsFragment.ARG_GENERATION to profile.generation
+            ))
+        }
         binding.apply {
             textView7.visibility = if (profile.hasAbilities) View.VISIBLE else View.GONE
             abilitySelector.visibility = if (profile.hasAbilities) View.VISIBLE else View.GONE
@@ -327,7 +344,6 @@ class PokemonFragment : Fragment() {
             hpTypeSelector.visibility = if (profile.hasHiddenPower) View.VISIBLE else View.GONE
             teraFields.visibility = if (profile.hasTera) View.VISIBLE else View.GONE
             dynamaxFields.visibility = if (profile.hasDynamax) View.VISIBLE else View.GONE
-            pokeballInput.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
             textView6.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
             happinessInput.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
             shiny.visibility = if (profile.hasShiny) View.VISIBLE else View.GONE
@@ -385,7 +401,9 @@ class PokemonFragment : Fragment() {
         }
         binding.dynamaxLevelInput.setText(pokemon.dynamaxLevel.toString())
         binding.gigantamaxInput.isChecked = pokemon.gigantamax
-        binding.pokeballInput.setText(pokemon.pokeball)
+        binding.pokeballInput.text = pokemon.pokeball
+                .takeUnless { it.toId() == "pokeball" }
+                .orEmpty().ifBlank { getString(R.string.poke_ball_default) }
     }
 
     private fun trySpecies(species: String, ability: String? = null, moves: List<String>? = null) {
@@ -409,11 +427,16 @@ class PokemonFragment : Fragment() {
                     else setImageDrawable(null)
                 }
 
-                if (dexPokemon.requiredItem != null) {
+                if (profile.hasItems && dexPokemon.requiredItem != null) {
                     pokemon.item = dexPokemon.requiredItem!!
                     binding.itemInput.text = assetLoader.item(dexPokemon.requiredItem!!.toId())?.name ?: dexPokemon.requiredItem!!
                 } else if (pokemon.item.isNotBlank()) {
                     binding.itemInput.text = assetLoader.item(pokemon.item.toId())?.name ?: pokemon.item
+                }
+
+                if (pokemon.pokeball.isNotBlank() && pokemon.pokeball.toId() != "pokeball") {
+                    binding.pokeballInput.text = assetLoader.item(pokemon.pokeball.toId())?.name
+                            ?: pokemon.pokeball
                 }
 
                 val abilities = dexPokemon.abilities.toMutableList()

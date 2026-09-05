@@ -31,7 +31,10 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
     private val fragmentScope = BaseFragment.FragmentScope()
     private lateinit var assetLoader: AssetLoader
-    private var selectedItem = ""
+    private var selectedValue = ""
+    private var pickerTarget = TARGET_ITEM
+    private var generation = 9
+    private lateinit var emptyChoice: String
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -40,7 +43,9 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        selectedItem = arguments?.getString(ARG_SELECTED_ITEM).orEmpty()
+        selectedValue = arguments?.getString(ARG_SELECTED_VALUE).orEmpty()
+        pickerTarget = arguments?.getString(ARG_TARGET) ?: TARGET_ITEM
+        generation = arguments?.getInt(ARG_GENERATION, 9) ?: 9
         lifecycle.addObserver(fragmentScope)
     }
 
@@ -56,13 +61,20 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val picksPokeball = pickerTarget == TARGET_POKEBALL
+        requireActivity().title = getString(if (picksPokeball) R.string.poke_balls else R.string.items)
+        emptyChoice = getString(if (picksPokeball) R.string.poke_ball_default else R.string.none)
         fragmentScope.launch {
-            val items = assetLoader.allItems("")
-            val adapterItems = listOf("None") + items.orEmpty()
+            val items = if (picksPokeball) {
+                assetLoader.allPokeballs(generation).filterNot { it.toId() == "pokeball" }
+            } else {
+                assetLoader.allItems("")
+            }
+            val adapterItems = listOf(emptyChoice) + items.orEmpty()
             val textHighlightColor = Utils.alphaColor(ContextCompat.getColor(requireContext(), R.color.secondary), 0.45f)
             setAdapter(Adapter(adapterItems, this@ItemsFragment, textHighlightColor))
-            val selectedPosition = if (selectedItem.isBlank()) 0
-            else adapterItems.indexOfFirst { it.toId() == selectedItem.toId() }
+            val selectedPosition = if (selectedValue.isBlank()) 0
+            else adapterItems.indexOfFirst { it.toId() == selectedValue.toId() }
             if (selectedPosition > 0)
                 (recyclerView.layoutManager as LinearLayoutManager)
                         .scrollToPositionWithOffset(selectedPosition, 0)
@@ -70,10 +82,10 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
     }
 
     override fun onItemClick(itemView: View, holder: RecyclerView.ViewHolder, position: Int) {
-        val itemName = (holder as ItemsFragment.Adapter.ViewHolder).binding.nameView.text.toString()
-        if (itemName.isBlank()) return // Wait for the full name to be loaded by our AssetLoader
+        val itemName = (requireAdapter() as Adapter).getItem(position)
         val bundle = bundleOf(
-                RESULT_ITEM to itemName
+                RESULT_VALUE to itemName.takeUnless { it == emptyChoice }.orEmpty(),
+                RESULT_TARGET to pickerTarget
         )
         setFragmentResult(RESULT_KEY, bundle)
         findNavController().navigateUp()
@@ -117,7 +129,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val itemName = getItem(position)
-            val isNoneItem = itemName == "None"
+            val isEmptyChoice = itemName == emptyChoice
 
             holder.binding.apply {
                 //root.animate().cancel()
@@ -129,7 +141,7 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
             }
 
             holder.job?.cancel()
-            if (isNoneItem) {
+            if (isEmptyChoice) {
                 holder.binding.apply {
                     nameView.text = itemName.italic()
                     //root.alpha = 1f
@@ -172,9 +184,14 @@ class ItemsFragment : ListFragment(), OnItemClickListener {
     }
 
     companion object {
-        const val ARG_SELECTED_ITEM = "arg-selected-item"
+        const val ARG_SELECTED_VALUE = "arg-selected-value"
+        const val ARG_TARGET = "arg-target"
+        const val ARG_GENERATION = "arg-generation"
         const val RESULT_KEY = "request-result-item"
-        const val RESULT_ITEM = "request-result-item"
+        const val RESULT_VALUE = "request-result-value"
+        const val RESULT_TARGET = "request-result-target"
+        const val TARGET_ITEM = "item"
+        const val TARGET_POKEBALL = "pokeball"
     }
 
 }

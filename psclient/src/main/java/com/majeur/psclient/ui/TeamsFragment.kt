@@ -22,6 +22,7 @@ import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.io.BattleFormatCache
 import com.majeur.psclient.io.TeamsStore
 import com.majeur.psclient.model.common.BattleFormat
+import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Team
 import com.majeur.psclient.model.common.RemoteTeamSummary
 import com.majeur.psclient.model.common.TeamDraftValidator
@@ -32,6 +33,7 @@ import com.majeur.psclient.ui.teambuilder.TeamBuilderActivity
 import com.majeur.psclient.util.recyclerview.DividerItemDecoration
 import com.majeur.psclient.util.recyclerview.OnItemClickListener
 import com.majeur.psclient.util.smogon.SmogonTeamBuilder
+import com.majeur.psclient.util.smogon.SmogonTeamParser
 import com.majeur.psclient.util.toId
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -268,9 +270,18 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
     }
 
     fun onTeamsImported(teams: List<Team>) {
-        for (team in teams) addOrUpdateTeam(team, persistTeams = false)
+        var removedUnsupportedFields = false
+        for (team in teams) {
+            val formatId = team.format.orEmpty().toId()
+            if (formatId.isNotBlank() && formatId != BattleFormat.FORMAT_OTHER.id) {
+                removedUnsupportedFields = SmogonTeamParser.removeUnsupportedFields(
+                        team.pokemons, FormatProfile.from(formatId)) || removedUnsupportedFields
+            }
+            addOrUpdateTeam(team, persistTeams = false)
+        }
         persistUserTeams()
-        makeSnackbar("Successfully imported ${teams.size} team(s)")
+        makeSnackbar(if (removedUnsupportedFields) getString(R.string.import_removed_unsupported_fields)
+                else "Successfully imported ${teams.size} team(s)")
     }
 
     private fun addOrUpdateTeam(newTeam: Team, persistTeams: Boolean = true) {

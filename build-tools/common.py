@@ -13,7 +13,7 @@ def int_val(v):
             return int(v)
         else:
             return v
-    except ValueError:
+    except (TypeError, ValueError):
         return v
     
 def log(text):
@@ -33,7 +33,8 @@ def log_p():
 def get_remote_data(url, utf8=True):
     print("Fetching {} content...".format(url))
     time1 = time.time()
-    data = requests.get(url)
+    data = requests.get(url, timeout=30)
+    data.raise_for_status()
     time2 = time.time()
     print("Fetched {} bytes in {:.3f} ms".format(len(data.content), (time2-time1)*1000.0))
     print("Done") 

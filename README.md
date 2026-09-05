@@ -112,6 +112,8 @@ these assets:
 | `psclient/src/main/res/raw/dex_icon_indexes.json` | `build-tools/build_dex_icon_indexes.py` |
 | `psclient/src/main/res/raw/dex_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
 | `psclient/src/main/res/raw/item_icons_sheet.png` | `build-tools/update_icons_sheet.py` |
+| `psclient/src/main/res/raw/battle_texts.json` | `build-tools/build_battle_texts.py` |
+| `psclient/src/main/res/raw/items.json` | `build-tools/build_items.py` |
 | `psclient/src/main/res/raw/learnsets.json` | `build-tools/build_learnsets.py` |
 | `psclient/src/main/res/raw/moves.json` | `build-tools/build_moves.py` |
 | `psclient/src/main/res/raw/battle_animations.json` | `build-tools/build_battle_animations.py` |
@@ -123,6 +125,8 @@ cd build-tools
 python3 update_icons_sheet.py
 python3 build_dex.py
 python3 build_dex_icon_indexes.py
+python3 build_battle_texts.py
+python3 build_items.py
 python3 build_learnsets.py
 python3 build_moves.py
 ```

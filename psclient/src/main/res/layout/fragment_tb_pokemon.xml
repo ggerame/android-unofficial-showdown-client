@@ -428,13 +428,15 @@
                     android:text="@string/gigantamax" />
             </LinearLayout>
 
-            <EditText
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/pokeballInput"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:hint="@string/poke_ball_optional"
-                android:inputType="textShortMessage"
-                android:singleLine="true" />
+                android:layout_height="wrap_content"
+                android:gravity="start|center_vertical"
+                android:minHeight="48dp"
+                android:text="@string/poke_ball_default"
+                android:textAllCaps="false" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

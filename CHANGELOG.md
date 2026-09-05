@@ -22,7 +22,9 @@ All notable changes made are documented here.
   badges no longer overlap the Ability field, and the stat editor has a usable
   responsive width with directly editable IV values; EV-limit warnings now
   remain visible beside the Stats heading instead of appearing below every row,
-  and are hidden in Gen 1–2 where the 510 EV cap does not apply.
+  and are hidden in Gen 1–2 where the 510 EV cap does not apply. New Gen 1–2
+  Pokémon now correctly use Showdown's maximum default IVs instead of treating
+  the maximum DV value as an IV.
 
 ## [1.6.2] – Battle log and controls polish
 

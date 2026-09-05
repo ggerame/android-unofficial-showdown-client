@@ -7,6 +7,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PackedTeamModernFieldsTest {
+    @Test fun defaultsToMaximumShowdownIvs() {
+        val pokemon = TeamPokemon("Mew")
+
+        assertTrue(pokemon.ivs.array.all { it == 31 })
+    }
+
     @Test fun roundTripsOfficialMiscFieldOrder() {
         val pokemon = TeamPokemon("Charizard").apply {
             moves = listOf("flamethrower")

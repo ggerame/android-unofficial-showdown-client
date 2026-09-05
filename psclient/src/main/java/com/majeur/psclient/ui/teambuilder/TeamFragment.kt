@@ -230,7 +230,6 @@ class TeamFragment : Fragment() {
                     val format = (requireActivity() as TeamBuilderActivity).currentFormat
                     level = format?.defaultLevel ?: 100
                     if ((format?.profile?.generation ?: 9) <= 2) {
-                        ivs = com.majeur.psclient.model.common.Stats(15)
                         evs = com.majeur.psclient.model.common.Stats(252)
                     }
                 })

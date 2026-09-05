@@ -20,7 +20,9 @@ All notable changes made are documented here.
 ### Fixed
 - Team-builder toolbar actions remain visible in the light theme, Pokémon type
   badges no longer overlap the Ability field, and the stat editor has a usable
-  responsive width with directly editable IV values.
+  responsive width with directly editable IV values; EV-limit warnings now
+  remain visible beside the Stats heading instead of appearing below every row,
+  and are hidden in Gen 1–2 where the 510 EV cap does not apply.
 
 ## [1.6.2] – Battle log and controls polish
 

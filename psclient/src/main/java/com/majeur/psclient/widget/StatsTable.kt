@@ -30,6 +30,7 @@ class StatsTable @JvmOverloads constructor(
     }
     private var level = 100
     private var nature = Nature.DEFAULT
+    private var hasEvLimit = true
     private var rowClickListener: OnRowClickListener? = null
 
     init {
@@ -40,8 +41,8 @@ class StatsTable @JvmOverloads constructor(
             setPadding(dp(8f))
             addView(this)
         }
-        rows.forEach { addView(it.root) }
         addView(warning)
+        rows.forEach { addView(it.root) }
         refreshRows()
     }
 
@@ -63,6 +64,11 @@ class StatsTable @JvmOverloads constructor(
     fun setEVs(evs: Stats) {
         statData[EVS] = evs.array
         recalculate()
+    }
+
+    fun setEVLimitEnabled(enabled: Boolean) {
+        hasEvLimit = enabled
+        refreshRows()
     }
 
     fun setIVs(ivs: Stats) {
@@ -102,7 +108,7 @@ class StatsTable @JvmOverloads constructor(
     private fun refreshRows() {
         rows.forEach { it.bind() }
         val excess = statData[EVS].sum() - MAX_EV_SUM
-        warning.visibility = if (excess > 0) View.VISIBLE else View.GONE
+        warning.visibility = if (hasEvLimit && excess > 0) View.VISIBLE else View.GONE
         warning.text = resources.getString(R.string.too_many_evs, excess.coerceAtLeast(0))
     }
 

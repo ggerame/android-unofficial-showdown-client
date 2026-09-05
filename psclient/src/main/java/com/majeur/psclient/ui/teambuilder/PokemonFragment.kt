@@ -256,6 +256,7 @@ class PokemonFragment : Fragment() {
             }
         }
         binding.statsTable.apply {
+            setEVLimitEnabled(profile.generation >= 3)
             setRowClickListener { _: StatsTable?, rowName: String?, index: Int ->
                 val dialogAlreadyOpened = childFragmentManager.findFragmentByTag(EditStatDialog.FRAGMENT_TAG) != null
                 if (dialogAlreadyOpened || baseStats == null) return@setRowClickListener

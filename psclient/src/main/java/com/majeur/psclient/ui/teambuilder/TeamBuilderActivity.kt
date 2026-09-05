@@ -1,8 +1,13 @@
 package com.majeur.psclient.ui.teambuilder
 
 import android.app.Activity
+import android.content.ComponentName
+import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
@@ -16,7 +21,9 @@ import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.io.GlideHelper
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.Team
+import com.majeur.psclient.model.common.TeamValidationResult
 import com.majeur.psclient.model.common.toId
+import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.util.applySafeDrawingInsets
 import com.majeur.psclient.util.configureEdgeToEdge
 
@@ -33,6 +40,18 @@ class TeamBuilderActivity : AppCompatActivity() {
     val assetLoader by lazy { AssetLoader(this) }
 
     private lateinit var binding: ActivityTeamBuilderBinding
+    private var service: ShowdownService? = null
+    private var canUnbindService = false
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+            service = (binder as ShowdownService.Binder).service
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            service = null
+        }
+    }
 
     private val onBackPressedCallback = object : OnBackPressedCallback(false) {
 
@@ -58,6 +77,8 @@ class TeamBuilderActivity : AppCompatActivity() {
         binding.root.applySafeDrawingInsets(includeIme = true)
         setSupportActionBar(binding.toolbar)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        canUnbindService = bindService(Intent(this, ShowdownService::class.java), serviceConnection,
+                Context.BIND_AUTO_CREATE)
 
         // TODO Retrieve cached formats if null
         @Suppress("UNCHECKED_CAST", "DEPRECATION")
@@ -89,6 +110,21 @@ class TeamBuilderActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    fun validateTeam(callback: (TeamValidationResult) -> Unit) {
+        service?.validateTeam(team.pack(), team.format.orEmpty(), callback)
+                ?: callback(TeamValidationResult(false,
+                        getString(R.string.team_validation_not_connected)))
+    }
+
+    override fun onDestroy() {
+        if (canUnbindService) {
+            unbindService(serviceConnection)
+            canUnbindService = false
+            service = null
+        }
+        super.onDestroy()
     }
 
     companion object {

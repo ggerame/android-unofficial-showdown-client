@@ -32,4 +32,13 @@ class PackedTeamModernFieldsTest {
         assertEquals("luxuryball", result.pokeball)
         assertEquals("Ice", result.hpType)
     }
+
+    @Test fun draftStateDoesNotChangePackedTeam() {
+        val team = Team("Draft", listOf(TeamPokemon("Pikachu")), "gen9ou")
+        val packed = team.pack()
+
+        team.isDraft = true
+
+        assertEquals(packed, team.pack())
+    }
 }

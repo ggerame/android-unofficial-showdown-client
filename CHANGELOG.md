@@ -13,6 +13,9 @@ All notable changes made are documented here.
 - Move and item pickers now reopen at the current selection, Tera Type's
   automatic first-type behavior is explicit, and the new-team action uses a
   clear plus icon.
+- Saving from the Team Builder now checks the team with Pokémon Showdown's
+  authoritative format validator before accepting it; rejected or unavailable
+  validations remain editable and can be saved as persistent local drafts.
 
 ### Fixed
 - Team-builder toolbar actions remain visible in the light theme, Pokémon type

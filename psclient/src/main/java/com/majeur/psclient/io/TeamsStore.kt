@@ -48,6 +48,7 @@ class TeamsStore(context: Context) {
                             Team.RemoteState.valueOf(it.optString(JSON_KEY_REMOTE_STATE, Team.RemoteState.LOCAL_ONLY.name))
                         } catch (_: IllegalArgumentException) { Team.RemoteState.LOCAL_ONLY }
                         team.isRemoteStub = it.optBoolean(JSON_KEY_REMOTE_STUB, false)
+                        team.isDraft = it.optBoolean(JSON_KEY_DRAFT, false)
                         group.teams.add(team)
                     }
                 }
@@ -93,6 +94,7 @@ class TeamsStore(context: Context) {
                             put(JSON_KEY_REMOTE_PRIVATE, team.remotePrivate)
                             put(JSON_KEY_REMOTE_STATE, team.remoteState.name)
                             put(JSON_KEY_REMOTE_STUB, team.isRemoteStub)
+                            put(JSON_KEY_DRAFT, team.isDraft)
                         })
                     }
                 })
@@ -125,6 +127,7 @@ class TeamsStore(context: Context) {
         private const val JSON_KEY_REMOTE_PRIVATE = "remotePrivate"
         private const val JSON_KEY_REMOTE_STATE = "remoteState"
         private const val JSON_KEY_REMOTE_STUB = "remoteStub"
+        private const val JSON_KEY_DRAFT = "draft"
     }
 
 }

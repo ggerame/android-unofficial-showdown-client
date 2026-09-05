@@ -18,6 +18,7 @@ class Team private constructor(
     var remotePrivate = true
     var remoteState = RemoteState.LOCAL_ONLY
     var isRemoteStub = false
+    var isDraft = false
 
     class Group(val format: String) {
 

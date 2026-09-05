@@ -32,6 +32,13 @@
     <string name="copy_all_teams">Copy all teams</string>
     <string name="build_team">Build a team</string>
     <string name="save_team">Save</string>
+    <string name="team_validation_in_progress">Validating team…</string>
+    <string name="team_validation_progress_message">Checking this team with Pokémon Showdown.</string>
+    <string name="team_validation_not_connected">Connect to Pokémon Showdown to validate this team.</string>
+    <string name="team_validation_rejected">Team needs changes</string>
+    <string name="team_validation_unavailable">Team could not be validated</string>
+    <string name="keep_editing">Keep editing</string>
+    <string name="save_draft">Save draft</string>
     <string name="join_or_leave_room">Join or leave room</string>
     <string name="chat">Chat</string>
     <string name="join_room_prompt">No room selected\nTap here to join one</string>

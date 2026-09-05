@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import android.widget.FrameLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
@@ -31,6 +35,7 @@ import com.majeur.psclient.util.recyclerview.ItemTouchHelperCallbacks
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.math.min
 
 
 class TeamFragment : Fragment() {
@@ -44,6 +49,9 @@ class TeamFragment : Fragment() {
     private val team get() = (requireActivity() as TeamBuilderActivity).team
     private var lastRemovedPokemon: TeamPokemon? = null
     private var selectedFormat: BattleFormat = BattleFormat.FORMAT_OTHER
+    private var doneItem: MenuItem? = null
+    private var validationDialog: AlertDialog? = null
+    private var validating = false
 
     private var _binding: FragmentTbTeamBinding? = null
     private val binding get() = _binding!!
@@ -66,11 +74,13 @@ class TeamFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu_tb_team, menu)
+        doneItem = menu.findItem(R.id.action_done)
+        updateDoneItem()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_done) {
-            buildTeamAndFinish()
+            if (!validating) buildTeamAndFinish()
             return true
         }
         return false
@@ -100,15 +110,76 @@ class TeamFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Save as draft?")
                     .setMessage(issues.joinToString("\n") { "• $it" })
-                    .setPositiveButton("Save draft") { _, _ -> finishWithTeam() }
-                    .setNegativeButton("Keep editing", null)
+                    .setPositiveButton(R.string.save_draft) { _, _ -> finishWithTeam(asDraft = true) }
+                    .setNegativeButton(R.string.keep_editing, null)
                     .show()
             return
         }
-        finishWithTeam()
+        validateAndFinish()
     }
 
-    private fun finishWithTeam() {
+    private fun validateAndFinish() {
+        setValidationInProgress(true)
+        (requireActivity() as TeamBuilderActivity).validateTeam { result ->
+            if (!isAdded || _binding == null) return@validateTeam
+            setValidationInProgress(false)
+            if (result.valid) finishWithTeam(asDraft = false) else {
+                val dialog = MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(if (result.rejected) R.string.team_validation_rejected
+                                else R.string.team_validation_unavailable)
+                        .setMessage(result.message)
+                        .setPositiveButton(R.string.keep_editing, null)
+                        .setNegativeButton(R.string.save_draft) { _, _ ->
+                            finishWithTeam(asDraft = true)
+                        }
+                        .create()
+                dialog.setOnShowListener {
+                    dialog.findViewById<TextView>(android.R.id.message)?.setTextIsSelectable(true)
+                    val availableWidth = dp((resources.configuration.screenWidthDp - 32).toFloat())
+                    dialog.window?.setLayout(
+                            min(availableWidth, resources.getDimensionPixelSize(R.dimen.dialog_max_width)),
+                            ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+                dialog.show()
+            }
+        }
+    }
+
+    private fun setValidationInProgress(inProgress: Boolean) {
+        validating = inProgress
+        updateDoneItem()
+        validationDialog?.dismiss()
+        validationDialog = if (inProgress) {
+            val progress = ProgressBar(requireContext()).apply {
+                isIndeterminate = true
+                contentDescription = getString(R.string.team_validation_in_progress)
+            }
+            val progressContainer = FrameLayout(requireContext()).apply {
+                setPadding(dp(24f), 0, dp(24f), dp(24f))
+                addView(progress, FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.CENTER))
+            }
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.team_validation_in_progress)
+                    .setMessage(R.string.team_validation_progress_message)
+                    .setView(progressContainer)
+                    .setCancelable(false)
+                    .create()
+                    .also { it.show() }
+        } else null
+    }
+
+    private fun updateDoneItem() {
+        doneItem?.apply {
+            isEnabled = !validating
+            setTitle(if (validating) R.string.team_validation_in_progress else R.string.save_team)
+        }
+    }
+
+    private fun finishWithTeam(asDraft: Boolean) {
+        team.isDraft = asDraft
         val data = Intent()
         data.putExtra(TeamBuilderActivity.INTENT_EXTRA_TEAM, team)
         requireActivity().apply {
@@ -124,6 +195,9 @@ class TeamFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        validationDialog?.dismiss()
+        validationDialog = null
+        doneItem = null
         super.onDestroyView()
         _binding = null
     }

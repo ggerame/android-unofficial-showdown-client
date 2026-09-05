@@ -423,6 +423,7 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
             }
             service?.saveRemoteTeam(team) { success, response ->
                 if (!success) return@saveRemoteTeam makeSnackbar(response)
+                team.isDraft = false
                 if (team.remoteTeamId == null) team.remoteTeamId = RemoteTeamSummary.parseUploadedId(response)
                 team.remoteOwnerId = currentAccountId
                 team.remoteState = Team.RemoteState.REMOTE_CLEAN
@@ -532,7 +533,7 @@ class TeamsFragment : BaseFragment(), OnItemClickListener {
                     Team.RemoteState.LOCAL_ONLY -> ""
                 }
                 val format = battleFormats.flatMap { it.formats }.firstOrNull { it.id == team.format }
-                val draft = if (TeamDraftValidator.validate(team, format).isNotEmpty()) " · Draft" else ""
+                val draft = if (team.isDraft || TeamDraftValidator.validate(team, format).isNotEmpty()) " · Draft" else ""
                 holder.binding.textViewTitle.text = team.label + suffix + draft
                 holder.pokemonViews.forEach { it.setImageDrawable(null) }
                 holder.job?.cancel()

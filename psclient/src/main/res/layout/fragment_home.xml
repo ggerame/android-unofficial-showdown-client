@@ -85,11 +85,11 @@
 
                         <ImageView
                             android:id="@+id/account_avatar"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
                             android:contentDescription="@null"
                             android:importantForAccessibility="no"
-                            android:scaleType="centerInside"
+                            android:scaleType="fitCenter"
                             android:visibility="gone" />
 
                         <com.google.android.material.button.MaterialButton

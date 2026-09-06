@@ -18,6 +18,7 @@ class AvatarContractsTest {
         assertEquals("007", normalizeAvatarId("7"))
         assertEquals("123", normalizeAvatarId("123"))
         assertEquals("staff-avatar.png", normalizeAvatarId("staff-avatar.png"))
+        assertEquals("#Staff Avatar", normalizeAvatarId("#Staff Avatar"))
         assertNull(normalizeAvatarId(""))
         assertNull(normalizeAvatarId(null))
     }

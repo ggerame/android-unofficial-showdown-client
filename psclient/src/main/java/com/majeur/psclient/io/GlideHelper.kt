@@ -27,6 +27,7 @@ import com.majeur.psclient.util.Utils
 import com.majeur.psclient.util.glide.AnimatedImageViewTarget
 import com.majeur.psclient.util.html.Html
 import com.majeur.psclient.util.minusFirst
+import com.majeur.psclient.util.toId
 import com.majeur.psclient.widget.BattleLayout
 import timber.log.Timber
 import java.util.concurrent.ExecutionException
@@ -207,6 +208,10 @@ class GlideHelper(context: Context) {
         val avatarId = normalizeAvatarId(avatar)
         val uri = when {
             avatarId == null -> null
+            avatarId.startsWith('#') -> Uri.Builder().scheme("https")
+                    .authority("play.pokemonshowdown.com")
+                    .appendPath("sprites").appendPath("trainers-custom")
+                    .appendPath("${avatarId.drop(1).toId()}.png").build()
             avatarId.contains('.') -> Uri.Builder().scheme("https")
                     .authority("play.pokemonshowdown.com")
                     .appendPath("avatars").appendPath(avatarId).build()

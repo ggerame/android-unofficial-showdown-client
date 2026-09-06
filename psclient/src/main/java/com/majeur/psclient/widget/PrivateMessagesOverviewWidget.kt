@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -35,6 +36,13 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
     fun incrementPmCount(with: String) = getEntryOrCreate(with).run {
         pmCount += 1
         updateViewForEntry(this)
+    }
+
+    fun updateAvatar(with: String, avatarId: String?) {
+        val entry = entries.find { it.matchWith(with) } ?: return
+        val view = children.first { it.tag == entry }
+        (context as MainActivity).glideHelper.loadAvatar(avatarId,
+                view.findViewById(R.id.avatar))
     }
 
     fun updateChallengeTo(to: String?, format: String?) = entries.forEach { entry ->
@@ -87,10 +95,15 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
         view.findViewById<View>(R.id.button_reject).setOnClickListener {
             onItemButtonClickListener?.onRejectButtonClick(entry.with)
         }
+        (context as MainActivity).glideHelper.loadAvatar(null,
+                view.findViewById(R.id.avatar))
         addView(view)
     }
 
-    private fun removeViewForEntry(entry: Entry) = children.firstOrNull { it.tag == entry }?.let { removeView(it) }
+    private fun removeViewForEntry(entry: Entry) = children.firstOrNull { it.tag == entry }?.let {
+        (context as MainActivity).glideHelper.clear(it.findViewById<ImageView>(R.id.avatar))
+        removeView(it)
+    }
 
     private fun updateViewForEntry(entry: Entry) {
         val view = children.first { it.tag == entry } as ViewGroup

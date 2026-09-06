@@ -10,12 +10,15 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.material.color.MaterialColors
 import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.Player
 import com.majeur.psclient.model.pokemon.BasePokemon
@@ -28,6 +31,10 @@ import com.majeur.psclient.widget.BattleLayout
 import timber.log.Timber
 import java.util.concurrent.ExecutionException
 import kotlin.math.roundToInt
+
+internal fun normalizeAvatarId(avatar: String?): String? = avatar
+        ?.takeIf(String::isNotBlank)
+        ?.let { if (it.all(Char::isDigit)) it.padStart(3, '0') else it }
 
 class GlideHelper(context: Context) {
 
@@ -191,8 +198,25 @@ class GlideHelper(context: Context) {
                 .into(imageView)
     }
 
-    fun loadAvatar(avatar: String, imageView: ImageView) {
-        loadSprite(avatar, false, false, false, SpriteType.TRAINER)
+    fun loadAvatar(avatar: String?, imageView: ImageView) {
+        val fallback = ContextCompat.getDrawable(imageView.context, R.drawable.ic_account)
+                ?.mutate()?.also {
+                    DrawableCompat.setTint(it, MaterialColors.getColor(imageView,
+                            com.google.android.material.R.attr.colorOnSurface))
+                }
+        val avatarId = normalizeAvatarId(avatar)
+        val uri = when {
+            avatarId == null -> null
+            avatarId.contains('.') -> Uri.Builder().scheme("https")
+                    .authority("play.pokemonshowdown.com")
+                    .appendPath("avatars").appendPath(avatarId).build()
+            else -> SpriteType.TRAINER.uri(avatarId, false, false)
+        }
+        glide.load(uri).apply(RequestOptions()
+                .timeout(NETWORK_TIMEOUT_MS)
+                .placeholder(fallback)
+                .fallback(fallback)
+                .error(fallback))
                 .into(imageView)
     }
 

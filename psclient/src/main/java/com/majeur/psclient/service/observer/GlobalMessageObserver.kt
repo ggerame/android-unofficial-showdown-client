@@ -5,6 +5,7 @@ import com.majeur.psclient.model.ChatRoomInfo
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.BattleFormatParser
 import com.majeur.psclient.io.BattleFormatCache
+import com.majeur.psclient.io.normalizeAvatarId
 import com.majeur.psclient.service.ServerMessage
 import com.majeur.psclient.service.ShowdownService
 import com.majeur.psclient.util.Utils
@@ -14,6 +15,35 @@ import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
 import java.util.*
+
+internal data class UserDetails(
+        val id: String,
+        val name: String,
+        val online: Boolean,
+        val group: String,
+        val avatarId: String?,
+        val rooms: List<String>,
+        val battles: List<String>)
+
+internal fun parseUserDetails(jsonObject: JSONObject): UserDetails? {
+    val userId = jsonObject.optString("userid").ifEmpty { jsonObject.optString("id") }
+    if (userId.isBlank()) return null
+    val roomsObject = jsonObject.opt("rooms") as? JSONObject
+    val chatRooms = mutableListOf<String>()
+    val battles = mutableListOf<String>()
+    roomsObject?.keys()?.forEach {
+        if (it.startsWith("battle-") || it.drop(1).startsWith("battle-")) battles.add(it)
+        else chatRooms.add(it)
+    }
+    return UserDetails(
+            userId,
+            jsonObject.optString("name"),
+            roomsObject != null || jsonObject.has("status"),
+            jsonObject.optString("group"),
+            normalizeAvatarId(jsonObject.optString("avatar")),
+            chatRooms,
+            battles)
+}
 
 class GlobalMessageObserver(service: ShowdownService)
     : AbsMessageObserver<GlobalMessageObserver.UiCallbacks>(service) {
@@ -34,7 +64,8 @@ class GlobalMessageObserver(service: ShowdownService)
         // If we did not stored at least username, we will not have anything else
         val username = service.getSharedData<String>("myusername") ?: return
 
-        onUserChanged(username, isUserGuest, /* TODO */ "000")
+        onUserChanged(username.drop(1), isUserGuest,
+                service.getSharedData<String>("avatar") ?: "000")
         onUpdateCounts(service.getSharedData("users") ?: -1,
                 service.getSharedData("battles") ?: -1)
 
@@ -87,8 +118,8 @@ class GlobalMessageObserver(service: ShowdownService)
         val userType = username.substring(0, 1)
         username = username.substring(1)
         val isGuest = "0" == msg.nextArg
-        var avatar = msg.nextArg
-        avatar = "000$avatar".substring(avatar.length)
+        val avatar = normalizeAvatarId(msg.nextArg) ?: "000"
+        service.putSharedData("avatar", avatar)
         isUserGuest = isGuest
         if (isGuest) service.markCurrentUserAsGuest()
         onUserChanged(username, isGuest, avatar)
@@ -166,22 +197,10 @@ class GlobalMessageObserver(service: ShowdownService)
 
     private fun processUserDetailsQueryResponse(response: String) {
         try {
-            val jsonObject = JSONObject(response)
-            val userId = jsonObject.optString("userid").ifEmpty { jsonObject.optString("id") }
-            if (userId.isBlank()) return
-            val name = jsonObject.optString("name")
-            // Online users have a "rooms" field (even if empty {}); offline users don't
-            val online = jsonObject.has("rooms") || jsonObject.has("status")
-            val group = jsonObject.optString("group")
-            val chatRooms = mutableListOf<String>()
-            val battles = mutableListOf<String>()
-            (jsonObject.opt("rooms") as? JSONObject)?.keys()?.forEach {
-                if (it.startsWith("battle-") || it.drop(1).startsWith("battle-"))
-                    battles.add(it)
-                else
-                    chatRooms.add(it)
+            parseUserDetails(JSONObject(response))?.let {
+                onUserDetails(it.id, it.name, it.online, it.group, it.avatarId,
+                        it.rooms, it.battles)
             }
-            onUserDetails(userId, name, online, group, chatRooms, battles)
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -338,7 +357,9 @@ class GlobalMessageObserver(service: ShowdownService)
     fun onBattleFormatsChanged(battleFormats: List<BattleFormat.Category>) = uiCallbacks?.onBattleFormatsChanged(battleFormats)
     fun onSearchBattlesChanged(searching: List<String>, games: Map<String, String>) = uiCallbacks?.onSearchBattlesChanged(searching, games)
     fun onReplaySaved(replayId: String, url: String) = uiCallbacks?.onReplaySaved(replayId, url)
-    fun onUserDetails(id: String, name: String, online: Boolean, group: String, rooms: List<String>, battles: List<String>) = uiCallbacks?.onUserDetails(id, name, online, group, rooms, battles)
+    fun onUserDetails(id: String, name: String, online: Boolean, group: String,
+                      avatarId: String?, rooms: List<String>, battles: List<String>) =
+            uiCallbacks?.onUserDetails(id, name, online, group, avatarId, rooms, battles)
     fun onShowPopup(message: String) = uiCallbacks?.onShowPopup(message)
     fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>) = uiCallbacks?.onAvailableRoomsChanged(officialRooms, chatRooms)
     fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?) = uiCallbacks?.onAvailableBattleRoomsChanged(battleRooms)
@@ -356,7 +377,8 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onBattleFormatsChanged(battleFormats: List<@JvmSuppressWildcards BattleFormat.Category>)
         fun onSearchBattlesChanged(searching: List<String>, games: Map<String, String>)
         fun onReplaySaved(replayId: String, url: String)
-        fun onUserDetails(id: String, name: String, online: Boolean, group: String, rooms: List<String>, battles: List<String>)
+        fun onUserDetails(id: String, name: String, online: Boolean, group: String,
+                          avatarId: String?, rooms: List<String>, battles: List<String>)
         fun onShowPopup(message: String)
         fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>)
         fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?)

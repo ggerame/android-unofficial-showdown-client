@@ -41,6 +41,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+internal fun consumeUserDetailsResponse(
+        userId: String,
+        interactiveRequests: MutableSet<String>,
+        automaticRequests: MutableSet<String>
+): Boolean {
+    if (interactiveRequests.remove(userId)) return true
+    return !automaticRequests.remove(userId)
+}
+
 class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnClickListener {
 
     private val observer get() = service!!.globalMessageObserver
@@ -61,6 +70,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private var isAcceptingFrom: String? = null
     private var roomDeinitListeners = mutableMapOf<String, (String) -> Unit>()
     private var fullUsername: String = ""
+    private val avatarCache = mutableMapOf<String, String?>()
+    private val automaticUserDetailsRequests = mutableSetOf<String>()
+    private val interactiveUserDetailsRequests = mutableSetOf<String>()
     private var returnBattleSearchFilters: BattleSearchFilters? = null
     private var returnReplaySearchFilters: ReplaySearchFilters? = null
 
@@ -121,6 +133,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     override fun onDestroyView() {
         super.onDestroyView()
         mainActivity.glideHelper.clear(binding.homeBackground)
+        mainActivity.glideHelper.clear(binding.accountAvatar)
+        automaticUserDetailsRequests.clear()
+        interactiveUserDetailsRequests.clear()
         activeSnackbar?.dismiss()
         activeSnackbar = null
         _binding = null
@@ -375,7 +390,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 val dialogBinding = DialogSimpleInputBinding.inflate(layoutInflater)
                 fun searchForUser() {
                     val input = dialogBinding.input.text.toString().replace(USERNAME_REGEX, "")
-                    if (input.isNotEmpty()) service?.sendGlobalCommand("cmd userdetails", input)
+                    if (input.isNotEmpty()) {
+                        interactiveUserDetailsRequests.add(input.toId())
+                        service?.sendGlobalCommand("cmd userdetails", input)
+                    }
                 }
                 val dialog = MaterialAlertDialogBuilder(requireActivity()).run {
                     setTitle(R.string.find_user)
@@ -423,6 +441,16 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private fun promptUserSignIn() {
         if (childFragmentManager.findFragmentByTag(SignInDialog.FRAGMENT_TAG) == null)
             SignInDialog().show(childFragmentManager, SignInDialog.FRAGMENT_TAG)
+    }
+
+    private fun requestAvatar(username: String) {
+        val userId = username.toId()
+        if (userId.isEmpty()) return
+        if (avatarCache.containsKey(userId)) {
+            binding.pmsOverview.updateAvatar(userId, avatarCache[userId])
+        } else if (automaticUserDetailsRequests.add(userId)) {
+            service?.sendGlobalCommand("cmd userdetails", username)
+        }
     }
 
     private fun showAccountActions() {
@@ -818,9 +846,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         fullUsername = if (isGuest) "" else userName
         binding.accountButton.apply {
             if (isGuest) {
+                setIconResource(R.drawable.ic_account)
                 text = getString(R.string.sign_in).bold()
                 contentDescription = getString(R.string.sign_in_title)
             } else {
+                icon = null
                 val isTemporary = service?.isCurrentUserRegistered == false
                 text = getString(if (isTemporary) R.string.temporary_name else R.string.connected_as).small()
                 append("\n")
@@ -831,6 +861,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                         userName)
             }
             isEnabled = true
+        }
+        binding.accountAvatar.apply {
+            visibility = if (isGuest) View.GONE else View.VISIBLE
+            if (isGuest) mainActivity.glideHelper.clear(this)
+            else mainActivity.glideHelper.loadAvatar(avatarId, this)
         }
         if (!isGuest) {
             when {
@@ -914,7 +949,12 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onUserDetails(id: String, name: String, online: Boolean, group: String,
-                               rooms: List<String>, battles: List<String>) {
+                               avatarId: String?, rooms: List<String>, battles: List<String>) {
+        val userId = id.toId()
+        avatarCache[userId] = avatarId
+        binding.pmsOverview.updateAvatar(userId, avatarId)
+        if (!consumeUserDetailsResponse(userId, interactiveUserDetailsRequests,
+                        automaticUserDetailsRequests)) return
         val builder = SpannableStringBuilder()
         builder.append("Group: ".italic()).append(group.replace(" ", "␣")).append("\n")
         builder.append("Battles:\n".italic())
@@ -940,6 +980,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         if (!online) builder.append("(Offline)".color(Color.RED))
         val dialog = AlertDialog.Builder(requireActivity()).run {
             setTitle(name)
+            setIcon(R.drawable.ic_account)
             setMessage(builder)
             if (online) {
                 setPositiveButton("Challenge") { _, _ -> challengeSomeone(name) }
@@ -948,6 +989,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 setNegativeButton("Close") { _, _ -> }
             }
             show()
+        }
+        dialog.findViewById<ImageView>(android.R.id.icon)?.let {
+            it.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            mainActivity.glideHelper.loadAvatar(avatarId, it)
         }
         dialog.findViewById<TextView>(android.R.id.message)?.movementMethod = LinkMovementMethod.getInstance()
     }
@@ -1000,6 +1045,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
 
     override fun onNewPrivateMessage(with: String, message: String) {
         binding.pmsOverview.incrementPmCount(with)
+        requestAvatar(with)
         if (!binding.pmsOverview.isEmpty) binding.pmsContainer.visibility = View.VISIBLE
         val dialog = parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) as PrivateChatDialog?
         if (dialog?.chatWith?.toId() == with.toId()) dialog.onNewMessage(message) else notifyNewMessageReceived()
@@ -1020,6 +1066,8 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             updateChallengeTo(to, format)
             updateChallengesFrom(from.keys, from.values)
         }
+        to?.let(::requestAvatar)
+        from.keys.forEach(::requestAvatar)
         if (binding.pmsOverview.isEmpty) {
             binding.pmsContainer.visibility = View.GONE
         } else {

@@ -4,6 +4,10 @@ All notable changes made are documented here.
 
 ## [1.6.4] – Data refresh and team-builder alignment
 
+### Added
+- Home now lets players favorite battle formats and shows available favorites
+  in an expanded section at the top of the format picker.
+
 ### Changed
 - Bundled Pokédex, move, learnset, battle-text, and animation data has been
   refreshed from Pokémon Showdown; their generators now use HTTPS and fail

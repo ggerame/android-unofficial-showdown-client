@@ -5,6 +5,7 @@ import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.ui.filterFormatCategories
 import com.majeur.psclient.ui.FormatPickerMode
 import com.majeur.psclient.ui.formatsForMode
+import com.majeur.psclient.ui.prependFavoriteFormats
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -39,5 +40,31 @@ class FormatSelectorTest {
         assertEquals(listOf("teamonly", "searchandteam", "searchpreset"),
                 formatsForMode(categories, FormatPickerMode.ALL).single().second.map { it.id })
         assertEquals("All formats", BattleFormat.FORMAT_ALL.label)
+    }
+
+    @Test fun prependsAvailableFavoritesWithoutRemovingOriginalFormats() {
+        val categories = BattleFormatParser.parse(listOf(
+                "Formats", "Team only,0", "Search and team,2", "Search preset,3"))
+        val searchable = formatsForMode(categories, FormatPickerMode.SEARCH)
+
+        val result = prependFavoriteFormats(searchable,
+                setOf("searchpreset", "searchandteam", "teamonly", "stale"), "Favorites")
+
+        assertEquals("Favorites", result.first().first.label)
+        assertEquals(listOf("searchandteam", "searchpreset"),
+                result.first().second.map { it.id })
+        assertEquals(searchable, result.drop(1))
+    }
+
+    @Test fun omitsFavoritesSectionWhenNoneAreAvailable() {
+        val categories = BattleFormatParser.parse(listOf(
+                "Formats", "Search format,2")).let {
+            formatsForMode(it, FormatPickerMode.SEARCH)
+        }
+
+        assertEquals(categories,
+                prependFavoriteFormats(categories, setOf("stale"), "Favorites"))
+        assertEquals(categories,
+                prependFavoriteFormats(categories, emptySet(), "Favorites"))
     }
 }

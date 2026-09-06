@@ -52,6 +52,18 @@ internal fun formatsForMode(
     if (formats.isEmpty()) null else category to formats
 }
 
+internal fun prependFavoriteFormats(
+        categories: List<Pair<BattleFormat.Category, List<BattleFormat>>>,
+        favoriteIds: Set<String>,
+        label: String
+): List<Pair<BattleFormat.Category, List<BattleFormat>>> {
+    val formats = categories.asSequence().flatMap { it.second.asSequence() }
+            .distinctBy { it.id }.filter { it.id in favoriteIds }.toList()
+    if (formats.isEmpty()) return categories
+    val favorites = BattleFormat.Category(label).apply { this.formats += formats }
+    return listOf(favorites to favorites.formats) + categories
+}
+
 class FormatPickerDialogFragment : DialogFragment() {
 
     private lateinit var binding: DialogFormatSelectorBinding
@@ -78,7 +90,7 @@ class FormatPickerDialogFragment : DialogFragment() {
         val source = arguments?.getSerializable(ARG_CATEGORIES) as? List<BattleFormat.Category> ?: emptyList()
         val mode = arguments?.getString(ARG_MODE)?.let(FormatPickerMode::valueOf)
                 ?: FormatPickerMode.TEAM
-        categories = formatsForMode(source, mode).toMutableList().apply {
+        val baseCategories = formatsForMode(source, mode).toMutableList().apply {
             if (requireArguments().getBoolean(ARG_INCLUDE_ALL)) {
                 val all = BattleFormat.Category(getString(R.string.format_section_all)).apply {
                     formats += BattleFormat.FORMAT_ALL
@@ -92,12 +104,18 @@ class FormatPickerDialogFragment : DialogFragment() {
                 add(other to other.formats)
             }
         }
+        categories = prependFavoriteFormats(
+                baseCategories,
+                arguments?.getStringArrayList(ARG_FAVORITE_IDS).orEmpty().toSet(),
+                getString(R.string.format_section_favorites))
+        val hasFavorites = categories.size > baseCategories.size
         query = savedInstanceState?.getString(STATE_QUERY).orEmpty()
         val expandedLabel = savedInstanceState?.getString(STATE_EXPANDED)
         val selectedId = arguments?.getString(ARG_SELECTED_ID)
-        val initial = categories.firstOrNull { (category, formats) ->
-            category.label == expandedLabel || formats.any { it.id == selectedId }
-        }?.first ?: categories.firstOrNull()?.first
+        val initial = categories.firstOrNull { it.first.label == expandedLabel }?.first
+                ?: categories.firstOrNull()?.first?.takeIf { hasFavorites }
+                ?: categories.firstOrNull { (_, formats) -> formats.any { it.id == selectedId } }?.first
+                ?: categories.firstOrNull()?.first
         if (initial != null) expanded += initial
     }
 
@@ -184,19 +202,21 @@ class FormatPickerDialogFragment : DialogFragment() {
         private const val ARG_INCLUDE_OTHER = "include-other"
         private const val ARG_INCLUDE_ALL = "include-all"
         private const val ARG_MODE = "mode"
+        private const val ARG_FAVORITE_IDS = "favorite-ids"
         private const val STATE_QUERY = "query"
         private const val STATE_EXPANDED = "expanded"
 
         fun newInstance(categories: List<BattleFormat.Category>, selectedId: String? = null,
                         includeOther: Boolean = false, mode: FormatPickerMode = FormatPickerMode.TEAM,
-                        includeAll: Boolean = false) =
+                        includeAll: Boolean = false, favoriteIds: Set<String> = emptySet()) =
                 FormatPickerDialogFragment().apply {
             arguments = bundleOf(
                     ARG_CATEGORIES to ArrayList(categories) as Serializable,
                     ARG_SELECTED_ID to selectedId,
                     ARG_INCLUDE_OTHER to includeOther,
                     ARG_INCLUDE_ALL to includeAll,
-                    ARG_MODE to mode.name)
+                    ARG_MODE to mode.name,
+                    ARG_FAVORITE_IDS to ArrayList(favoriteIds))
         }
     }
 }

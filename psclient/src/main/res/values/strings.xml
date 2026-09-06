@@ -7,6 +7,10 @@
     <string name="no_formats_found">No formats found</string>
     <string name="format_section_other">Other</string>
     <string name="format_section_all">All formats</string>
+    <string name="format_section_favorites">Favorites</string>
+    <string name="favorite_selected_format">Favorite selected format</string>
+    <string name="add_format_to_favorites">Add %1$s to favorites</string>
+    <string name="remove_format_from_favorites">Remove %1$s from favorites</string>
     <string name="team_name">Team name</string>
     <string name="format">Format</string>
     <string name="add_pokemon">Add Pokémon</string>

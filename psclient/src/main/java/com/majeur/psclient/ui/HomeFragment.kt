@@ -242,8 +242,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 makeSnackbar("Connect to Pokémon Showdown to load the available formats")
             } else if (childFragmentManager.findFragmentByTag(FormatPickerDialogFragment.TAG) == null) {
                 FormatPickerDialogFragment.newInstance(
-                        formats, currentBattleFormat?.id, mode = FormatPickerMode.SEARCH)
+                        formats, currentBattleFormat?.id, mode = FormatPickerMode.SEARCH,
+                        favoriteIds = Preferences.getFavoriteBattleFormats(requireContext()))
                         .show(childFragmentManager, FormatPickerDialogFragment.TAG)
+            }
+        }
+        binding.favoriteFormatButton.setOnClickListener {
+            currentBattleFormat?.let {
+                Preferences.toggleFavoriteBattleFormat(requireContext(), it.id)
+                updateFavoriteFormatButton()
             }
         }
         binding.teamsSelector.adapter = TeamsAdapter()
@@ -462,7 +469,22 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private fun setCurrentBattleFormat(battleFormat: BattleFormat) {
         currentBattleFormat = battleFormat
         binding.formatsSelector.text = battleFormat.label
+        updateFavoriteFormatButton()
         updateTeamSpinner()
+    }
+
+    private fun updateFavoriteFormatButton() {
+        val format = currentBattleFormat
+        val isFavorite = format != null &&
+                format.id in Preferences.getFavoriteBattleFormats(requireContext())
+        binding.favoriteFormatButton.apply {
+            isEnabled = format != null
+            setImageResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_outline)
+            contentDescription = format?.let {
+                getString(if (isFavorite) R.string.remove_format_from_favorites
+                else R.string.add_format_to_favorites, it.label)
+            }
+        }
     }
 
     fun onTeamsChanged() {

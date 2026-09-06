@@ -6,6 +6,7 @@ import com.majeur.psclient.util.HomeBackground
 import com.majeur.psclient.util.Preferences
 import com.majeur.psclient.util.chooseHomeArtwork
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -28,6 +29,8 @@ class PreferencesTest {
                 .thenReturn(sharedPreferences)
         Mockito.`when`(sharedPreferences.edit()).thenReturn(editor)
         Mockito.`when`(editor.putString(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(editor)
+        Mockito.`when`(editor.putStringSet(Mockito.anyString(), Mockito.anySet()))
                 .thenReturn(editor)
         Mockito.`when`(editor.remove(Mockito.anyString())).thenReturn(editor)
     }
@@ -60,5 +63,17 @@ class PreferencesTest {
                 assertNotEquals(last, selected)
             }
         }
+    }
+
+    @Test fun readsAndTogglesFavoriteBattleFormats() {
+        Mockito.`when`(sharedPreferences.getStringSet("favorite-battle-formats", emptySet()))
+                .thenReturn(setOf("gen9ou"), emptySet(), setOf("gen9ou"))
+
+        assertEquals(setOf("gen9ou"), Preferences.getFavoriteBattleFormats(context))
+        assertTrue(Preferences.toggleFavoriteBattleFormat(context, "gen9randombattle"))
+        assertFalse(Preferences.toggleFavoriteBattleFormat(context, "gen9ou"))
+
+        Mockito.verify(editor).putStringSet("favorite-battle-formats", setOf("gen9randombattle"))
+        Mockito.verify(editor).putStringSet("favorite-battle-formats", emptySet())
     }
 }

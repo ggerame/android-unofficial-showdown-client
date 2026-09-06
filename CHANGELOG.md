@@ -2,6 +2,16 @@
 
 All notable changes made are documented here.
 
+## [1.6.4] – Data refresh and team-builder alignment
+
+### Changed
+- Bundled Pokédex, move, learnset, battle-text, and animation data has been
+  refreshed from Pokémon Showdown; their generators now use HTTPS and fail
+  safely on network errors.
+
+### Fixed
+- Nature and Hidden Power selectors now share a correctly aligned label column.
+
 ## [1.6.3] – Battle exit navigation and team-builder polish
 
 ### Changed
@@ -16,9 +26,6 @@ All notable changes made are documented here.
 - The bundled item catalog now includes current Showdown data such as Booster
   Energy, and Poké Balls use a generation-aware official picker instead of
   free-form text.
-- Bundled Pokédex, move, learnset, battle-text, and animation data has been
-  refreshed from Pokémon Showdown; their generators now use HTTPS and fail
-  safely on network errors.
 - Saving from the Team Builder now checks the team with Pokémon Showdown's
   authoritative format validator before accepting it; rejected or unavailable
   validations remain editable and can be saved as persistent local drafts.

@@ -7,6 +7,8 @@ All notable changes made are documented here.
 ### Added
 - Home now lets players favorite battle formats and shows available favorites
   in an expanded section at the top of the format picker.
+- Read-only Showdown avatars now appear beside the signed-in account name, in
+  user-search results, and on private-message and challenge cards.
 
 ### Changed
 - Bundled Pokédex, move, learnset, battle-text, and animation data has been

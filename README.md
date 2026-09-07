@@ -216,9 +216,6 @@ strongly test your changes — ideally against a live battle — before opening 
 pull request. Bug reports and feature ideas via issues are appreciated.
 
 ## TODO
-- **Restore bug reporting** — recreate the retired Google Form under an active
-  maintainer account, update `URL_BUG_REPORT_GFORM`, then make the hidden
-  “Report a bug” card on the Home screen visible again.
 - **Route Glide through the app's OkHttp client** — battle sprites, backgrounds
   and `fx` graphics are currently fetched with Glide's default networking. Wiring
   Glide through the existing tuned OkHttp client (via the

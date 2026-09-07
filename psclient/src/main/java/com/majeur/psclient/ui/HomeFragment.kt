@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -264,8 +265,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         binding.favoriteFormatButton.setOnClickListener {
             currentBattleFormat?.let {
-                Preferences.toggleFavoriteBattleFormat(requireContext(), it.id)
+                val isFavorite = Preferences.toggleFavoriteBattleFormat(requireContext(), it.id)
                 updateFavoriteFormatButton()
+                Toast.makeText(requireContext(), getString(
+                        if (isFavorite) R.string.format_added_to_favorites
+                        else R.string.format_removed_from_favorites, it.label), Toast.LENGTH_SHORT).show()
             }
         }
         binding.teamsSelector.adapter = TeamsAdapter()
@@ -428,13 +432,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 if (childFragmentManager.findFragmentByTag(NewsDialog.FRAGMENT_TAG) == null)
                     NewsDialog().show(childFragmentManager, NewsDialog.FRAGMENT_TAG)
             }
-            binding.bugReportButton -> AlertDialog.Builder(requireActivity())
-                    .setTitle("Wait a minute !")
-                    .setMessage("If the bug you want to report needs a detailed description to be clearly understood, please consider posting on the Smogon forum thread.\nIf not, you can continue to the form.\nThanks !")
-                    .setPositiveButton("Continue") { _: DialogInterface?, _: Int -> openUrl(URL_BUG_REPORT_GFORM, true) }
-                    .setNeutralButton("Go to smogon thread") { _: DialogInterface?, _: Int -> openUrl(URL_SMOGON_THREAD, false) }
-                    .setNegativeButton("Cancel", null)
-                    .show()
+            binding.bugReportButton -> openUrl(URL_SMOGON_THREAD)
         }
     }
 
@@ -480,17 +478,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         service?.forgetUserLoginInfos()
     }
 
-    private fun openUrl(url: String, useChrome: Boolean) {
+    private fun openUrl(url: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            if (useChrome) intent.setPackage("com.android.chrome") // Try to use chrome to autoconnect to GForms
-            startActivity(intent)
-        } catch (e1: ActivityNotFoundException) {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) // Fallback to default browser
-            } catch (e2: ActivityNotFoundException) {
-                makeSnackbar("No web browser found.")
-            }
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: ActivityNotFoundException) {
+            makeSnackbar("No web browser found.")
         }
     }
 
@@ -1202,7 +1194,6 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         private const val STATE_BATTLE_SEARCH_MIN_ELO = "battle-search-min-elo"
         private const val STATE_REPLAY_SEARCH_FORMAT = "replay-search-format"
         private const val STATE_REPLAY_SEARCH_USERNAMES = "replay-search-usernames"
-        private const val URL_BUG_REPORT_GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSfvaHpKtRhN-naHtmaIongBRzjU0rmPXu770tvjseWUNky48Q/viewform?usp=send_form"
         private const val URL_SMOGON_THREAD = "https://www.smogon.com/forums/threads/02-23-alpha06-unofficial-showdown-android-client.3654298/"
         private val USERNAME_REGEX = "[{}:\",|\\[\\]]".toRegex()
         private var randomHomeBackground: HomeBackground? = null

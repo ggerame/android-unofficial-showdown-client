@@ -107,12 +107,14 @@ class Team private constructor(
 
             // happiness and later packed-team fields
             val pokeball = set.pokeball.toId().takeUnless { it == "pokeball" }.orEmpty()
-            if (set.happiness != 255 || set.hpType.isNotBlank() || pokeball.isNotBlank() ||
+            val moveHpType = set.moves.firstNotNullOfOrNull(Type::hiddenPowerType)
+            val hpType = set.hpType.takeUnless { it.equals(moveHpType, ignoreCase = true) }.orEmpty()
+            if (set.happiness != 255 || hpType.isNotBlank() || pokeball.isNotBlank() ||
                     set.gigantamax || set.dynamaxLevel != 10 || set.teraType.isNotBlank()) {
                 buf.append("|")
                 if (set.happiness != 255) buf.append(set.happiness)
                 buf.append(",").append(pokeball)
-                buf.append(",").append(set.hpType)
+                buf.append(",").append(hpType)
                 buf.append(",").append(if (set.gigantamax) "G" else "")
                 buf.append(",").append(if (set.dynamaxLevel == 10) "" else set.dynamaxLevel)
                 buf.append(",").append(set.teraType)

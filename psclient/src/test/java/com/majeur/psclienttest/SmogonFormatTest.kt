@@ -90,6 +90,45 @@ class SmogonFormatTest {
     }
 
     @Test
+    fun `test_Parse Hidden Power move and explicit type`(): Unit = runBlocking(Dispatchers.Unconfined) {
+        val pokemon = SmogonTeamParser.parsePokemon(
+            "Crobat\nHidden Power: Ice\n- Hidden Power [Ice]",
+            assetLoader
+        )!!
+
+        assert(pokemon.hpType.isBlank()) { "Redundant Hidden Power type was kept: ${pokemon.hpType}" }
+        assert(pokemon.moves == listOf("hiddenpowerice")) { "Wrong moves: ${pokemon.moves}" }
+
+        val generic = SmogonTeamParser.parsePokemon(
+            "Crobat\nHidden Power: Ice\n- Hidden Power",
+            assetLoader
+        )!!
+        assert(generic.hpType == "Ice") { "Explicit Hidden Power type was lost: ${generic.hpType}" }
+        Unit
+    }
+
+    @Test
+    fun `test_Build and pack typed Hidden Power`(): Unit = runBlocking(Dispatchers.Unconfined) {
+        val hiddenPowerIce = Move.Details().apply { name = "Hidden Power [Ice]" }
+        Mockito.`when`(assetLoader.dexPokemon("crobat")).thenReturn(crobat)
+        Mockito.`when`(assetLoader.moveDetails("hiddenpowerice")).thenReturn(hiddenPowerIce)
+        val pokemon = TeamPokemon("crobat").apply {
+            moves = listOf("hiddenpowerice")
+            hpType = "Ice"
+        }
+
+        val exported = SmogonTeamBuilder.buildPokemon(assetLoader, pokemon)
+        assert(exported.contains("- Hidden Power [Ice]"))
+        assert(!exported.contains("Hidden Power: Ice"))
+        val packed = Team("Hidden Power", listOf(pokemon), "gen6ou").pack()
+        assert(packed.contains("|hiddenpowerice|")) { "Wrong packed move: $packed" }
+        assert(!packed.contains(",,Ice")) { "Redundant Hidden Power type was packed: $packed" }
+        assert(Team.unpack("Hidden Power", "gen6ou", packed)!!.pokemons.single().moves ==
+                listOf("hiddenpowerice"))
+        Unit
+    }
+
+    @Test
     fun `test_Remove unsupported imported fields by format`() {
         fun importedPokemon() = TeamPokemon("Mew").apply {
             item = "leftovers"

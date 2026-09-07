@@ -14,9 +14,13 @@ All notable changes made are documented here.
 - Bundled Pokédex, move, learnset, battle-text, and animation data has been
   refreshed from Pokémon Showdown; their generators now use HTTPS and fail
   safely on network errors.
+- Hidden Power now offers the same type-specific move choices as Pokémon
+  Showdown while preserving manually configured IVs, including its
+  Unown-only availability in BDSP formats.
 
 ### Fixed
 - Nature and Hidden Power selectors now share a correctly aligned label column.
+- Search actions remain visible in both light and dark themes.
 
 ## [1.6.3] – Battle exit navigation and team-builder polish
 

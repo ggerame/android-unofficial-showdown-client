@@ -4,6 +4,7 @@ import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Team
+import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.model.common.toId
 import com.majeur.psclient.model.pokemon.TeamPokemon
 import com.majeur.psclient.util.or
@@ -172,6 +173,9 @@ object SmogonTeamParser {
             } else if (line.startsWith("Pokeball:", ignoreCase = true)) {
                 p.pokeball = line.substringAfter(':').trim().toId()
                         .takeUnless { it == "pokeball" }.orEmpty()
+            } else if (line.startsWith("Hidden Power:", ignoreCase = true)) {
+                val typeId = line.substringAfter(':').trim().toId()
+                p.hpType = Type.HP_TYPES.firstOrNull { it.toId() == typeId }.orEmpty()
             } else if (line.startsWith("Tera Type:")) {
                 p.teraType = line.removePrefix("Tera Type:").trim()
             } else if (line.startsWith("Level:")) {
@@ -182,6 +186,8 @@ object SmogonTeamParser {
             }
         }
         p.moves = moves
+        val moveHpType = moves.firstNotNullOfOrNull(Type::hiddenPowerType)
+        if (p.hpType.equals(moveHpType, ignoreCase = true)) p.hpType = ""
         return if (p.species.isNotBlank()) p else null
     }
 }

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.ListItemMoveBinding
 import com.majeur.psclient.io.AssetLoader
+import com.majeur.psclient.model.common.FormatProfile
 import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.ui.BaseFragment
 import com.majeur.psclient.util.CategoryDrawable
@@ -32,6 +33,7 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     private val fragmentScope = BaseFragment.FragmentScope()
     private lateinit var assetLoader: AssetLoader
     private lateinit var species: String
+    private lateinit var profile: FormatProfile
     private var slot = 0
     private var selectedMove = ""
 
@@ -43,6 +45,7 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         species = requireArguments().getString(ARG_SPECIES)!!
+        profile = FormatProfile.from(requireArguments().getString(ARG_FORMAT).orEmpty())
         slot = requireArguments().getInt(ARG_SLOT)
         selectedMove = requireArguments().getString(ARG_SELECTED_MOVE).orEmpty()
         lifecycle.addObserver(fragmentScope)
@@ -61,8 +64,9 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         fragmentScope.launch {
-            val moves = assetLoader.learnset(species)
-            val adapterItems = listOf("None") + moves.orEmpty()
+            val moves = withHiddenPowerVariants(assetLoader.learnset(species).orEmpty(),
+                    profile.supportsHiddenPower(species))
+            val adapterItems = listOf("None") + moves
             val textHighlightColor = Utils.alphaColor(ContextCompat.getColor(requireContext(), R.color.secondary), 0.45f)
             setAdapter(Adapter(adapterItems, this@MovesFragment, textHighlightColor))
             val selectedPosition = if (selectedMove.isBlank()) 0
@@ -74,10 +78,9 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     }
 
     override fun onItemClick(itemView: View, holder: RecyclerView.ViewHolder, position: Int) {
-        val moveName = (holder as Adapter.ViewHolder).binding.nameView.text.toString()
-        if (moveName.isBlank()) return // Wait for the full name to be loaded by our AssetLoader
+        val moveId = (requireAdapter() as Adapter).getItem(position)
         val bundle = bundleOf(
-                RESULT_MOVE to moveName,
+                RESULT_MOVE to moveId,
                 RESULT_SLOT to slot
         )
         setFragmentResult(RESULT_KEY, bundle)
@@ -110,7 +113,8 @@ class MovesFragment : ListFragment(), OnItemClickListener {
 
         fun filter(constraint: String) {
             filteringConstraint = constraint
-            adapterList = baseList.filter { it.replace(" ", "").contains(constraint, true) }
+            val queryId = constraint.toId()
+            adapterList = baseList.filter { it.toId().contains(queryId) }
             notifyDataSetChanged()
         }
 
@@ -160,14 +164,10 @@ class MovesFragment : ListFragment(), OnItemClickListener {
 
         private fun highlightMatch(textView: TextView) {
             val constraint = filteringConstraint
-            var text = textView.text.toString().lowercase()
-            val spaceIndex = text.indexOf(' ')
-            text = text.replace(" ", "")
-            if (!text.contains(constraint)) return
-            var startIndex = text.indexOf(constraint)
-            if (spaceIndex in 1..startIndex) startIndex++
-            var endIndex = startIndex + constraint.length
-            if (spaceIndex > 0 && startIndex < spaceIndex && endIndex > spaceIndex) endIndex++
+            if (constraint.isBlank()) return
+            val startIndex = textView.text.toString().indexOf(constraint, ignoreCase = true)
+            if (startIndex < 0) return
+            val endIndex = startIndex + constraint.length
             val spannable = textView.text as Spannable
             spannable.setSpan(BackgroundColorSpan(highlightColor), startIndex, endIndex,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -182,12 +182,20 @@ class MovesFragment : ListFragment(), OnItemClickListener {
     companion object {
 
         const val ARG_SPECIES = "arg-species"
+        const val ARG_FORMAT = "arg-format"
         const val ARG_SLOT = "arg-slot"
         const val ARG_SELECTED_MOVE = "arg-selected-move"
 
         const val RESULT_KEY = "request-result-move"
         const val RESULT_MOVE = "result-move"
         const val RESULT_SLOT = "result-slot"
+
+        internal fun withHiddenPowerVariants(moves: List<String>, hasHiddenPower: Boolean) =
+                moves.flatMap { move ->
+                    if (move.toId() != "hiddenpower") listOf(move)
+                    else if (!hasHiddenPower) emptyList()
+                    else listOf(move) + Type.HP_TYPES.map(Type::hiddenPowerMoveId)
+                }
 
     }
 

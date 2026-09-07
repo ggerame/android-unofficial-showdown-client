@@ -22,6 +22,7 @@ import com.majeur.psclient.model.battle.SpriteDelay
 import com.majeur.psclient.model.battle.Wait
 import com.majeur.psclient.model.common.Item
 import com.majeur.psclient.model.common.Stats
+import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.model.pokemon.BasePokemon
 import com.majeur.psclient.model.pokemon.DexPokemon
 import com.majeur.psclient.util.toId
@@ -531,11 +532,18 @@ class AssetLoader(val context: Context) {
 
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
         override fun compute(moveId: String): Move.Details? {
+            val hiddenPowerType = Type.hiddenPowerType(moveId)
+            val detailsId = if (hiddenPowerType == null) moveId else "hiddenpower"
             return jsonReader(R.raw.moves).use {reader ->
                 reader.beginObject()
                 while (reader.hasNext()) {
-                    if (moveId == reader.nextName()) {
-                        return@use parseMoveDetails(reader)
+                    if (detailsId == reader.nextName()) {
+                        return@use parseMoveDetails(reader)?.apply {
+                            if (hiddenPowerType != null) {
+                                name = "Hidden Power [$hiddenPowerType]"
+                                type = hiddenPowerType
+                            }
+                        }
                     } else {
                         reader.skipValue()
                     }

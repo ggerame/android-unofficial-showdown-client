@@ -75,9 +75,14 @@ data class FormatProfile(
         val hasShiny: Boolean,
         val hasHappiness: Boolean,
         val hasHiddenPower: Boolean,
+        val hiddenPowerOnlyForUnown: Boolean,
         val hasDynamax: Boolean,
         val hasTera: Boolean
 ) : Serializable {
+
+    fun supportsHiddenPower(baseSpecies: String) = hasHiddenPower ||
+            (hiddenPowerOnlyForUnown && baseSpecies.toId() == "unown")
+
     companion object {
         fun from(id: String): FormatProfile {
             // Matches Pokémon Showdown's Dex.formatGen(): format suffixes may start with digits
@@ -103,7 +108,8 @@ data class FormatProfile(
                     hasNatures = generation >= 3,
                     hasShiny = generation > 1,
                     hasHappiness = isLetsGo || generation < 8 || isNatDex,
-                    hasHiddenPower = generation in 2..7 || isNatDex,
+                    hasHiddenPower = (generation in 2..7 && !isLetsGo) || isNatDex,
+                    hiddenPowerOnlyForUnown = isBDSP,
                     hasDynamax = generation == 8 && !isBDSP,
                     hasTera = generation == 9 && !isChampions)
         }

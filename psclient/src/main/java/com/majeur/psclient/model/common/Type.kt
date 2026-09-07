@@ -1,6 +1,7 @@
 package com.majeur.psclient.model.common
 
 import com.majeur.psclient.R
+import com.majeur.psclient.util.toId
 import java.util.*
 
 
@@ -44,6 +45,15 @@ object Type {
             "Rock",
             "Steel",
             "Water")
+
+    fun hiddenPowerType(move: String?): String? {
+        val id = move.orEmpty().toId()
+        if (!id.startsWith("hiddenpower")) return null
+        val typeId = id.removePrefix("hiddenpower")
+        return HP_TYPES.firstOrNull { it.toId() == typeId }
+    }
+
+    fun hiddenPowerMoveId(type: String) = "hiddenpower${type.toId()}"
 
     fun getResId(rawType: String?) = when (rawType?.trim()?.lowercase()) {
         "bug" -> R.drawable.ic_type_bug

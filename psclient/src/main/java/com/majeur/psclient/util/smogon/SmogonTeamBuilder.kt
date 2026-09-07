@@ -4,6 +4,7 @@ import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.common.Nature
 import com.majeur.psclient.model.common.Stats
 import com.majeur.psclient.model.common.Team
+import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.model.pokemon.TeamPokemon
 import com.majeur.psclient.util.toId
 import java.util.*
@@ -55,7 +56,7 @@ object SmogonTeamBuilder {
         if (pokemon.item.isNotBlank()) {
             val item = assetLoader.item(pokemon.item.toId())?.name ?: pokemon.item
             builder.append(" @ $item")
-        } // TODO support hidden power type
+        }
         if (pokemon.ability.isNotBlank()) {
             builder.append("\n")
             val ability = dexPokemon.matchingAbility(pokemon.ability)
@@ -78,7 +79,8 @@ object SmogonTeamBuilder {
             val pokeball = assetLoader.item(pokemon.pokeball.toId())?.name ?: pokemon.pokeball
             builder.append("Pokeball: $pokeball")
         }
-        if (pokemon.hpType.isNotBlank()) {
+        val moveHpType = pokemon.moves.firstNotNullOfOrNull(Type::hiddenPowerType)
+        if (pokemon.hpType.isNotBlank() && !pokemon.hpType.equals(moveHpType, ignoreCase = true)) {
             builder.append("\n")
             builder.append("Hidden Power: ${pokemon.hpType}")
         }
@@ -112,8 +114,6 @@ object SmogonTeamBuilder {
             builder.append("\n")
             val moveName = assetLoader.moveDetails(moveId)?.name ?: moveId
             builder.append("- $moveName")
-
-            // TODO If hidden power type is specified in move name, set ivs accordingly
         }
         builder.append("\n\n")
     }

@@ -82,7 +82,13 @@ class Stats() : Serializable {
 
     fun sum() = hp + atk + def + spa + spd + spe
 
-    fun hpType(): String {
+    fun hpType(generation: Int = 3): String {
+        if (generation <= 2) {
+            val hpTypes = arrayOf("Fighting", "Flying", "Poison", "Ground", "Rock", "Bug",
+                    "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice",
+                    "Dragon", "Dark")
+            return hpTypes[4 * ((atk / 2) % 4) + ((def / 2) % 4)]
+        }
         val a = if (hp % 2 == 0) 0 else 1
         val b = if (atk % 2 == 0) 0 else 2
         val c = if (def % 2 == 0) 0 else 4

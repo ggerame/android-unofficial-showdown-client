@@ -60,6 +60,8 @@ class PokemonFragment : Fragment() {
 
     private var slotIndex = 0
     private var baseStats: Stats? = null
+    private var formatId = ""
+    private var hpTypeSelectorReady = false
     private lateinit var profile: FormatProfile
 
     private fun makeSnackbar(message: String, indefinite: Boolean = false) {
@@ -101,12 +103,19 @@ class PokemonFragment : Fragment() {
         }
 
         setFragmentResultListener(MovesFragment.RESULT_KEY) { _, bundle ->
-            val moveName = bundle.getString(MovesFragment.RESULT_MOVE)
+            val moveId = bundle.getString(MovesFragment.RESULT_MOVE)
             val moveSlot = bundle.getInt(MovesFragment.RESULT_SLOT)
-            if (moveName != null) {
+            if (moveId != null) {
+                val storedMove = if (moveId.toId() == "none") "" else moveId.toId()
                 // We know it's a 4 elements mutable list (See TeamBuilderActivity)
-                (pokemon.moves as MutableList<String>)[moveSlot] = if (moveName == "None") "" else moveName
-                moveInputs[moveSlot].text = moveName
+                (pokemon.moves as MutableList<String>)[moveSlot] = storedMove
+                if (Type.hiddenPowerType(storedMove) != null) pokemon.hpType = ""
+                moveInputs[moveSlot].text = storedMove.or(getString(R.string.none))
+                updateHpTypeSelection()
+                if (storedMove.isNotBlank()) fragmentScope.launch {
+                    val moveName = assetLoader.moveDetails(storedMove)?.name ?: storedMove
+                    if (_binding != null) moveInputs[moveSlot].text = moveName
+                }
             }
         }
     }
@@ -191,9 +200,10 @@ class PokemonFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        profile = (requireActivity() as TeamBuilderActivity).currentFormat?.profile
-                ?: FormatProfile.from(
-                        (requireActivity() as TeamBuilderActivity).team.format.orEmpty())
+        hpTypeSelectorReady = false
+        val activity = requireActivity() as TeamBuilderActivity
+        formatId = activity.currentFormat?.id ?: activity.team.format.orEmpty()
+        profile = activity.currentFormat?.profile ?: FormatProfile.from(formatId)
         binding.speciesInput.apply {
             threshold = 1
             dropDownWidth = dp(196f)
@@ -262,6 +272,7 @@ class PokemonFragment : Fragment() {
             textView.setOnClickListener {
                 val bundle = bundleOf(
                         MovesFragment.ARG_SPECIES to pokemon.species.toId(),
+                        MovesFragment.ARG_FORMAT to formatId,
                         MovesFragment.ARG_SLOT to moveSlot,
                         MovesFragment.ARG_SELECTED_MOVE to pokemon.moves.getOrElse(moveSlot) { "" }
                 )
@@ -297,12 +308,11 @@ class PokemonFragment : Fragment() {
             adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, Type.HP_TYPES)
             onItemSelectedListener = object : SimpleOnItemSelectedListener() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
-                    if (!profile.hasHiddenPower) return
+                    if (!hpTypeSelectorReady || !hasHpTypeSelector(pokemon.baseSpecies)) return
                     @Suppress("UNCHECKED_CAST")
                     val adapter = adapterView.adapter as ArrayAdapter<String>
                     val hpType = adapter.getItem(i) ?: ""
-                    pokemon.ivs.setForHpType(hpType)
-                    binding.statsTable.setIVs(pokemon.ivs)
+                    if (pokemon.hpType.isBlank() && hpType == effectiveHpType()) return
                     pokemon.hpType = hpType
                 }
             }
@@ -340,8 +350,7 @@ class PokemonFragment : Fragment() {
             itemInput.visibility = if (profile.hasItems) View.VISIBLE else View.GONE
             textView11.visibility = if (profile.hasNatures) View.VISIBLE else View.GONE
             natureSelector.visibility = if (profile.hasNatures) View.VISIBLE else View.GONE
-            textView12.visibility = if (profile.hasHiddenPower) View.VISIBLE else View.GONE
-            hpTypeSelector.visibility = if (profile.hasHiddenPower) View.VISIBLE else View.GONE
+            updateHpTypeVisibility(pokemon.baseSpecies)
             teraFields.visibility = if (profile.hasTera) View.VISIBLE else View.GONE
             dynamaxFields.visibility = if (profile.hasDynamax) View.VISIBLE else View.GONE
             textView6.visibility = if (profile.hasHappiness) View.VISIBLE else View.GONE
@@ -357,6 +366,7 @@ class PokemonFragment : Fragment() {
             val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(binding.speciesInput, InputMethodManager.SHOW_IMPLICIT)
         }
+        binding.hpTypeSelector.post { hpTypeSelectorReady = true }
     }
 
     private fun bindToPokemon() {
@@ -392,8 +402,8 @@ class PokemonFragment : Fragment() {
             setSelection(if (selection > 0) selection else 0)
         }
         binding.hpTypeSelector.apply {
-            val selection = Type.HP_TYPES.indexOfFirst { it.toId() == pokemon.hpType.toId() }
-            if (selection > 0) setSelection(selection)
+            val selection = Type.HP_TYPES.indexOfFirst { it.toId() == effectiveHpType().toId() }
+            if (selection >= 0) setSelection(selection)
         }
         binding.teraTypeSelector.apply {
             val selection = Type.ALL.indexOfFirst { it.toId() == pokemon.teraType.toId() }
@@ -418,6 +428,8 @@ class PokemonFragment : Fragment() {
 
                 pokemon.species = dexPokemon.species
                 updatePokemonSprite()
+                updateHpTypeVisibility(dexPokemon.baseSpecies)
+                updateHpTypeSelection()
 
                 binding.type1.apply {
                     setImageResource(getResId(dexPokemon.firstType))
@@ -465,6 +477,29 @@ class PokemonFragment : Fragment() {
                pokemon.shiny, binding.sprite)
     }
 
+    private fun hasHpTypeSelector(baseSpecies: String): Boolean {
+        val isLetsGo = "letsgo" in formatId
+        val isNatDex = "nationaldex" in formatId || "natdex" in formatId
+        return profile.supportsHiddenPower(baseSpecies) &&
+                ((profile.generation == 7 && !isLetsGo) || isNatDex || baseSpecies.toId() == "unown")
+    }
+
+    private fun effectiveHpType(): String = pokemon.hpType.takeIf { Stats.checkHpType(it) }
+            ?: pokemon.moves.firstNotNullOfOrNull(Type::hiddenPowerType)
+            ?: pokemon.ivs.hpType(profile.generation)
+
+    private fun updateHpTypeVisibility(baseSpecies: String) {
+        val visibility = if (hasHpTypeSelector(baseSpecies)) View.VISIBLE else View.GONE
+        binding.textView12.visibility = visibility
+        binding.hpTypeSelector.visibility = visibility
+    }
+
+    private fun updateHpTypeSelection() {
+        if (!hasHpTypeSelector(pokemon.baseSpecies)) return
+        val selection = Type.HP_TYPES.indexOfFirst { it == effectiveHpType() }
+        if (selection >= 0) binding.hpTypeSelector.setSelection(selection)
+    }
+
     private fun toggleInputViewsEnabled(enabled: Boolean) {
         binding.apply {
             nameInput.isEnabled = enabled
@@ -489,6 +524,7 @@ class PokemonFragment : Fragment() {
         pokemon.ivs.set(stat, iv)
         binding.statsTable.setEVs(pokemon.evs)
         binding.statsTable.setIVs(pokemon.ivs)
+        if (pokemon.hpType.isBlank()) updateHpTypeSelection()
     }
 
     inner class SpeciesAdapter : BaseAdapter(), Filterable {

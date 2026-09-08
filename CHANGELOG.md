@@ -2,6 +2,24 @@
 
 All notable changes made are documented here.
 
+## [1.6.5] – Friends
+
+### Added
+- A native Friends center on Home now provides friend presence and status,
+  incoming and outgoing requests, last-seen information, and relevant Pokémon
+  Showdown friend settings.
+- Players can add or remove friends from user profiles and private chats, and
+  accept or deny incoming requests from a native chat banner.
+
+### Changed
+- Friend data and actions use Pokémon Showdown directly, with in-memory page
+  caching, manual refresh, reconnect handling, and no WebView or local database.
+
+### Fixed
+- Private messages now preserve embedded pipe characters, render `/text` as
+  plain text, and recognize official friend-request HTML without showing the
+  previous “Html messages not supported in pm.” placeholder.
+
 ## [1.6.4] – Data refresh and team-builder alignment
 
 ### Added

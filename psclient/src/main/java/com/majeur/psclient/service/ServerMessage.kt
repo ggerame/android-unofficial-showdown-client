@@ -23,8 +23,11 @@ class ServerMessage {
                 kwargs = emptyMap()
             } else {
                 command = data.substring(1, sepIndex)
-                val (arguments, kwArguments) = parseArguments(data.substring(sepIndex + 1),
-                        arrayOf("formats", "c", "c:", "tier", "error").contains(command))
+                val escapeKwargs = arrayOf(
+                        "formats", "c", "c:", "tier", "error", "pm", "pagehtml").contains(command)
+                val (arguments, kwArguments) = parseArguments(
+                        data.substring(sepIndex + 1), escapeKwargs,
+                        preserveEmptyArgs = command == "pm" || command == "pagehtml")
                 args = arguments
                 kwargs = kwArguments
             }
@@ -69,8 +72,10 @@ class ServerMessage {
         }
 
 
-    private fun parseArguments(rawArgs: String, escapeKwargs: Boolean) : Pair<List<String>, Map<String, String>> {
-        val args = rawArgs.split(SEPARATOR).filter { it.isNotBlank() }
+    private fun parseArguments(rawArgs: String, escapeKwargs: Boolean,
+                               preserveEmptyArgs: Boolean = false) : Pair<List<String>, Map<String, String>> {
+        val splitArgs = rawArgs.split(SEPARATOR)
+        val args = splitArgs.filter { preserveEmptyArgs || it.isNotBlank() }
                 .filter { escapeKwargs || !(it.startsWith('[') && it.contains(']')) }
         val kwargs = rawArgs.split(SEPARATOR).filter { it.isNotBlank() }
                 .filter { !escapeKwargs }

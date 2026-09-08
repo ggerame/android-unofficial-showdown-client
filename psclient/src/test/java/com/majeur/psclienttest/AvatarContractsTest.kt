@@ -40,6 +40,19 @@ class AvatarContractsTest {
         assertTrue(details.online)
         assertEquals(listOf("lobby"), details.rooms)
         assertEquals(listOf("battle-gen9ou-1"), details.battles)
+        assertFalse(details.friended)
+    }
+
+    @Test fun userDetailsReadsFriendedWhenPresent() {
+        val json = mock(JSONObject::class.java)
+        `when`(json.optString("userid")).thenReturn("alice")
+        `when`(json.optString("name")).thenReturn("Alice")
+        `when`(json.optString("group")).thenReturn("")
+        `when`(json.optString("avatar")).thenReturn("")
+        `when`(json.opt("rooms")).thenReturn(false)
+        `when`(json.optBoolean("friended", false)).thenReturn(true)
+
+        assertTrue(parseUserDetails(json)!!.friended)
     }
 
     @Test fun offlineUserWithoutAvatarUsesFallback() {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -12,6 +13,7 @@ import androidx.fragment.app.DialogFragment
 import com.majeur.psclient.R
 import com.majeur.psclient.databinding.DialogPrivateChatBinding
 import com.google.android.material.snackbar.Snackbar
+import com.majeur.psclient.model.FriendAction
 import com.majeur.psclient.util.TextTagSpan
 import com.majeur.psclient.util.Utils
 import com.majeur.psclient.util.applySafeDrawingInsets
@@ -24,6 +26,9 @@ class PrivateChatDialog : DialogFragment() {
 
     private val usernameColorCache = mutableMapOf<String, Int>()
     private var errorSnackbar: Snackbar? = null
+    private var friendMenuItem: MenuItem? = null
+    private var isFriend = false
+    private var pendingRequestAction: FriendAction? = null
 
     lateinit var chatWith: String
         private set
@@ -55,6 +60,18 @@ class PrivateChatDialog : DialogFragment() {
         binding.apply {
             toolbar.title = "Private chat: $chatWith"
             toolbar.setNavigationOnClickListener { dismiss() }
+            friendMenuItem = toolbar.menu.add(R.string.add_friend).apply {
+                setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+                isVisible = false
+                setOnMenuItemClickListener {
+                    if (isFriend) homeFragment.confirmRemoveFriend(chatWith)
+                    else homeFragment.sendFriendAction(FriendAction.ADD, chatWith)
+                    true
+                }
+            }
+            friendRequestText.text = getString(R.string.friend_request_from, chatWith)
+            acceptFriendButton.setOnClickListener { resolveFriendRequest(FriendAction.ACCEPT) }
+            denyFriendButton.setOnClickListener { resolveFriendRequest(FriendAction.REJECT) }
             chatLog.setText("", TextView.BufferType.SPANNABLE)
             messageInput.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -68,6 +85,8 @@ class PrivateChatDialog : DialogFragment() {
         (activity as MainActivity).homeFragment.getPrivateMessages(chatWith)?.forEach {
             onNewMessage(it)
         }
+        onFriendRequestChanged(homeFragment.hasPendingFriendRequest(chatWith))
+        homeFragment.requestFriendStateForChat(chatWith)
     }
 
     override fun onStart() {
@@ -100,10 +119,16 @@ class PrivateChatDialog : DialogFragment() {
     }
 
     fun onError(message: String) {
+        _binding?.apply {
+            acceptFriendButton.isEnabled = true
+            denyFriendButton.isEnabled = true
+        }
         errorSnackbar?.dismiss()
         errorSnackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
                 .setAnchorView(binding.messageInput)
-                .setAction("Ok") {}
+                .setAction(if (pendingRequestAction != null) getString(R.string.retry) else "Ok") {
+                    pendingRequestAction?.let(::resolveFriendRequest)
+                }
                 .also { snackbar ->
                     snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines = 5
                     snackbar.show()
@@ -123,6 +148,34 @@ class PrivateChatDialog : DialogFragment() {
             binding.messageInput.text.clear()
         }
     }
+
+    fun onFriendshipStatus(friended: Boolean) {
+        isFriend = friended
+        friendMenuItem?.apply {
+            setTitle(if (friended) R.string.remove_friend else R.string.add_friend)
+            isVisible = true
+        }
+    }
+
+    fun onFriendRequestChanged(pending: Boolean) {
+        val currentBinding = _binding ?: return
+        currentBinding.friendRequestCard.visibility = if (pending) View.VISIBLE else View.GONE
+        currentBinding.acceptFriendButton.isEnabled = true
+        currentBinding.denyFriendButton.isEnabled = true
+        if (!pending) {
+            pendingRequestAction = null
+            homeFragment.requestFriendStateForChat(chatWith)
+        }
+    }
+
+    private fun resolveFriendRequest(action: FriendAction) {
+        pendingRequestAction = action
+        binding.acceptFriendButton.isEnabled = false
+        binding.denyFriendButton.isEnabled = false
+        homeFragment.sendFriendAction(action, chatWith)
+    }
+
+    private val homeFragment get() = (activity as MainActivity).homeFragment
 
     private fun obtainUsernameColor(username: String): Int {
 

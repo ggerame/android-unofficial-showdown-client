@@ -331,7 +331,7 @@
                             app:iconGravity="start" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/battle_search_button"
+                            android:id="@+id/friends_button"
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -341,9 +341,9 @@
                             android:maxLines="2"
                             android:minHeight="56dp"
                             android:minLines="2"
-                            android:text="@string/watch_battle"
+                            android:text="@string/friends"
                             android:textAllCaps="false"
-                            app:icon="@drawable/ic_battle"
+                            app:icon="@drawable/ic_people"
                             app:iconGravity="start" />
                     </LinearLayout>
 
@@ -355,7 +355,7 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/replay_search_button"
+                            android:id="@+id/battle_search_button"
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -365,9 +365,49 @@
                             android:maxLines="2"
                             android:minHeight="56dp"
                             android:minLines="2"
+                            android:text="@string/watch_battle"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_battle"
+                            app:iconGravity="start" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/replay_search_button"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:gravity="start|center_vertical"
+                            android:maxLines="2"
+                            android:minHeight="56dp"
+                            android:minLines="2"
                             android:text="@string/search_replays"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_replay_play"
+                            app:iconGravity="start" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/bug_report_button"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:gravity="start|center_vertical"
+                            android:maxLines="2"
+                            android:minHeight="56dp"
+                            android:minLines="2"
+                            android:text="@string/report_bug"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_chat"
                             app:iconGravity="start" />
 
                         <com.google.android.material.button.MaterialButton
@@ -386,19 +426,6 @@
                             app:icon="@drawable/ic_create_message"
                             app:iconGravity="start" />
                     </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/bug_report_button"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="start|center_vertical"
-                        android:minHeight="56dp"
-                        android:text="@string/report_bug"
-                        android:textAllCaps="false"
-                        app:icon="@drawable/ic_chat"
-                        app:iconGravity="start" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

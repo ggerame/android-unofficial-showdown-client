@@ -29,6 +29,8 @@ import com.majeur.psclient.databinding.FragmentHomeBinding
 import com.majeur.psclient.io.AssetLoader
 import com.majeur.psclient.model.BattleRoomInfo
 import com.majeur.psclient.model.ChatRoomInfo
+import com.majeur.psclient.model.FriendAction
+import com.majeur.psclient.model.friendCommand
 import com.majeur.psclient.model.common.BattleFormat
 import com.majeur.psclient.model.common.Team
 import com.majeur.psclient.model.common.toId
@@ -74,6 +76,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     private val avatarCache = mutableMapOf<String, String?>()
     private val automaticUserDetailsRequests = mutableSetOf<String>()
     private val interactiveUserDetailsRequests = mutableSetOf<String>()
+    private val privateChatUserDetailsRequests = mutableSetOf<String>()
     private var returnBattleSearchFilters: BattleSearchFilters? = null
     private var returnReplaySearchFilters: ReplaySearchFilters? = null
 
@@ -137,6 +140,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         mainActivity.glideHelper.clear(binding.accountAvatar)
         automaticUserDetailsRequests.clear()
         interactiveUserDetailsRequests.clear()
+        privateChatUserDetailsRequests.clear()
         activeSnackbar?.dismiss()
         activeSnackbar = null
         _binding = null
@@ -336,13 +340,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         binding.replaySearchButton.setOnClickListener(this)
         binding.newsButton.setOnClickListener(this)
         binding.bugReportButton.setOnClickListener(this)
+        binding.friendsButton.setOnClickListener(this)
     }
 
     override fun onClick(view: View) {
         val requiresConnection = view === binding.accountButton ||
                 view === binding.searchButton ||
                 view === binding.userSearchButton ||
-                view === binding.battleSearchButton
+                view === binding.battleSearchButton ||
+                view === binding.friendsButton
         if (requiresConnection && !requireServerConnection()) return
         when (view) {
             binding.accountButton -> when {
@@ -433,6 +439,13 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                     NewsDialog().show(childFragmentManager, NewsDialog.FRAGMENT_TAG)
             }
             binding.bugReportButton -> openUrl(URL_SMOGON_THREAD)
+            binding.friendsButton -> {
+                if (observer.isUserGuest) {
+                    promptUserSignIn()
+                } else if (childFragmentManager.findFragmentByTag(FriendsDialog.TAG) == null) {
+                    FriendsDialog().show(childFragmentManager, FriendsDialog.TAG)
+                }
+            }
         }
     }
 
@@ -721,6 +734,19 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         return observer.getPrivateMessages(with)
     }
 
+    fun requestFriendStateForChat(user: String) {
+        val userId = user.toId()
+        if (userId.isNotEmpty() && privateChatUserDetailsRequests.add(userId)) {
+            service?.sendGlobalCommand("cmd userdetails", user)
+        }
+    }
+
+    fun hasPendingFriendRequest(user: String) = observer.hasPendingFriendRequest(user)
+
+    fun sendFriendAction(action: FriendAction, user: String) {
+        friendCommand(action, user)?.let { service?.sendRoomMessage(null, it) }
+    }
+
     fun challengeSomeone(user: String) {
         when {
             user.toId() == observer.myUsername?.toId() -> makeSnackbar("You should try challenging yourself in an other way")
@@ -869,6 +895,15 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         }
         val signInDialog = childFragmentManager.findFragmentByTag(SignInDialog.FRAGMENT_TAG) as SignInDialog?
         signInDialog?.dismissAllowingStateLoss()
+        if (!isGuest) {
+            (childFragmentManager.findFragmentByTag(FriendsDialog.TAG) as? FriendsDialog)
+                    ?.takeIf { it.isVisible }
+                    ?.onAccountChanged()
+            visiblePrivateChatDialog()?.let {
+                privateChatUserDetailsRequests.remove(it.chatWith.toId())
+                requestFriendStateForChat(it.chatWith)
+            }
+        }
         teamsFragment.onAccountChanged(userName, isGuest)
     }
 
@@ -941,10 +976,18 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
     }
 
     override fun onUserDetails(id: String, name: String, online: Boolean, group: String,
-                               avatarId: String?, rooms: List<String>, battles: List<String>) {
+                               avatarId: String?, rooms: List<String>, battles: List<String>,
+                               friended: Boolean) {
         val userId = id.toId()
         avatarCache[userId] = avatarId
         binding.pmsOverview.updateAvatar(userId, avatarId)
+        if (privateChatUserDetailsRequests.remove(userId)) {
+            automaticUserDetailsRequests.remove(userId)
+            visiblePrivateChatDialog()
+                    ?.takeIf { it.chatWith.toId() == userId }
+                    ?.onFriendshipStatus(friended)
+            if (userId !in interactiveUserDetailsRequests) return
+        }
         if (!consumeUserDetailsResponse(userId, interactiveUserDetailsRequests,
                         automaticUserDetailsRequests)) return
         val builder = SpannableStringBuilder()
@@ -980,6 +1023,11 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             } else {
                 setNegativeButton("Close") { _, _ -> }
             }
+            if (userId != observer.myUsername?.toId()) {
+                setNeutralButton(if (friended) R.string.remove_friend else R.string.add_friend) { _, _ ->
+                    if (friended) confirmRemoveFriend(name) else sendFriendAction(FriendAction.ADD, userId)
+                }
+            }
             show()
         }
         dialog.findViewById<ImageView>(android.R.id.icon)?.let {
@@ -993,6 +1041,16 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             (parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) as PrivateChatDialog?)
                     ?.takeIf { it.isVisible }
 
+    fun confirmRemoveFriend(user: String) {
+        MaterialAlertDialogBuilder(requireContext())
+                .setMessage(getString(R.string.remove_friend_question, user))
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.remove_friend) { _, _ ->
+                    sendFriendAction(FriendAction.REMOVE, user)
+                }
+                .show()
+    }
+
     private fun showServerError(message: String) {
         if (message.length > 120 || message.count { it == '\n' } > 4) { // If there is a lot of text, rather show a dialog
             AlertDialog.Builder(requireContext()).apply {
@@ -1002,8 +1060,12 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             }
             activeSnackbar?.dismiss()
         } else {
+            val friendsDialog = childFragmentManager.findFragmentByTag(FriendsDialog.TAG) as? FriendsDialog
             val dialog = visiblePrivateChatDialog()
-            if (dialog != null) {
+            if (friendsDialog?.isVisible == true) {
+                activeSnackbar?.dismiss()
+                friendsDialog.onError(message)
+            } else if (dialog != null) {
                 activeSnackbar?.dismiss()
                 dialog.onError(message)
             } else {
@@ -1051,6 +1113,17 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
         val sameChat = with != null && visiblePrivateChatDialog()?.chatWith?.toId() == with.toId()
         val prefix = if (with == null || sameChat) "" else "Could not message $with: "
         showServerError(prefix + message)
+    }
+
+    override fun onFriendRequestsChanged(users: Set<String>, count: Int) {
+        binding.friendsButton.text = if (count > 0) {
+            getString(R.string.friends_with_requests, count)
+        } else {
+            getString(R.string.friends)
+        }
+        visiblePrivateChatDialog()?.let { dialog ->
+            dialog.onFriendRequestChanged(users.any { it.toId() == dialog.chatWith.toId() })
+        }
     }
 
     override fun onChallengesChange(to: String?, format: String?, from: Map<String, String>) {

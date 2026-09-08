@@ -8,6 +8,7 @@ import android.os.Looper
 import android.util.Base64
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
 import com.majeur.psclient.service.observer.ChatRoomMessageObserver
+import com.majeur.psclient.service.observer.FriendsMessageObserver
 import com.majeur.psclient.service.observer.GlobalMessageObserver
 import com.majeur.psclient.model.common.TeamValidationResult
 import com.majeur.psclient.model.common.RemoteTeamSummary
@@ -62,9 +63,11 @@ class ShowdownService : Service() {
     private lateinit var uiHandler: Handler
 
     val globalMessageObserver by lazy { GlobalMessageObserver(this) }
+    val friendsMessageObserver by lazy { FriendsMessageObserver(this) }
     val chatMessageObserver by lazy { ChatRoomMessageObserver(this) }
     val battleMessageObserver by lazy { BattleRoomMessageObserver(this) }
-    private val messageObservers get() = listOf(globalMessageObserver, chatMessageObserver, battleMessageObserver)
+    private val messageObservers get() = listOf(
+            globalMessageObserver, friendsMessageObserver, chatMessageObserver, battleMessageObserver)
     private var previousChatRoomId: String? = null
     private var previousBattleRoomId: String? = null
 

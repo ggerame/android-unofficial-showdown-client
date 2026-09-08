@@ -23,7 +23,8 @@ internal data class UserDetails(
         val group: String,
         val avatarId: String?,
         val rooms: List<String>,
-        val battles: List<String>)
+        val battles: List<String>,
+        val friended: Boolean)
 
 internal fun parseUserDetails(jsonObject: JSONObject): UserDetails? {
     val userId = jsonObject.optString("userid").ifEmpty { jsonObject.optString("id") }
@@ -42,7 +43,8 @@ internal fun parseUserDetails(jsonObject: JSONObject): UserDetails? {
             jsonObject.optString("group"),
             normalizeAvatarId(jsonObject.optString("avatar")),
             chatRooms,
-            battles)
+            battles,
+            jsonObject.optBoolean("friended", false))
 }
 
 class GlobalMessageObserver(service: ShowdownService)
@@ -59,6 +61,8 @@ class GlobalMessageObserver(service: ShowdownService)
     private var requestServerCountsOnly = false
     private var pendingPrivateMessageTo: String? = null
     private val privateMessages = mutableMapOf<String, MutableList<String>>()
+    private val pendingFriendRequests = mutableSetOf<String>()
+    private var pendingFriendRequestCount = 0
 
     override fun onUiCallbacksAttached() {
         // If we did not stored at least username, we will not have anything else
@@ -77,6 +81,7 @@ class GlobalMessageObserver(service: ShowdownService)
         onChallengesChange(service.getSharedData("challenge_to"),
                 service.getSharedData("challenge_to_format"),
                 service.getSharedData("challenge_from") ?: emptyMap())
+        onFriendRequestsChanged(pendingFriendRequests, pendingFriendRequestCount)
     }
 
     public override fun onMessage(message: ServerMessage) {
@@ -88,6 +93,7 @@ class GlobalMessageObserver(service: ShowdownService)
             "queryresponse" -> processQueryResponse(message)
             "formats" -> processAvailableFormats(message)
             "popup" -> handlePopup(message)
+            "error" -> onShowPopup(message.remainingArgsRaw)
             "updatesearch" -> handleUpdateSearch(message)
             "pm" -> handlePm(message)
             "updatechallenges" -> handleChallenges(message)
@@ -121,6 +127,9 @@ class GlobalMessageObserver(service: ShowdownService)
         val avatar = normalizeAvatarId(msg.nextArg) ?: "000"
         service.putSharedData("avatar", avatar)
         isUserGuest = isGuest
+        pendingFriendRequests.clear()
+        pendingFriendRequestCount = 0
+        onFriendRequestsChanged(pendingFriendRequests, pendingFriendRequestCount)
         if (isGuest) service.markCurrentUserAsGuest()
         onUserChanged(username, isGuest, avatar)
 
@@ -199,7 +208,7 @@ class GlobalMessageObserver(service: ShowdownService)
         try {
             parseUserDetails(JSONObject(response))?.let {
                 onUserDetails(it.id, it.name, it.online, it.group, it.avatarId,
-                        it.rooms, it.battles)
+                        it.rooms, it.battles, it.friended)
             }
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -239,31 +248,34 @@ class GlobalMessageObserver(service: ShowdownService)
     }
 
     private fun handlePm(msg: ServerMessage) {
-        val from = msg.nextArg.substring(1)
-        val rawTo = msg.nextArg
+        val rawFrom = msg.nextArgSafe ?: return
+        val from = if (rawFrom == "~") "~" else rawFrom.drop(1)
+        val rawTo = msg.nextArgSafe ?: return
         val isSystemMessage = rawTo == "~"
-        val to = rawTo.substring(1)
+        val isServerMessage = rawFrom == "~"
+        val to = rawTo.drop(1)
         val myUsername = service.getSharedData<String>("myusername")?.drop(1)
-        var content = msg.nextArgSafe
+        var content = msg.remainingArgsRaw.takeIf(String::isNotEmpty) ?: return
 
         // Modern PS delivers battle challenges as PMs containing a "/challenge"
         // command instead of an |updatechallenges| message. Route these into the
         // challenge system so the accept/decline button is shown (and cleared).
-        if (content != null && content.startsWith("/challenge")) {
+        if (content.startsWith("/challenge")) {
             handlePmChallenge(from, to, myUsername, content)
             return
         }
-        // "/log" and "/nonotify" PMs are system notifications that only duplicate
-        // the challenge/battle state; don't show them as chat messages.
-        if (content != null && (content.startsWith("/log") || content.startsWith("/nonotify"))) return
+        if (handleFriendPm(from, content, isSystemMessage || isServerMessage)) return
+        // Other "/log" and "/nonotify" PMs are system notifications that only duplicate
+        // challenge/battle state; don't show them as chat messages.
+        if (content.startsWith("/log") || content.startsWith("/nonotify")) return
 
-        val isError = content?.startsWith("/error") == true
+        val isError = content.startsWith("/error")
         val with = resolvePrivateMessagePeer(
                 from, to, myUsername, pendingPrivateMessageTo, isSystemMessage, isError)
         val sentByMe = myUsername != null && from.toId() == myUsername.toId()
         if (sentByMe && (!isSystemMessage || with != null)) pendingPrivateMessageTo = null
         if (isError) {
-            onPrivateMessageError(with, content.orEmpty().removePrefix("/error").trim())
+            onPrivateMessageError(with, content.removePrefix("/error").trim())
             return
         }
         if (with == null) {
@@ -271,13 +283,59 @@ class GlobalMessageObserver(service: ShowdownService)
             return
         }
 
-        if (content != null && (content.startsWith("/raw") || content.startsWith("/html") || content.startsWith("/uhtml")))
-            content = "Html messages not supported in pm."
+        content = privateMessageDisplayText(content)
         val message = "$from: $content"
         val messages = privateMessages.getOrPut(with, { mutableListOf<String>() })
         messages.add(message)
         onNewPrivateMessage(with, message)
     }
+
+    private fun handleFriendPm(from: String, content: String, isSystemMessage: Boolean): Boolean {
+        when (val event = parseFriendPm(from, content, isSystemMessage)) {
+            is FriendPmEvent.RequestCount -> {
+                pendingFriendRequestCount = event.count
+                onFriendRequestsChanged(pendingFriendRequests, pendingFriendRequestCount)
+                return true
+            }
+            is FriendPmEvent.Incoming -> {
+                setFriendRequest(event.user, true)
+                if (event.showInChat) {
+                    val message = "${event.user}: sent you a friend request."
+                    privateMessages.getOrPut(event.user) { mutableListOf() }.add(message)
+                    onNewPrivateMessage(event.user, message)
+                }
+                return true
+            }
+            is FriendPmEvent.Resolved -> {
+                setFriendRequest(event.user, false)
+                return true
+            }
+            FriendPmEvent.Ignore -> return true
+            null -> return false
+        }
+    }
+
+    private fun setFriendRequest(user: String, pending: Boolean) {
+        if (user.isBlank()) return
+        val matching = pendingFriendRequests.firstOrNull { it.toId() == user.toId() }
+        if (matching != null) pendingFriendRequests.remove(matching)
+        if (pending) pendingFriendRequests.add(user)
+        pendingFriendRequestCount = if (pendingFriendRequestCount > pendingFriendRequests.size) {
+            if (!pending && matching != null) pendingFriendRequestCount - 1 else pendingFriendRequestCount
+        } else {
+            pendingFriendRequests.size
+        }
+        onFriendRequestsChanged(pendingFriendRequests, pendingFriendRequestCount)
+    }
+
+    internal fun syncPendingFriendRequests(users: Collection<String>) {
+        pendingFriendRequests.clear()
+        pendingFriendRequests.addAll(users)
+        pendingFriendRequestCount = users.size
+        onFriendRequestsChanged(pendingFriendRequests, pendingFriendRequestCount)
+    }
+
+    fun hasPendingFriendRequest(user: String) = pendingFriendRequests.any { it.toId() == user.toId() }
 
     private fun handlePmChallenge(from: String, to: String, myUsername: String?, content: String) {
         // "/challenge <format>" opens a challenge; a bare "/challenge" clears it
@@ -358,8 +416,8 @@ class GlobalMessageObserver(service: ShowdownService)
     fun onSearchBattlesChanged(searching: List<String>, games: Map<String, String>) = uiCallbacks?.onSearchBattlesChanged(searching, games)
     fun onReplaySaved(replayId: String, url: String) = uiCallbacks?.onReplaySaved(replayId, url)
     fun onUserDetails(id: String, name: String, online: Boolean, group: String,
-                      avatarId: String?, rooms: List<String>, battles: List<String>) =
-            uiCallbacks?.onUserDetails(id, name, online, group, avatarId, rooms, battles)
+                      avatarId: String?, rooms: List<String>, battles: List<String>, friended: Boolean) =
+            uiCallbacks?.onUserDetails(id, name, online, group, avatarId, rooms, battles, friended)
     fun onShowPopup(message: String) = uiCallbacks?.onShowPopup(message)
     fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>) = uiCallbacks?.onAvailableRoomsChanged(officialRooms, chatRooms)
     fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?) = uiCallbacks?.onAvailableBattleRoomsChanged(battleRooms)
@@ -369,6 +427,8 @@ class GlobalMessageObserver(service: ShowdownService)
     fun onRoomInit(roomId: String, type: String) = uiCallbacks?.onRoomInit(roomId, type)
     fun onRoomDeinit(roomId: String) = uiCallbacks?.onRoomDeinit(roomId)
     fun onNetworkError() = uiCallbacks?.onNetworkError()
+    fun onFriendRequestsChanged(users: Collection<String>, count: Int) =
+            uiCallbacks?.onFriendRequestsChanged(users.toSet(), count)
 
     interface UiCallbacks : AbsMessageObserver.UiCallbacks {
         fun onConnectedToServer()
@@ -378,7 +438,7 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onSearchBattlesChanged(searching: List<String>, games: Map<String, String>)
         fun onReplaySaved(replayId: String, url: String)
         fun onUserDetails(id: String, name: String, online: Boolean, group: String,
-                          avatarId: String?, rooms: List<String>, battles: List<String>)
+                          avatarId: String?, rooms: List<String>, battles: List<String>, friended: Boolean)
         fun onShowPopup(message: String)
         fun onAvailableRoomsChanged(officialRooms: List<ChatRoomInfo>, chatRooms: List<ChatRoomInfo>)
         fun onAvailableBattleRoomsChanged(battleRooms: List<BattleRoomInfo>?)
@@ -388,7 +448,58 @@ class GlobalMessageObserver(service: ShowdownService)
         fun onRoomInit(roomId: String, type: String)
         fun onRoomDeinit(roomId: String)
         fun onNetworkError()
+        fun onFriendRequestsChanged(users: Set<String>, count: Int)
     }
+
+}
+
+internal sealed class FriendPmEvent {
+    data class RequestCount(val count: Int) : FriendPmEvent()
+    data class Incoming(val user: String, val showInChat: Boolean) : FriendPmEvent()
+    data class Resolved(val user: String) : FriendPmEvent()
+    data object Ignore : FriendPmEvent()
+}
+
+private val FRIEND_REQUEST_COUNT = Regex(
+        "^/nonotify You have (\\d+) friend requests? pending!$", RegexOption.IGNORE_CASE)
+
+internal fun parseFriendPm(from: String, content: String, isSystemMessage: Boolean): FriendPmEvent? {
+    if (isSystemMessage) return FRIEND_REQUEST_COUNT.matchEntire(content)?.groupValues?.get(1)
+            ?.toIntOrNull()?.let(FriendPmEvent::RequestCount)
+            ?: content.takeIf {
+                it.startsWith("/raw ") && it.contains("/j view-friends-received")
+            }?.let { FriendPmEvent.Ignore }
+    val fromId = from.toId()
+    if (fromId.isEmpty()) return null
+    return when {
+        FRIEND_ACTION_CONFIRMATION.matches(content) -> FriendPmEvent.Ignore
+        content.startsWith("/raw ") && content.contains("sent you a friend request!", true) ->
+            FriendPmEvent.Incoming(from, showInChat = true)
+        content.startsWith("/raw ") && content.contains("If this request is accepted", true) ->
+            FriendPmEvent.Ignore
+        content.startsWith("/uhtml sent-$fromId,") &&
+                content.contains("/friends accept $fromId") &&
+                content.contains("/friends reject $fromId") ->
+            FriendPmEvent.Incoming(from, showInChat = false)
+        content.startsWith("/uhtmlchange sent-") -> content
+                .substringAfter("/uhtmlchange sent-").substringBefore(',').toId()
+                .takeIf { it.isNotEmpty() && it == fromId }?.let(FriendPmEvent::Resolved)
+        content.startsWith("/uhtml undo-") || content.startsWith("/uhtmlchange undo-") ->
+            FriendPmEvent.Ignore
+        else -> null
+    }
+}
+
+private val FRIEND_ACTION_CONFIRMATION = Regex(
+        "^/text You (?:(?:accepted|denied) a friend request from|removed your friend request to) " +
+                "['\"][a-z0-9]+['\"]\\.$",
+        RegexOption.IGNORE_CASE)
+
+internal fun privateMessageDisplayText(content: String): String = when {
+    content.startsWith("/text ") -> content.removePrefix("/text ")
+    content.startsWith("/raw") || content.startsWith("/html") || content.startsWith("/uhtml") ->
+        "Html messages not supported in pm."
+    else -> content
 }
 
 internal fun resolvePrivateMessagePeer(

@@ -29,9 +29,16 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/remove_button"
+        android:id="@+id/chat_button"
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:text="@string/remove_friend" />
+        android:text="@string/chat" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/challenge_button"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="@string/challenge" />
 </LinearLayout>

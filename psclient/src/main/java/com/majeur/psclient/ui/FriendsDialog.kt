@@ -310,16 +310,6 @@ class FriendsDialog : androidx.fragment.app.DialogFragment(), FriendsMessageObse
         dialog.show()
     }
 
-    private fun removeFriend(friend: FriendInfo) {
-        MaterialAlertDialogBuilder(requireContext())
-                .setMessage(getString(R.string.remove_friend_question, friend.name))
-                .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.remove_friend) { _, _ ->
-                    sendFriendAction(FriendAction.REMOVE, friend.id)
-                }
-                .show()
-    }
-
     private fun presenceLabel(presence: FriendPresence) = getString(when (presence) {
         FriendPresence.ONLINE -> R.string.friend_online
         FriendPresence.IDLE -> R.string.friend_idle
@@ -353,7 +343,12 @@ class FriendsDialog : androidx.fragment.app.DialogFragment(), FriendsMessageObse
                 row.friend.lastSeen?.let { add(getString(R.string.friend_last_seen, it)) }
             }.joinToString(" · ")
             view.findViewById<TextView>(R.id.details).text = details
-            view.findViewById<View>(R.id.remove_button).setOnClickListener { removeFriend(row.friend) }
+            view.findViewById<View>(R.id.chat_button).setOnClickListener {
+                (parentFragment as? HomeFragment)?.startPrivateChat(row.friend.name)
+            }
+            view.findViewById<View>(R.id.challenge_button).setOnClickListener {
+                (parentFragment as? HomeFragment)?.challengeSomeone(row.friend.name)
+            }
             view.setOnClickListener { service?.sendGlobalCommand("cmd userdetails", row.friend.id) }
             return view
         }

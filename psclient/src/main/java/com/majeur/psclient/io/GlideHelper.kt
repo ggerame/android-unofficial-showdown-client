@@ -29,13 +29,19 @@ import com.majeur.psclient.util.html.Html
 import com.majeur.psclient.util.minusFirst
 import com.majeur.psclient.util.toId
 import com.majeur.psclient.widget.BattleLayout
+import org.json.JSONObject
 import timber.log.Timber
 import java.util.concurrent.ExecutionException
 import kotlin.math.roundToInt
 
 internal fun normalizeAvatarId(avatar: String?): String? = avatar
         ?.takeIf(String::isNotBlank)
-        ?.let { if (it.all(Char::isDigit)) it.padStart(3, '0') else it }
+        ?.let { value ->
+            if (value.all(Char::isDigit)) value.trimStart('0').ifEmpty { "0" } else value
+        }
+
+internal fun resolveAvatarId(avatar: String?, aliases: Map<String, String>): String? =
+        normalizeAvatarId(avatar)?.let { aliases[it] ?: it }
 
 class GlideHelper(context: Context) {
 
@@ -92,6 +98,19 @@ class GlideHelper(context: Context) {
 
     private val glide = Glide.with(context)
     private val resources = context.resources
+    private val trainerAvatarAliases: Map<String, String> by lazy {
+        try {
+            resources.openRawResource(R.raw.trainer_avatar_ids).bufferedReader().use { reader ->
+                val json = JSONObject(reader.readText())
+                val aliases = mutableMapOf<String, String>()
+                json.keys().forEach { key -> aliases[key] = json.getString(key) }
+                aliases
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Unable to load trainer avatar aliases")
+            emptyMap()
+        }
+    }
 
     fun loadHomeBackground(@DrawableRes background: Int, imageView: ImageView) {
         glide.load(background)
@@ -205,7 +224,7 @@ class GlideHelper(context: Context) {
                     DrawableCompat.setTint(it, MaterialColors.getColor(imageView,
                             com.google.android.material.R.attr.colorOnSurface))
                 }
-        val avatarId = normalizeAvatarId(avatar)
+        val avatarId = resolveAvatarId(avatar, trainerAvatarAliases)
         val uri = when {
             avatarId == null -> null
             avatarId.startsWith('#') -> Uri.Builder().scheme("https")

@@ -16,9 +16,14 @@ All notable changes made are documented here.
   caching, manual refresh, reconnect handling, and no WebView or local database.
 
 ### Fixed
+- Conversation and challenge cards can now be dismissed without restarting the app.
+- Legacy numeric Showdown avatar IDs now resolve to their trainer sprites
+  instead of displaying the neutral account placeholder.
 - Private messages now preserve embedded pipe characters, render `/text` as
   plain text, and recognize official friend-request HTML without showing the
   previous “Html messages not supported in pm.” placeholder.
+- Starting a chat or challenge from the Friends center now closes it and
+  reveals the destination screen correctly.
 
 ## [1.6.4] – Data refresh and team-builder alignment
 

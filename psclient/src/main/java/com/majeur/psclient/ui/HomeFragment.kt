@@ -286,6 +286,9 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             }
         }
         binding.pmsOverview.apply {
+            onEntryDismissedListener = {
+                if (isEmpty) binding.pmsContainer.visibility = View.GONE
+            }
             onItemClickListener = object : OnItemClickListener {
                 override fun onItemClick(with: String) = startPrivateChat(with)
             }
@@ -725,6 +728,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             makeSnackbar("Cannot talk to yourself")
             return
         }
+        dismissFriendsDialog()
         if (parentFragmentManager.findFragmentByTag(PrivateChatDialog.FRAGMENT_TAG) != null) return
         val dialog = PrivateChatDialog.newInstance(user)
         dialog.show(parentFragmentManager, PrivateChatDialog.FRAGMENT_TAG)
@@ -755,6 +759,7 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
             isAcceptingChallenge -> makeSnackbar("You are already accepting a challenge")
             battleFragment.battleRunning -> makeSnackbar("You cannot challenge someone while being in a battle")
             else -> {
+                dismissFriendsDialog()
                 isChallengingSomeone = true
                 waitingForChallenge = false
                 challengeCommandPending = false
@@ -765,6 +770,10 @@ class HomeFragment : BaseFragment(), GlobalMessageObserver.UiCallbacks, View.OnC
                 binding.root.post { binding.root.fullScroll(View.FOCUS_UP) }
             }
         }
+    }
+
+    private fun dismissFriendsDialog() {
+        (childFragmentManager.findFragmentByTag(FriendsDialog.TAG) as? FriendsDialog)?.dismiss()
     }
 
     private fun resetOutgoingChallenge() {

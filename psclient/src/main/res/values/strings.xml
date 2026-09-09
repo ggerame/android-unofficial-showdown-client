@@ -165,6 +165,7 @@
     <string name="log_out">Log out</string>
     <string name="reject">Reject</string>
     <string name="challenge">Challenge</string>
+    <string name="dismiss_user_card">Dismiss conversation or challenge with %1$s</string>
     <string name="flip_viewpoint">Flip viewpoint</string>
     <string name="send_battle_message">Send a battle message</string>
     <string name="forfeit_battle">Forfeit battle</string>

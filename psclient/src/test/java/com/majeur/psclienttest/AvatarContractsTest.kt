@@ -1,6 +1,7 @@
 package com.majeur.psclienttest
 
 import com.majeur.psclient.io.normalizeAvatarId
+import com.majeur.psclient.io.resolveAvatarId
 import com.majeur.psclient.service.observer.parseUserDetails
 import com.majeur.psclient.ui.consumeUserDetailsResponse
 import org.json.JSONObject
@@ -14,13 +15,31 @@ import org.mockito.Mockito.`when`
 
 class AvatarContractsTest {
 
-    @Test fun numericAvatarsArePaddedWithoutCorruptingCustomNames() {
-        assertEquals("007", normalizeAvatarId("7"))
+    @Test fun numericAvatarsAreCanonicalizedWithoutCorruptingCustomNames() {
+        assertEquals("7", normalizeAvatarId("7"))
+        assertEquals("7", normalizeAvatarId("007"))
         assertEquals("123", normalizeAvatarId("123"))
         assertEquals("staff-avatar.png", normalizeAvatarId("staff-avatar.png"))
         assertEquals("#Staff Avatar", normalizeAvatarId("#Staff Avatar"))
         assertNull(normalizeAvatarId(""))
         assertNull(normalizeAvatarId(null))
+    }
+
+    @Test fun legacyAvatarIdsAndAliasesResolveBeforeBuildingTheUrl() {
+        val aliases = mapOf(
+                "7" to "bugcatcher-gen4dp",
+                "190" to "elesa",
+                "#bw2elesa" to "elesa-gen5bw2",
+                "1001" to "#1001")
+
+        assertEquals("bugcatcher-gen4dp", resolveAvatarId("7", aliases))
+        assertEquals("bugcatcher-gen4dp", resolveAvatarId("007", aliases))
+        assertEquals("elesa", resolveAvatarId("190", aliases))
+        assertEquals("elesa-gen5bw2", resolveAvatarId("#bw2elesa", aliases))
+        assertEquals("#1001", resolveAvatarId("1001", aliases))
+        assertEquals("red-gen9", resolveAvatarId("red-gen9", aliases))
+        assertNull(resolveAvatarId("", aliases))
+        assertNull(resolveAvatarId(null, aliases))
     }
 
     @Test fun userDetailsIncludesAvatarAndSeparatesRoomsFromBattles() {
@@ -36,7 +55,7 @@ class AvatarContractsTest {
 
         val details = parseUserDetails(json)!!
 
-        assertEquals("007", details.avatarId)
+        assertEquals("7", details.avatarId)
         assertTrue(details.online)
         assertEquals(listOf("lobby"), details.rooms)
         assertEquals(listOf("battle-gen9ou-1"), details.battles)

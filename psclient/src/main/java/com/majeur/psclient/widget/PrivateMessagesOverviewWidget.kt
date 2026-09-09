@@ -21,6 +21,7 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
 
     var onItemClickListener: OnItemClickListener? = null
     var onItemButtonClickListener: OnItemButtonClickListener? = null
+    var onEntryDismissedListener: (() -> Unit)? = null
     val isEmpty: Boolean
         get() = childCount == 0
 
@@ -95,6 +96,10 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
         view.findViewById<View>(R.id.button_reject).setOnClickListener {
             onItemButtonClickListener?.onRejectButtonClick(entry.with)
         }
+        view.findViewById<View>(R.id.button_close).setOnClickListener {
+            removeViewForEntry(entry)
+            onEntryDismissedListener?.invoke()
+        }
         (context as MainActivity).glideHelper.loadAvatar(null,
                 view.findViewById(R.id.avatar))
         addView(view)
@@ -108,6 +113,8 @@ class PrivateMessagesOverviewWidget @JvmOverloads constructor(context: Context?,
     private fun updateViewForEntry(entry: Entry) {
         val view = children.first { it.tag == entry } as ViewGroup
         view.findViewById<TextView>(R.id.username).text = entry.with
+        view.findViewById<View>(R.id.button_close).contentDescription =
+                context.getString(R.string.dismiss_user_card, entry.with)
         val label = view.findViewById<TextView>(R.id.label)
         label.text = ""
         val button = view.findViewById<MaterialButton>(R.id.button_challenge)

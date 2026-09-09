@@ -63,5 +63,12 @@ coordinates, timings and transitions); no source code is redistributed.
 The field-effect graphics (fx/) that this data references are NOT bundled; they
 are fetched at runtime from https://play.pokemonshowdown.com/fx/ as noted above.
 
+Bundled trainer avatar compatibility data
+-----------------------------------------
+The file psclient/src/main/res/raw/trainer_avatar_ids.json is generated from
+BattleAvatarNumbers in the Pokémon Showdown client's battle-dex-data.ts. This
+legacy avatar ID mapping is distributed under the same MIT License reproduced
+above.
+
 Third-party components used by this app are distributed under their own
 licenses; see the dependency declarations in psclient/build.gradle.

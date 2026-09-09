@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.view.*
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.TextView
@@ -34,6 +33,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
 
     private var _binding: FragmentChatBinding? = null
     private val binding get() = _binding!!
+    private val chat get() = binding.chatContent
 
     private var _observedRoomId: String? = null
     var observedRoomId: String?
@@ -63,7 +63,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.chatLog.apply {
+        chat.chatLog.apply {
             movementMethod = LinkMovementMethod()
             animate().duration = 200
         }
@@ -72,7 +72,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
             if (observer.roomJoined) service?.sendRoomCommand(observedRoomId, "leave")
             else service?.sendGlobalCommand("cmd", "rooms")
         }
-        binding.emptyState.setOnClickListener { binding.joinButton.performClick() }
+        chat.emptyState.setOnClickListener { binding.joinButton.performClick() }
         binding.usersCount.setOnClickListener { v: View ->
             val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1, observer.users)
             AlertDialog.Builder(requireActivity())
@@ -84,53 +84,39 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
                     .setNegativeButton("Close", null)
                     .show()
         }
-        binding.sendButton.setOnClickListener { sendMessageIfAny() }
-        binding.messageInput.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
-            if (actionId == EditorInfo.IME_ACTION_SEND) {
-                sendMessageIfAny()
-                return@setOnEditorActionListener true
-            }
-            false
-        }
+        chat.onSendMessage { service?.sendRoomMessage(observedRoomId, it) }
         setUiState(roomJoined = false)
     }
 
     private fun setUiState(roomJoined: Boolean) {
         if (roomJoined) {
             binding.apply {
-                emptyState.visibility = View.GONE
-                messageInput.isEnabled = true
-                messageInput.requestFocus()
-                sendButton.isEnabled = true
-                sendButton.drawable.alpha = 255
+                chat.emptyState.visibility = View.GONE
+                chat.messageInput.isEnabled = true
+                chat.messageInput.requestFocus()
+                chat.sendButton.isEnabled = true
+                chat.sendButton.drawable.alpha = 255
                 joinButton.setImageResource(R.drawable.ic_exit)
-                chatLog.gravity = Gravity.START
-                chatLog.setText("", TextView.BufferType.EDITABLE)
+                chat.chatLog.gravity = Gravity.START
+                chat.chatLog.setText("", TextView.BufferType.EDITABLE)
             }
         } else {
             binding.apply {
                 roomTitle.setText(R.string.chat)
                 usersCount.text = "-\nusers"
-                messageInput.text?.clear()
-                messageInput.clearFocus()
-                messageInput.isEnabled = false
-                sendButton.isEnabled = false
-                sendButton.drawable.alpha = 128
+                chat.messageInput.text?.clear()
+                chat.messageInput.clearFocus()
+                chat.messageInput.isEnabled = false
+                chat.sendButton.isEnabled = false
+                chat.sendButton.drawable.alpha = 128
                 joinButton.setImageResource(R.drawable.ic_enter)
                 joinButton.requestFocus() // Remove focus from message input widget
-                chatLog.text = ""
-                chatLog.gravity = Gravity.START
-                emptyState.visibility = View.VISIBLE
+                chat.chatLog.text = ""
+                chat.chatLog.gravity = Gravity.START
+                chat.emptyState.visibility = View.VISIBLE
             }
-            inputMethodManager.hideSoftInputFromWindow(binding.messageInput.windowToken, 0)
+            inputMethodManager.hideSoftInputFromWindow(chat.messageInput.windowToken, 0)
         }
-    }
-
-    private fun sendMessageIfAny() {
-        val message = binding.messageInput.text.toString()
-        if (message.isEmpty()) return
-        service?.sendRoomMessage(observedRoomId, message)
-        binding.messageInput.text?.clear()
     }
 
     override fun onServiceBound(service: ShowdownService) {
@@ -154,7 +140,7 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
     }
 
     private fun postFullScroll() {
-        binding.chatLogContainer.post { binding.chatLogContainer.fullScroll(View.FOCUS_DOWN) }
+        chat.scrollToBottom()
     }
 
 
@@ -167,26 +153,25 @@ class ChatFragment : BaseFragment(), ChatRoomMessageObserver.UiCallbacks {
     }
 
     override fun onPrintText(text: CharSequence) {
-        val fullScrolled = Utils.fullScrolled(binding.chatLogContainer)
-        if (binding.chatLog.length() > 0) binding.chatLog.append("\n")
-        binding.chatLog.append(text)
+        val fullScrolled = Utils.fullScrolled(chat.chatLogContainer)
+        chat.appendMessage(text)
         notifyNewMessageReceived()
         if (fullScrolled) postFullScroll()
     }
 
     override fun onPrintHtml(html: String) {
         val mark = Any()
-        val l = binding.chatLog.length()
-        binding.chatLog.append("\u200C")
-        binding.chatLog.editableText.setSpan(mark, l, l + 1, Spanned.SPAN_MARK_MARK)
+        val l = chat.chatLog.length()
+        chat.chatLog.append("\u200C")
+        chat.chatLog.editableText.setSpan(mark, l, l + 1, Spanned.SPAN_MARK_MARK)
         Html.fromHtml(html,
                 Html.FROM_HTML_MODE_COMPACT,
-                glideHelper.getHtmlImageGetter(assetLoader, binding.chatLog.width),
+                glideHelper.getHtmlImageGetter(assetLoader, chat.chatLog.width),
                 Callback { spanned: Spanned? ->
-                    val at = binding.chatLog.editableText.getSpanStart(mark)
+                    val at = chat.chatLog.editableText.getSpanStart(mark)
                     if (at == -1) return@Callback // Check if text has been cleared
-                    val fullScrolled = Utils.fullScrolled(binding.chatLogContainer)
-                    binding.chatLog.editableText
+                    val fullScrolled = Utils.fullScrolled(chat.chatLogContainer)
+                    chat.chatLog.editableText
                             .insert(at, "\n")
                             .insert(at + 1, spanned)
                     notifyNewMessageReceived()

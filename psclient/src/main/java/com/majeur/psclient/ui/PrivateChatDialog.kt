@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.majeur.psclient.R
@@ -35,6 +34,7 @@ class PrivateChatDialog : DialogFragment() {
 
     private var _binding: DialogPrivateChatBinding? = null
     private val binding get() = _binding!!
+    private val chat get() = binding.chatContent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,15 +72,10 @@ class PrivateChatDialog : DialogFragment() {
             friendRequestText.text = getString(R.string.friend_request_from, chatWith)
             acceptFriendButton.setOnClickListener { resolveFriendRequest(FriendAction.ACCEPT) }
             denyFriendButton.setOnClickListener { resolveFriendRequest(FriendAction.REJECT) }
-            chatLog.setText("", TextView.BufferType.SPANNABLE)
-            messageInput.setOnEditorActionListener { _, actionId, _ ->
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    sendMessageIfAny()
-                    return@setOnEditorActionListener true
-                }
-                false
-            }
-            sendButton.setOnClickListener { sendMessageIfAny() }
+        }
+        chat.chatLog.setText("", TextView.BufferType.SPANNABLE)
+        chat.onSendMessage {
+            (activity as MainActivity).service?.sendPrivateMessage(chatWith.toId(), it)
         }
         (activity as MainActivity).homeFragment.getPrivateMessages(chatWith)?.forEach {
             onNewMessage(it)
@@ -125,7 +120,7 @@ class PrivateChatDialog : DialogFragment() {
         }
         errorSnackbar?.dismiss()
         errorSnackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
-                .setAnchorView(binding.messageInput)
+                .setAnchorView(chat.messageInput)
                 .setAction(if (pendingRequestAction != null) getString(R.string.retry) else "Ok") {
                     pendingRequestAction?.let(::resolveFriendRequest)
                 }
@@ -136,17 +131,8 @@ class PrivateChatDialog : DialogFragment() {
     }
 
     private fun printMessage(message: CharSequence) {
-        if (binding.chatLog.length() > 0) binding.chatLog.append("\n")
-        binding.chatLog.append(message)
-        binding.root.post { binding.chatLogContainer.fullScroll(View.FOCUS_DOWN) }
-    }
-
-    private fun sendMessageIfAny() {
-        val message = binding.messageInput.text.toString()
-        if (message.isNotEmpty()) {
-            (activity as MainActivity).service?.sendPrivateMessage(chatWith.toId(), message)
-            binding.messageInput.text.clear()
-        }
+        chat.appendMessage(message)
+        chat.scrollToBottom()
     }
 
     fun onFriendshipStatus(friended: Boolean) {

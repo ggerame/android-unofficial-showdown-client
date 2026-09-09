@@ -14,6 +14,8 @@ All notable changes made are documented here.
 ### Changed
 - Friend data and actions use Pokémon Showdown directly, with in-memory page
   caching, manual refresh, reconnect handling, and no WebView or local database.
+- Private chats and room chats now share the same transcript and Material
+  message composer for a consistent interface.
 
 ### Fixed
 - Conversation and challenge cards can now be dismissed without restarting the app.

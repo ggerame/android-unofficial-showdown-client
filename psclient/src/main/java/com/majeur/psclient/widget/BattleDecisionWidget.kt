@@ -29,6 +29,9 @@ import com.majeur.psclient.R
 import com.majeur.psclient.model.battle.BattleDecision
 import com.majeur.psclient.model.battle.BattleDecisionRequest
 import com.majeur.psclient.model.battle.Move
+import com.majeur.psclient.model.battle.StabBonus
+import com.majeur.psclient.model.battle.calculateStab
+import com.majeur.psclient.model.battle.effectiveMoveType
 import com.majeur.psclient.model.battle.Player
 import com.majeur.psclient.model.battle.PokemonId
 import com.majeur.psclient.model.battle.Move.Target.Companion.computeTargetAvailabilities
@@ -38,7 +41,9 @@ import com.majeur.psclient.model.pokemon.BattlingPokemon
 import com.majeur.psclient.model.pokemon.SidePokemon
 import com.majeur.psclient.service.observer.BattleRoomMessageObserver
 import com.majeur.psclient.util.SimpleAnimatorListener
+import com.majeur.psclient.util.bold
 import com.majeur.psclient.util.concat
+import com.majeur.psclient.util.dp
 import com.majeur.psclient.util.small
 import com.majeur.psclient.util.toId
 import java.util.Locale
@@ -96,6 +101,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
     private var gimmick = Gimmick.NONE
     private val switchTabs = mutableSetOf<Int>()
     private val gimmicksByStage = mutableMapOf<Int, Gimmick>()
+    private val attackerTypesByStage = mutableMapOf<Int, List<String>>()
 
     private var trainerTargets: List<BattlingPokemon?> = emptyList()
     private var foeTargets: List<BattlingPokemon?> = emptyList()
@@ -162,6 +168,10 @@ class BattleDecisionWidget @JvmOverloads constructor(
             when (gimmick) {
                 Gimmick.Z_MOVE -> toggleZMoves(checked)
                 Gimmick.DYNAMAX -> toggleMaxMoves(checked)
+                Gimmick.TERA -> {
+                    updateGimmickButtonText()
+                    refreshVisibleMoves()
+                }
                 else -> Unit
             }
         }
@@ -221,6 +231,7 @@ class BattleDecisionWidget @JvmOverloads constructor(
         targetMoveName = null
         switchTabs.clear()
         gimmicksByStage.clear()
+        attackerTypesByStage.clear()
         _observer = observer
         _battleTipPopup = battleTipPopup
         _request = request
@@ -517,23 +528,17 @@ class BattleDecisionWidget @JvmOverloads constructor(
         updatingGimmick = true
         gimmickButton.apply {
             visibility = if (gimmick == Gimmick.NONE) View.GONE else View.VISIBLE
-            text = when (gimmick) {
-                Gimmick.MEGA -> context.getString(R.string.battle_mega_evolution)
-                Gimmick.Z_MOVE -> context.getString(R.string.battle_z_move)
-                Gimmick.DYNAMAX -> context.getString(R.string.battle_dynamax)
-                Gimmick.TERA -> context.getString(
-                        R.string.battle_terastallize, teraType?.uppercase(Locale.ROOT).orEmpty())
-                Gimmick.NONE -> null
-            }
             isChecked = gimmicksByStage[promptStage] == gimmick && gimmick != Gimmick.NONE
         }
         updatingGimmick = false
+        updateGimmickButtonText()
 
         when {
             isDynamaxed -> toggleMaxMoves(true)
             gimmickButton.isChecked && gimmick == Gimmick.Z_MOVE -> toggleZMoves(true)
             gimmickButton.isChecked && gimmick == Gimmick.DYNAMAX -> toggleMaxMoves(true)
         }
+        refreshVisibleMoves()
     }
 
     private fun bindTeamChoices(team: List<SidePokemon>?, chooseLead: Boolean) =
@@ -656,36 +661,101 @@ class BattleDecisionWidget @JvmOverloads constructor(
         refreshMoveButton(button, move)
     }
 
+    private fun updateGimmickButtonText() {
+        val label = when (gimmick) {
+            Gimmick.MEGA -> context.getString(R.string.battle_mega_evolution)
+            Gimmick.Z_MOVE -> context.getString(R.string.battle_z_move)
+            Gimmick.DYNAMAX -> context.getString(R.string.battle_dynamax)
+            Gimmick.TERA -> context.getString(
+                    R.string.battle_terastallize,
+                    request.canTerastallize(promptStage)?.uppercase(Locale.ROOT).orEmpty())
+            Gimmick.NONE -> return
+        }
+        gimmickButton.text = if (gimmick == Gimmick.TERA && gimmickButton.isChecked) {
+            context.getString(R.string.battle_tera_preview, label)
+        } else label
+    }
+
     private fun refreshMoveButton(button: MaterialButton, move: Move) {
         val details = when {
             move.maxflag -> move.maxDetails ?: move.details
             move.zflag -> move.zDetails ?: move.details
             else -> move.details
         }
+        val sidePokemon = request.side.getOrNull(promptStage)
+        val teraPreview = gimmick == Gimmick.TERA && gimmickButton.isChecked
+        val teraActive = sidePokemon?.terastallized != null || teraPreview
+        val teraType = sidePokemon?.terastallized
+                ?: request.canTerastallize(promptStage)?.takeIf { teraPreview }
+        val moveType = effectiveMoveType(move.id, details?.type, teraType, teraActive)
+        val stab = calculateStab(
+                move.id,
+                moveType,
+                details?.category,
+                attackerTypesByStage[promptStage],
+                teraType,
+                teraActive,
+                sidePokemon?.ability)
         val enabled = when {
             move.maxflag -> move.maxMoveId != null
             move.zflag -> move.canZMove
             else -> !move.disabled
         }
-        val color = details?.color?.takeIf { it != 0 } ?: defaultMoveTint
+        val color = moveType?.let { Colors.typeColor(it.toId()) }?.takeIf { it != 0 }
+                ?: details?.color?.takeIf { it != 0 }
+                ?: defaultMoveTint
+        move.displayTypeOverride = moveType?.takeIf { it != details?.type }
+        move.stabDescription = stabDescription(stab, teraPreview)
         button.apply {
-            text = moveText(move, details)
+            text = moveText(move, details, moveType, stab)
+            contentDescription = text.toString().replace("\n", ", ")
             isEnabled = enabled
             alpha = if (enabled) 1f else 0.55f
             backgroundTintList = ColorStateList.valueOf(color)
             setTextColor(Colors.contrastTextColor(color))
+            strokeColor = ColorStateList.valueOf(Colors.contrastTextColor(color))
+            strokeWidth = if (stab != null) dp(2f) else 0
         }
     }
 
-    private fun moveText(move: Move, details: Move.Details?): CharSequence {
+    private fun moveText(
+            move: Move,
+            details: Move.Details?,
+            moveType: String?,
+            stab: StabBonus?
+    ): CharSequence {
         val metadata = mutableListOf<String>()
-        details?.type?.takeIf(String::isNotBlank)?.let { metadata.add(it.uppercase(Locale.ROOT)) }
+        moveType?.takeIf(String::isNotBlank)?.let { metadata.add(it.uppercase(Locale.ROOT)) }
         if (move.pp >= 0 && move.ppMax >= 0) {
             metadata.add(context.getString(R.string.battle_move_pp, move.pp, move.ppMax))
         }
-        effectivenessLabel(details)?.let(metadata::add)
+        effectivenessLabel(details, moveType)?.let(metadata::add)
         val name = displayMoveName(move, move.zflag, move.maxflag)
-        return if (metadata.isEmpty()) name else name concat "\n" concat metadata.joinToString(" · ").small()
+        val detailsText = if (metadata.isEmpty()) name else {
+            name concat "\n" concat metadata.joinToString(" · ").small()
+        }
+        return stabLabel(stab)?.let { detailsText concat "\n" concat it.small().bold() } ?: detailsText
+    }
+
+    private fun stabLabel(stab: StabBonus?): String? = when (stab) {
+        is StabBonus.Multiplier -> context.getString(
+                R.string.battle_move_stab, formatMultiplier(stab.value))
+        StabBonus.StellarStab -> context.getString(R.string.battle_move_stab_stellar)
+        StabBonus.Stellar -> context.getString(R.string.battle_move_stellar)
+        StabBonus.Unknown -> context.getString(R.string.battle_move_stab_unknown)
+        null -> null
+    }
+
+    private fun stabDescription(stab: StabBonus?, preview: Boolean): String? {
+        val label = when (stab) {
+            is StabBonus.Multiplier -> context.getString(
+                    R.string.battle_move_stab_description, formatMultiplier(stab.value))
+            StabBonus.StellarStab -> context.getString(R.string.battle_move_stab_stellar_description)
+            StabBonus.Stellar -> context.getString(R.string.battle_move_stellar_description)
+            StabBonus.Unknown -> context.getString(R.string.battle_move_stab_unknown_description)
+            null -> return null
+        }
+        return if (preview) context.getString(R.string.battle_move_stab_preview_description, label) else label
     }
 
     private fun displayMoveName(move: Move, zMove: Boolean, maxMove: Boolean): String = when {
@@ -700,10 +770,16 @@ class BattleDecisionWidget @JvmOverloads constructor(
         refreshVisibleMoves()
     }
 
-    private fun effectivenessLabel(details: Move.Details?): String? {
+    fun setAttackerTypes(requestId: Int, which: Int, types: List<String>?) {
+        if (_request?.id != requestId) return
+        if (types == null) attackerTypesByStage.remove(which) else attackerTypesByStage[which] = types
+        if (which == promptStage) refreshVisibleMoves()
+    }
+
+    private fun effectivenessLabel(details: Move.Details?, moveType: String? = details?.type): String? {
         val types = foeTypes ?: return null
-        val type = details?.type ?: return null
-        if (details.category.toId() == "status") return null
+        val type = moveType ?: return null
+        if (details?.category.orEmpty().toId() == "status") return null
         val multiplier = Type.effectiveness(type, types)
         if (multiplier == 1.0) return null
         return "${formatMultiplier(multiplier)}×"
@@ -726,9 +802,12 @@ class BattleDecisionWidget @JvmOverloads constructor(
 
     fun notifyMaxDetailsUpdated() = refreshVisibleMoves()
 
-    private fun refreshVisibleMoves() = moveButtons.forEach { button ->
-        val move = button.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
-        refreshMoveButton(button, move)
+    private fun refreshVisibleMoves() {
+        if (_request == null) return
+        moveButtons.forEach { button ->
+            val move = button.getTag(R.id.battle_data_tag) as? Move ?: return@forEach
+            refreshMoveButton(button, move)
+        }
     }
 
     internal fun setBattleViewFlipped(flipped: Boolean) {

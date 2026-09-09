@@ -758,6 +758,8 @@ class BattleRoomMessageObserver(service: ShowdownService)
                 val pokemon = getBattlingPokemon(pokemonId)
                 val tpokemon = getBattlingPokemon(targetId)
                 pokemon?.transformSpecies = tpokemon?.spriteId
+                pokemon?.changedTypes = tpokemon?.changedTypes
+                pokemon?.addedType = tpokemon?.addedType
                 onDetailsChanged(pokemon!!)
                 for (vStatus in pokemon.volatiles) onVolatileStatusChanged(pokemonId, vStatus, false)
                 for (vStatus in tpokemon!!.volatiles) onVolatileStatusChanged(pokemonId, vStatus, true)
@@ -794,6 +796,12 @@ class BattleRoomMessageObserver(service: ShowdownService)
                     pokemon.volatiles.remove("telekinesis")
                 }
                 if (start) pokemon.volatiles.add(effectId) else pokemon.volatiles.remove(effectId)
+                when (effectId) {
+                    "typechange" -> pokemon.changedTypes = if (start) {
+                        arg3?.split('/')?.map(String::trim)?.filter(String::isNotEmpty)
+                    } else null
+                    "typeadd" -> pokemon.addedType = if (start) arg3?.trim()?.takeIf(String::isNotEmpty) else null
+                }
             }
             if (!silent) displayMinorActionMessage(text)
         }

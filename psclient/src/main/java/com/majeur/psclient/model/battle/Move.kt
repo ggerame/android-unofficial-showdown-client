@@ -20,6 +20,8 @@ class Move(val index: Int, json: JSONObject, zJson: JSONObject?, maxJson: JSONOb
     var maxMoveId = maxJson?.optString("move")
     var maxMoveTarget = if (maxJson != null) Target.parse(maxJson.optString("target")) else null
     var maxDetails: Details? = null
+    var displayTypeOverride: String? = null
+    var stabDescription: String? = null
 
     // Flag to know if this move should be read as
     // z-move, max-move or regular move

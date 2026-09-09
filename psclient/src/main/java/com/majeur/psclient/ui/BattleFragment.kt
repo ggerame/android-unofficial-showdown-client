@@ -586,11 +586,13 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         if (desc.isNotBlank()) descView.append(desc.italic())
         var type: String? = null
         if (move.maxflag) type = move.maxDetails?.type ?: "???"
-        if (type == null) type = move.details?.type ?: "???"
+        if (type == null) type = move.displayTypeOverride ?: move.details?.type ?: "???"
         placeHolderTop.setImageResource(Type.getResId(type))
         val category = move.details?.category
         val drawable = if (category != null) CategoryDrawable(category) else null
         placeHolderBottom.setImageDrawable(drawable)
+
+        move.stabDescription?.let { descView.append("\n$it") }
 
         val moveType = type
         if (category != null && category.toId() != "status") {
@@ -658,6 +660,18 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
         val foe = observer.getBattlingPokemon(PokemonId(Player.FOE, 0)) ?: return null
         foe.teraType?.let { return listOf(it) }
         return assetLoader.dexPokemon(foe)?.let { listOfNotNull(it.firstType, it.secondType) }
+    }
+
+    private suspend fun attackingTypes(which: Int, pokemon: SidePokemon): List<String>? {
+        val active = observer.getBattlingPokemon(PokemonId(Player.TRAINER, which))
+        active?.changedTypes?.let { changed ->
+            return changed + listOfNotNull(active.addedType)
+        }
+        val dex = active?.transformSpecies?.let { assetLoader.dexPokemon(it) }
+                ?: active?.let { assetLoader.dexPokemon(it) }
+                ?: assetLoader.dexPokemon(pokemon)
+                ?: return null
+        return listOfNotNull(dex.firstType, dex.secondType) + listOfNotNull(active?.addedType)
     }
 
     private fun effectivenessLabel(multiplier: Double): CharSequence? = when {
@@ -984,7 +998,10 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             sendDecision(request.id, decision)
         }
         fragmentScope.launch {
-            binding.battleDecisionWidget.setFoeDefendingTypes(foeDefendingTypes())
+            val types = foeDefendingTypes()
+            if (_binding != null && lastDecisionRequest === request) {
+                binding.battleDecisionWidget.setFoeDefendingTypes(types)
+            }
         }
         var hideSwitch = true
         for (which in 0 until request.count) {
@@ -993,10 +1010,18 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             val moves = request.getMoves(which)
             if (hideMoves || moves == null || moves.isEmpty()) continue
             fragmentScope.launch {
+                val types = attackingTypes(which, request.side[which])
+                if (_binding != null && lastDecisionRequest === request) {
+                    binding.battleDecisionWidget.setAttackerTypes(request.id, which, types)
+                }
+            }
+            fragmentScope.launch {
                 assetLoader.movesDetails(*moves.map { it.detailsId }.toTypedArray()).forEachIndexed { index, details ->
                     moves[index].details = details
                 }
-                binding.battleDecisionWidget.notifyDetailsUpdated()
+                if (_binding != null && lastDecisionRequest === request) {
+                    binding.battleDecisionWidget.notifyDetailsUpdated()
+                }
             }
             fragmentScope.launch {
                 val zMoves = moves.map { it.zName?.toId() ?: "" }
@@ -1004,7 +1029,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     assetLoader.movesDetails(*zMoves.toTypedArray()).forEachIndexed { index, details ->
                         moves[index].zDetails = details
                     }
-                    binding.battleDecisionWidget.notifyDetailsUpdated()
+                    if (_binding != null && lastDecisionRequest === request) {
+                        binding.battleDecisionWidget.notifyDetailsUpdated()
+                    }
                 }
             }
             fragmentScope.launch {
@@ -1013,7 +1040,9 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
                     assetLoader.movesDetails(*maxMoves.toTypedArray()).forEachIndexed { index, details ->
                         moves[index].maxDetails = details
                     }
-                    binding.battleDecisionWidget.notifyMaxDetailsUpdated()
+                    if (_binding != null && lastDecisionRequest === request) {
+                        binding.battleDecisionWidget.notifyMaxDetailsUpdated()
+                    }
                 }
             }
         }

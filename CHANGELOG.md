@@ -2,7 +2,7 @@
 
 All notable changes made are documented here.
 
-## [1.6.6] – Battle move indicators and fixes
+## [1.6.6] – Battle move indicators and animation fixes
 
 ### Added
 - Battle move choices now show their STAB multiplier, including Adaptability
@@ -17,6 +17,12 @@ All notable changes made are documented here.
 - Move buttons keep a consistent height and alignment when STAB labels appear.
 - Hidden Power variants with generation-specific power values now use their
   correct type colour, STAB, matchup effectiveness and popup details.
+- Native battle animations now respect Pokémon Showdown's keyframe delays,
+  durations, scaling and final effects, and remain visible when an effect image
+  finishes loading after its scheduled start.
+- Toxic and Leech Seed now animate correctly, including poison application and
+  residual poison, burn and Leech Seed effects; status moves without a dedicated
+  sequence show a brief visual fallback.
 
 ## [1.6.5] – Friends
 

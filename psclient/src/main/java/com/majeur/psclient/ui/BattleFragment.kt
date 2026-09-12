@@ -816,7 +816,6 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
 
     override fun onMove(sourceId: PokemonId, targetId: PokemonId?, moveName: String, shouldAnim: Boolean) {
         if (!shouldAnim) return
-        val layout = binding.battleLayout
         fragmentScope.launch {
             val moveDetails = try {
                 assetLoader.moveDetails(moveName)
@@ -830,80 +829,94 @@ class BattleFragment : BaseFragment(), BattleRoomMessageObserver.UiCallbacks, Vi
             val defenderId =
                 if (moveDetails?.target == Move.Target.SELF) sourceId else (targetId ?: sourceId)
 
-            val sourceView = layout.getSpriteView(sourceId)
-            val targetView = layout.getSpriteView(defenderId)
-            if (sourceView == null || targetView == null || layout.width == 0 || layout.height == 0) {
-                playHitIndicatorFallback(moveName, defenderId)
-                return@launch
-            }
             val sequence = try {
                 assetLoader.moveAnim(moveName)
             } catch (e: Exception) {
                 Timber.w(e, "Failed to load move animation for %s", moveName)
                 null
             }
-            if (sequence == null) {
-                playHitIndicatorFallback(moveName, defenderId)
-                return@launch
-            }
-            val bitmaps = HashMap<String, Bitmap?>()
-            val scene = object : BattleAnimScene {
-                override val fieldWidth get() = layout.width.toFloat()
-                override val fieldHeight get() = layout.height.toFloat()
-
-                override fun participantBitmap(who: String): Bitmap? = bitmaps.getOrPut(who) {
-                    drawableToBitmap((if (who == "defender") targetView else sourceView).drawable)
-                }
-
-                override fun participantRect(who: String): RectF? {
-                    val v = if (who == "defender") targetView else sourceView
-                    return RectF(v.left.toFloat(), v.top.toFloat(), v.right.toFloat(), v.bottom.toFloat())
-                }
-
-                override fun participantZ(who: String): Float {
-                    // A Pokémon is on the far (top) side when it's a foe and the view isn't flipped,
-                    // or when it's the trainer and the view is flipped. Far = z 200, near = z 0.
-                    val id = if (who == "defender") defenderId else sourceId
-                    return if (id.foe != layout.flipped) 200f else 0f
-                }
-
-                override fun loadFx(effect: String, callback: (Bitmap) -> Unit) =
-                    glideHelper.loadAnimFxBitmap(effect, callback)
-
-                override fun addParticle(particle: AnimParticle) = layout.addAnimParticle(particle)
-
-                override fun setParticipantHidden(who: String, hidden: Boolean) {
-                    (if (who == "defender") targetView else sourceView).alpha = if (hidden) 0f else 1f
-                }
-
-                override fun flashBackground(color: String?, opacity: Float, timeMs: Int) =
-                    layout.flashAnimBackground(color, opacity, timeMs)
-
-                override fun post(delayMs: Long, action: () -> Unit) {
-                    layout.postDelayed(action, delayMs.coerceAtLeast(0L))
-                }
-
-                override suspend fun resolveOther(name: String): AnimSequence? = assetLoader.otherAnim(name)
-            }
-            try {
-                BattleAnimController(scene).play(sequence)
-            } catch (e: Exception) {
-                // Never let a malformed animation take down the battle; restore the sprites and
-                // fall back to the simple hit indicator.
-                Timber.w(e, "Move animation failed for %s", moveName)
-                sourceView.alpha = 1f
-                targetView.alpha = 1f
-                playHitIndicatorFallback(moveName, defenderId)
-            }
+            if (sequence == null || !playBattleAnimation(sourceId, defenderId, sequence, moveName))
+                playMoveFallback(defenderId, moveDetails?.category?.toId() == "status")
         }
     }
 
-    private fun playHitIndicatorFallback(moveName: String, targetId: PokemonId) {
-        fragmentScope.launch {
-            assetLoader.moveDetails(moveName)?.let { moveDetails ->
-                if ("status" == moveDetails.category.toId()) return@let
-                binding.battleLayout.displayHitIndicator(targetId)
+    private fun playMoveFallback(targetId: PokemonId, isStatus: Boolean) {
+        if (isStatus) {
+            binding.battleLayout.getSpriteView(targetId)?.apply {
+                animate().cancel()
+                alpha = 0.5f
+                animate().alpha(1f).setDuration(250).start()
             }
+        } else binding.battleLayout.displayHitIndicator(targetId)
+    }
+
+    override fun onStatusAnimation(id: PokemonId, name: String) {
+        fragmentScope.launch {
+            assetLoader.statusAnim(name)?.let { playBattleAnimation(id, id, it, name) }
+        }
+    }
+
+    override fun onOtherAnimation(sourceId: PokemonId, targetId: PokemonId, name: String) {
+        fragmentScope.launch {
+            assetLoader.otherAnim(name)?.let { playBattleAnimation(sourceId, targetId, it, name) }
+        }
+    }
+
+    private suspend fun playBattleAnimation(
+        sourceId: PokemonId,
+        targetId: PokemonId,
+        sequence: AnimSequence,
+        name: String,
+    ): Boolean {
+        val layout = binding.battleLayout
+        val sourceView = layout.getSpriteView(sourceId) ?: return false
+        val targetView = layout.getSpriteView(targetId) ?: return false
+        if (layout.width == 0 || layout.height == 0) return false
+        val bitmaps = HashMap<String, Bitmap?>()
+        val scene = object : BattleAnimScene {
+            override val fieldWidth get() = layout.width.toFloat()
+            override val fieldHeight get() = layout.height.toFloat()
+
+            override fun participantBitmap(who: String): Bitmap? = bitmaps.getOrPut(who) {
+                drawableToBitmap((if (who == "defender") targetView else sourceView).drawable)
+            }
+
+            override fun participantRect(who: String): RectF? {
+                val view = if (who == "defender") targetView else sourceView
+                return RectF(view.left.toFloat(), view.top.toFloat(), view.right.toFloat(), view.bottom.toFloat())
+            }
+
+            override fun participantZ(who: String): Float {
+                val id = if (who == "defender") targetId else sourceId
+                return if (id.foe != layout.flipped) 200f else 0f
+            }
+
+            override fun loadFx(effect: String, callback: (Bitmap?) -> Unit) =
+                glideHelper.loadAnimFxBitmap(effect, callback)
+
+            override fun addParticle(particle: AnimParticle) = layout.addAnimParticle(particle)
+
+            override fun setParticipantHidden(who: String, hidden: Boolean) {
+                (if (who == "defender") targetView else sourceView).alpha = if (hidden) 0f else 1f
+            }
+
+            override fun flashBackground(color: String?, opacity: Float, timeMs: Int) =
+                layout.flashAnimBackground(color, opacity, timeMs)
+
+            override fun post(delayMs: Long, action: () -> Unit) {
+                layout.postDelayed(action, delayMs.coerceAtLeast(0L))
+            }
+
+            override suspend fun resolveOther(name: String): AnimSequence? = assetLoader.otherAnim(name)
+        }
+        return try {
+            BattleAnimController(scene).play(sequence)
+            true
+        } catch (e: Exception) {
+            Timber.w(e, "Battle animation failed for %s", name)
+            sourceView.alpha = 1f
+            targetView.alpha = 1f
+            false
         }
     }
 

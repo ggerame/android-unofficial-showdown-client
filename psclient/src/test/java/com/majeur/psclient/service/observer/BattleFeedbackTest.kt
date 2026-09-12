@@ -26,4 +26,13 @@ class BattleFeedbackTest {
         assertNull(blockedMoveToast("ability: Bulletproof"))
         assertNull(blockedMoveToast(null))
     }
+
+    @Test fun battleStatusesMapToShowdownsAvailableAnimations() {
+        assertEquals("psn", statusAnimationName("tox"))
+        assertEquals("psn", statusAnimationName("psn"))
+        assertEquals("brn", statusAnimationName("brn"))
+        assertEquals("par", statusAnimationName("par"))
+        assertEquals("frz", statusAnimationName("frz"))
+        assertNull(statusAnimationName("slp"))
+    }
 }

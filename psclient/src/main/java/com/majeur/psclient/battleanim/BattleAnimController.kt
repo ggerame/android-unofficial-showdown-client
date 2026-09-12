@@ -37,7 +37,7 @@ interface BattleAnimScene {
     fun participantZ(who: String): Float
 
     /** Asynchronously load an fx particle bitmap (an fx/ basename or a full `https://` URL). */
-    fun loadFx(effect: String, callback: (Bitmap) -> Unit)
+    fun loadFx(effect: String, callback: (Bitmap?) -> Unit)
 
     /** Register a particle for drawing on the field. */
     fun addParticle(particle: AnimParticle)
@@ -134,34 +134,55 @@ class BattleAnimController(private val scene: BattleAnimScene) {
         // it doesn't set from the start keyframe (many effects give only a start position and just
         // scale/fade in place, e.g. selfstatus/Curse — otherwise they'd snap to absolute (0,0,0)).
         val startWho = dominantRel(call.start ?: call.end)
-        val endScene = resolveEndPos(call.end, startScene)
+        val endScene = resolveEndPos(call.start, call.end, startScene)
         val endWho = dominantRel(call.end) ?: startWho
         val fromBox = BattleAnimProjection.project(startScene, FX_SIZE, FX_SIZE)
         val toBox = BattleAnimProjection.project(endScene, FX_SIZE, FX_SIZE)
         val fromState = fxStateAnchored(fromBox, startWho)
         val toState = fxStateAnchored(toBox, endWho)
-        val dur = call.end?.time ?: call.start?.time ?: DEFAULT_TWEEN_MS
+        val timing = effectTiming(call.start?.time, call.end?.time)
 
         val segments = ArrayList<AnimParticle.Segment>()
         if (hasStart && hasEnd) {
             val easings = PropEasings.resolve(call.transition, toBox.top, fromBox.top, endScene.z)
-            segments.add(AnimParticle.Segment(dur, toState, easings))
+            segments.add(AnimParticle.Segment(timing.durationMs, toState, easings))
         } else {
-            segments.add(AnimParticle.Segment(dur, toState, PropEasings()))
+            segments.add(AnimParticle.Segment(timing.durationMs, toState, PropEasings()))
         }
-        if (call.after == "fade") {
-            segments.add(
-                AnimParticle.Segment(
-                    FADE_MS,
-                    AnimParticle.State(toState.left, toState.top, toState.width, toState.height, 0f),
-                    PropEasings(),
+        when (call.after) {
+            "fade" -> {
+                segments.add(
+                    AnimParticle.Segment(
+                        FADE_MS,
+                        AnimParticle.State(toState.left, toState.top, toState.width, toState.height, 0f),
+                        PropEasings(),
+                    )
                 )
-            )
+            }
+            "explode" -> {
+                val exploded = endScene.scaled(3f, opacity = 0f)
+                segments.add(
+                    AnimParticle.Segment(
+                        EXPLODE_MS,
+                        fxStateAnchored(
+                            BattleAnimProjection.project(exploded, FX_SIZE, FX_SIZE),
+                            endWho,
+                        ),
+                        PropEasings(),
+                    )
+                )
+            }
         }
 
-        val particle = AnimParticle(clock0 + timeOffset, fromState, segments)
-        scene.addParticle(particle)
-        loadEffectBitmap(call.effect) { particle.bitmap = it }
+        val scheduledStart = clock0 + timeOffset + timing.startDelayMs
+        loadEffectBitmap(call.effect) { bitmap ->
+            if (bitmap == null) return@loadEffectBitmap
+            // A cold network load can finish after the original animation window. Start it when
+            // the bitmap arrives instead of adding an already-expired, therefore invisible, particle.
+            val particle = AnimParticle(maxOf(scheduledStart, SystemClock.uptimeMillis()), fromState, segments)
+            particle.bitmap = bitmap
+            scene.addParticle(particle)
+        }
     }
 
     private fun spawnSpriteAnim(
@@ -240,10 +261,10 @@ class BattleAnimController(private val scene: BattleAnimScene) {
         return pos.x?.rel ?: pos.y?.rel ?: pos.z?.rel
     }
 
-    private fun loadEffectBitmap(effect: String, cb: (Bitmap) -> Unit) {
+    private fun loadEffectBitmap(effect: String, cb: (Bitmap?) -> Unit) {
         when (effect) {
-            "{attacker}" -> scene.participantBitmap("attacker")?.let(cb)
-            "{defender}" -> scene.participantBitmap("defender")?.let(cb)
+            "{attacker}" -> cb(scene.participantBitmap("attacker"))
+            "{defender}" -> cb(scene.participantBitmap("defender"))
             else -> scene.loadFx(effect, cb)
         }
     }
@@ -267,15 +288,16 @@ class BattleAnimController(private val scene: BattleAnimScene) {
      * (Showdown's `end = {...start, ...end}`), so an effect with only a start position stays put
      * instead of snapping to the scene origin.
      */
-    private fun resolveEndPos(pos: AnimPos?, start: ScenePos): ScenePos {
+    private fun resolveEndPos(rawStart: AnimPos?, pos: AnimPos?, start: ScenePos): ScenePos {
         if (pos == null) return start
+        val scale = pos.scale ?: start.scale
         return ScenePos(
             x = pos.x?.let { resolveCoord(it) } ?: start.x,
             y = pos.y?.let { resolveCoord(it) } ?: start.y,
             z = pos.z?.let { resolveCoord(it) } ?: start.z,
-            scale = pos.scale ?: start.scale,
-            xscale = pos.xscale ?: start.xscale,
-            yscale = pos.yscale ?: start.yscale,
+            scale = scale,
+            xscale = effectEndAxisScale(start.scale, rawStart?.xscale, pos.scale, pos.xscale),
+            yscale = effectEndAxisScale(start.scale, rawStart?.yscale, pos.scale, pos.yscale),
             opacity = pos.opacity ?: start.opacity,
         )
     }
@@ -318,7 +340,32 @@ class BattleAnimController(private val scene: BattleAnimScene) {
 
     companion object {
         private const val FX_SIZE = 96f
-        private const val DEFAULT_TWEEN_MS = 300
-        private const val FADE_MS = 300
+        private const val DEFAULT_TWEEN_MS = 500
+        private const val FADE_MS = 100
+        private const val EXPLODE_MS = 200
     }
 }
+
+internal data class EffectTiming(val startDelayMs: Long, val durationMs: Int)
+
+/** Mirrors Showdown's absolute start/end keyframe times for a single effect. */
+internal fun effectTiming(startTimeMs: Int?, endTimeMs: Int?): EffectTiming {
+    val start = startTimeMs?.coerceAtLeast(0) ?: 0
+    val end = endTimeMs?.takeIf { it > 0 } ?: start + 500
+    return EffectTiming(start.toLong(), (end - start).coerceAtLeast(0))
+}
+
+internal fun effectEndAxisScale(
+    startScale: Float,
+    startAxisScale: Float?,
+    endScale: Float?,
+    endAxisScale: Float?,
+) = endAxisScale ?: startAxisScale ?: endScale ?: startScale
+
+private fun ScenePos.scaled(factor: Float, opacity: Float) = ScenePos(
+    x, y, z,
+    scale * factor,
+    xscale * factor,
+    yscale * factor,
+    opacity,
+)

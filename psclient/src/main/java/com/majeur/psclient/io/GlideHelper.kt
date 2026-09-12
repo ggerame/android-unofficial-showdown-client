@@ -43,6 +43,13 @@ internal fun normalizeAvatarId(avatar: String?): String? = avatar
 internal fun resolveAvatarId(avatar: String?, aliases: Map<String, String>): String? =
         normalizeAvatarId(avatar)?.let { aliases[it] ?: it }
 
+internal fun animFxFileName(effect: String) = when (effect) {
+    "hitmark" -> "hitmarker.png"
+    "pinkicicle" -> "icicle-pink.png"
+    "zsymbol" -> "z-symbol.png"
+    else -> "$effect.png"
+}
+
 class GlideHelper(context: Context) {
 
     enum class SpriteType(private val path: String, private val ext: String) {
@@ -141,12 +148,13 @@ class GlideHelper(context: Context) {
      * Loads a move-animation particle. [effect] is either a full `https://` URL or an fx/ particle
      * basename (e.g. "fireball"), which is resolved to play.pokemonshowdown.com/fx/{effect}.png.
      */
-    fun loadAnimFxBitmap(effect: String, callback: (Bitmap) -> Unit) {
+    fun loadAnimFxBitmap(effect: String, callback: (Bitmap?) -> Unit) {
         val uri = if (effect.startsWith("http")) Uri.parse(effect)
         else Uri.Builder().scheme("https").authority("play.pokemonshowdown.com")
-                .appendPath("fx").appendPath("$effect.png").build()
+                .appendPath("fx").appendPath(animFxFileName(effect)).build()
         glide.asBitmap().load(uri).timeout(NETWORK_TIMEOUT_MS).into(object : CustomTarget<Bitmap>() {
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) = callback(resource)
+            override fun onLoadFailed(errorDrawable: Drawable?) = callback(null)
             override fun onLoadCleared(placeholder: Drawable?) {}
         })
     }

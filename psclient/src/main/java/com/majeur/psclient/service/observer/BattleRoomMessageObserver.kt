@@ -31,6 +31,12 @@ internal fun blockedMoveToast(effect: String?) = when (effect?.substringAfter(':
     else -> null
 }
 
+internal fun statusAnimationName(status: String?) = when (val id = status?.toId()) {
+    "tox", "psn" -> "psn"
+    "brn", "par", "frz" -> id
+    else -> null
+}
+
 class BattleRoomMessageObserver(service: ShowdownService)
     : RoomMessageObserver<BattleRoomMessageObserver.UiCallbacks>(service) {
 
@@ -490,19 +496,27 @@ class BattleRoomMessageObserver(service: ShowdownService)
         val id = getPokemonId(msg.nextArg)
         val rawCondition = msg.nextArg
         val condition = Condition(rawCondition)
+        val from = msg.kwargs["from"]
+        val sourceId = msg.kwargs["of"]?.let { rawId ->
+            runCatching { getPokemonId(rawId) }.getOrNull()
+        }
         actionQueue.enqueueMinorAction {
             // Here we need to do text creation and percentage computation in the action queue to
             // prevent pkmn's condition to be updated too early (ex: damage then heal)
             val percentage = computePercentage(getBattlingPokemon(id)?.condition, condition)
             val text: CharSequence
             text = if (damage)
-                battleTextBuilder.damage(id, percentage, msg.kwargs["from"], msg.kwargs["of"],
+                battleTextBuilder.damage(id, percentage, from, msg.kwargs["of"],
                         msg.kwargs["partiallytrapped"])
             else
-                battleTextBuilder.heal(id, msg.kwargs["from"], msg.kwargs["of"], msg.kwargs["wisher"])
+                battleTextBuilder.heal(id, from, msg.kwargs["of"], msg.kwargs["wisher"])
 
             getBattlingPokemon(id)?.condition = condition
             onHealthChanged(id, condition)
+            if (damage) when (val effectId = from?.substringAfter(':')?.toId()) {
+                "brn", "psn", "tox" -> statusAnimationName(effectId)?.let { onStatusAnimation(id, it) }
+                "leechseed" -> sourceId?.let { onOtherAnimation(it, id, "leech") }
+            }
             displayMinorActionMessage(text)
             onDisplayBattleToast(id,
                     (if (damage) "-" else "+") + percentage,
@@ -524,6 +538,7 @@ class BattleRoomMessageObserver(service: ShowdownService)
             if (id.isInBattle) {
                 getBattlingPokemon(id)!!.condition?.status = if (cure) null else status
                 onStatusChanged(id, if (cure) null else status)
+                if (!cure) statusAnimationName(status)?.let { onStatusAnimation(id, it) }
             }
             displayMinorActionMessage(text)
         }
@@ -928,6 +943,9 @@ class BattleRoomMessageObserver(service: ShowdownService)
     private fun onDecisionRequest(request: BattleDecisionRequest) = uiCallbacks?.onDecisionRequest(request)
     private fun onHealthChanged(id: PokemonId, condition: Condition) = uiCallbacks?.onHealthChanged(id, condition)
     private fun onStatusChanged(id: PokemonId, status: String?) = uiCallbacks?.onStatusChanged(id, status)
+    private fun onStatusAnimation(id: PokemonId, name: String) = uiCallbacks?.onStatusAnimation(id, name)
+    private fun onOtherAnimation(sourceId: PokemonId, targetId: PokemonId, name: String) =
+            uiCallbacks?.onOtherAnimation(sourceId, targetId, name)
     private fun onTeraType(id: PokemonId, type: String) = uiCallbacks?.onTeraType(id, type)
     private fun onStatChanged(id: PokemonId) = uiCallbacks?.onStatChanged(id)
     private fun onDisplayBattleToast(id: PokemonId, text: String, color: Int) = uiCallbacks?.onDisplayBattleToast(id, text, color)
@@ -953,6 +971,8 @@ class BattleRoomMessageObserver(service: ShowdownService)
         fun onDecisionRequest(request: BattleDecisionRequest)
         fun onHealthChanged(id: PokemonId, condition: Condition)
         fun onStatusChanged(id: PokemonId, status: String?)
+        fun onStatusAnimation(id: PokemonId, name: String)
+        fun onOtherAnimation(sourceId: PokemonId, targetId: PokemonId, name: String)
         fun onTeraType(id: PokemonId, type: String)
         fun onStatChanged(id: PokemonId)
         fun onDisplayBattleToast(id: PokemonId, text: String, color: Int)

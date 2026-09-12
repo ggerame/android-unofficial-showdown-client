@@ -35,6 +35,21 @@ internal fun containmentOffset(start: Int, end: Int, containerSize: Int) = when 
     else -> 0
 }
 
+internal data class SideTagBounds(val left: Int, val top: Int, val right: Int)
+internal data class SideTagAnchor(val x: Int, val bottom: Int)
+
+internal fun sideTagAnchor(bounds: Iterable<SideTagBounds>, onLeft: Boolean, gap: Int): SideTagAnchor? {
+    var x = if (onLeft) Int.MAX_VALUE else Int.MIN_VALUE
+    var top = Int.MAX_VALUE
+    var found = false
+    for (bound in bounds) {
+        x = if (onLeft) minOf(x, bound.left) else maxOf(x, bound.right)
+        top = minOf(top, bound.top)
+        found = true
+    }
+    return if (found) SideTagAnchor(x, top - gap) else null
+}
+
 class BattleLayout @JvmOverloads constructor(
         context: Context?,
         attrs: AttributeSet? = null,
@@ -55,6 +70,7 @@ class BattleLayout @JvmOverloads constructor(
         }
 
     private val spriteStatusGap = dp(6f)
+    private val sideTagGap = dp(2f)
     internal var nearOverlayInset = 0
         set(value) {
             val inset = value.coerceAtLeast(0)
@@ -399,12 +415,24 @@ class BattleLayout @JvmOverloads constructor(
                 nearImageViews, nearStatusViews, nearToasterViews)
         layoutBattleSide(count, width, height, height, farPositions,
                 farImageViews, farStatusViews, farToasterViews)
-        val nearSideView = if (flipped) p2SideView else p1SideView
-        val farSideView = if (flipped) p1SideView else p2SideView
-        nearSideView.gravity = Gravity.LEFT
-        farSideView.gravity = Gravity.END
-        layoutChild(nearSideView, 0, 4 * height / 5, Gravity.CENTER_VERTICAL, true)
-        layoutChild(farSideView, width, 3 * height / 5, Gravity.CENTER_VERTICAL, true)
+        layoutSideView(if (flipped) p2SideView else p1SideView, nearStatusViews, onLeft = true)
+        layoutSideView(if (flipped) p1SideView else p2SideView, farStatusViews, onLeft = false)
+    }
+
+    /** Places team-wide conditions directly above the relevant side's active HP bars. */
+    private fun layoutSideView(sideView: SideView, statusViews: SparseArray<StatusView>, onLeft: Boolean) {
+        val bounds = (0 until statusViews.size()).map { index ->
+            statusViews.valueAt(index).let { SideTagBounds(it.left, it.top, it.right) }
+        }
+        val anchor = sideTagAnchor(bounds, onLeft, sideTagGap) ?: return
+        sideView.gravity = if (onLeft) Gravity.LEFT else Gravity.END
+        layoutChild(
+            sideView,
+            anchor.x,
+            anchor.bottom,
+            (if (onLeft) Gravity.LEFT else Gravity.RIGHT) or Gravity.BOTTOM,
+            true,
+        )
     }
 
     private fun layoutBattleSide(count: Int, width: Int, height: Int, visibleBottom: Int,

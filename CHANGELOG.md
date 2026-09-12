@@ -23,6 +23,7 @@ All notable changes made are documented here.
 - Toxic and Leech Seed now animate correctly, including poison application and
   residual poison, burn and Leech Seed effects; status moves without a dedicated
   sequence show a brief visual fallback.
+- Team badges
 
 ## [1.6.5] – Friends
 

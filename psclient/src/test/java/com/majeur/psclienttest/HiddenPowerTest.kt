@@ -12,6 +12,7 @@ class HiddenPowerTest {
     @Test fun recognizesCanonicalAndExportedMoveNames() {
         assertEquals("Ice", Type.hiddenPowerType("hiddenpowerice"))
         assertEquals("Fire", Type.hiddenPowerType("Hidden Power [Fire]"))
+        assertEquals("Ice", Type.hiddenPowerType("Hidden Power Ice 60"))
         assertNull(Type.hiddenPowerType("Hidden Power"))
         assertNull(Type.hiddenPowerType("hiddenpowerfairy"))
     }

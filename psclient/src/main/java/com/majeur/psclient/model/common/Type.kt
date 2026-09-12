@@ -49,7 +49,7 @@ object Type {
     fun hiddenPowerType(move: String?): String? {
         val id = move.orEmpty().toId()
         if (!id.startsWith("hiddenpower")) return null
-        val typeId = id.removePrefix("hiddenpower")
+        val typeId = id.removePrefix("hiddenpower").trimEnd(Char::isDigit)
         return HP_TYPES.firstOrNull { it.toId() == typeId }
     }
 

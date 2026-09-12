@@ -2,6 +2,22 @@
 
 All notable changes made are documented here.
 
+## [1.6.6] – Battle move indicators and fixes
+
+### Added
+- Battle move choices now show their STAB multiplier, including Adaptability
+  and Terastallization, with a cautious indicator for Stellar boosts.
+
+### Changed
+- Selecting Terastallization immediately previews updated STAB values and
+  Tera Blast's type, colour and matchup effectiveness.
+- Friend rows now provide direct Chat and Challenge actions.
+
+### Fixed
+- Move buttons keep a consistent height and alignment when STAB labels appear.
+- Hidden Power variants with generation-specific power values now use their
+  correct type colour, STAB, matchup effectiveness and popup details.
+
 ## [1.6.5] – Friends
 
 ### Added

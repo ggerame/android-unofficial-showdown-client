@@ -1,6 +1,7 @@
 package com.majeur.psclient.model.battle
 
 import com.majeur.psclient.model.common.Colors.typeColor
+import com.majeur.psclient.model.common.Type
 import com.majeur.psclient.util.toId
 import org.json.JSONObject
 
@@ -136,5 +137,8 @@ class Move(val index: Int, json: JSONObject, zJson: JSONObject?, maxJson: JSONOb
     }
 }
 
-internal fun resolveMoveDetailsId(id: String, requestName: String) =
-        if (id == "hiddenpower") requestName.toId() else id
+internal fun resolveMoveDetailsId(id: String, requestName: String): String {
+    if (!id.toId().startsWith("hiddenpower")) return id
+    val type = Type.hiddenPowerType(id) ?: Type.hiddenPowerType(requestName)
+    return type?.let(Type::hiddenPowerMoveId) ?: "hiddenpower"
+}

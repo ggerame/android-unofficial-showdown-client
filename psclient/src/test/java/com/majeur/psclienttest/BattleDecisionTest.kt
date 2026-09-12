@@ -13,6 +13,8 @@ class BattleDecisionTest {
     @Test
     fun `loads the typed Hidden Power details instead of the Normal base record`() {
         assertEquals("hiddenpowerice", resolveMoveDetailsId("hiddenpower", "Hidden Power Ice"))
+        assertEquals("hiddenpowerice", resolveMoveDetailsId("hiddenpower", "Hidden Power Ice 60"))
+        assertEquals("hiddenpowerice", resolveMoveDetailsId("hiddenpowerice60", "Hidden Power Ice 60"))
         assertEquals("hiddenpower", resolveMoveDetailsId("hiddenpower", "Hidden Power"))
         assertEquals("flamethrower", resolveMoveDetailsId("flamethrower", "Flamethrower"))
     }
